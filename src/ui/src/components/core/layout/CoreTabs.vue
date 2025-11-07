@@ -1,5 +1,5 @@
 <template>
-	<div ref="rootInstance" class="CoreTabs">
+	<div class="CoreTabs">
 		<nav
 			class="tabSelector horizontal"
 			data-writer-cage
@@ -26,7 +26,6 @@ import {
 	buttonShadow,
 	cssClasses,
 } from "@/renderer/sharedStyleFields";
-import { useFormValueBroker } from "@/renderer/useFormValueBroker";
 
 const tabChangeHandlerStub = `
 def tab_change_handler(state, payload):
@@ -49,7 +48,6 @@ export default {
 				desc: "Sent when the active tab changes.",
 				stub: tabChangeHandlerStub.trim(),
 				eventPayloadExample: "Tab Name",
-				bindable: true,
 			},
 		},
 		fields: {
@@ -68,76 +66,11 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { ComponentPublicInstance, inject, onMounted, ref, watch } from "vue";
-import { useEvaluator } from "@/renderer/useEvaluator";
+import { inject } from "vue";
 import injectionKeys from "@/injectionKeys";
-const rootInstance = ref<ComponentPublicInstance | null>(null);
-const wf = inject(injectionKeys.core);
-const instancePath = inject(injectionKeys.instancePath);
+
 const instanceData = inject(injectionKeys.instanceData);
-const containerState = instanceData.at(-1);
-const { isComponentVisible } = useEvaluator(wf);
-
-const { formValue, handleInput } = useFormValueBroker(
-	wf,
-	instancePath,
-	rootInstance,
-);
-
-containerState.value = {
-	activeTab: undefined,
-	activeTabName: formValue.value,
-	tabs: [],
-};
-
-watch(
-	() => containerState.value?.activeTabName,
-	(activeTabName) => {
-		if (!rootInstance.value) return;
-		if (activeTabName === formValue.value) return;
-		handleInput(activeTabName, "wf-tab-change");
-	},
-);
-
-watch(formValue, (newTabName) => {
-	if (newTabName === containerState.value.activeTabName) return;
-	if (!containerState.value.tabs?.length) return;
-
-	const visibleTabs = containerState.value.tabs.filter((t) =>
-		isComponentVisible(t.componentId, t.instancePath),
-	);
-	if (!visibleTabs.length) return;
-
-	let tabToActivate = visibleTabs.find((t) => t.name === newTabName);
-
-	if (!tabToActivate) {
-		const currentActiveInState = visibleTabs.find(
-			(t) => t.name === containerState.value.activeTabName,
-		);
-		tabToActivate = currentActiveInState ?? visibleTabs[0];
-	}
-
-	containerState.value.activeTab = tabToActivate.instancePath;
-	containerState.value.activeTabName = tabToActivate.name;
-});
-
-onMounted(() => {
-	if (containerState.value.activeTab) return;
-	if (!containerState.value.tabs) return;
-
-	const visibleTabs = containerState.value.tabs.filter((t) =>
-		isComponentVisible(t.componentId, t.instancePath),
-	);
-	if (visibleTabs.length === 0) return;
-
-	const initialActiveTabName = containerState.value.activeTabName;
-	const tabToActivate =
-		visibleTabs.find((t) => t.name === initialActiveTabName) ??
-		visibleTabs[0];
-
-	containerState.value.activeTab = tabToActivate.instancePath;
-	containerState.value.activeTabName = tabToActivate.name;
-});
+instanceData.at(-1).value = { activeTab: undefined };
 </script>
 
 <style scoped>
