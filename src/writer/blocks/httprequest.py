@@ -30,7 +30,7 @@ class HTTPRequest(BlueprintBlock):
                             },
                             "validator": {
                                 "type": "string",
-                                "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+                                "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", ""],
                             },
                         },
                         "url": {
