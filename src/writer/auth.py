@@ -244,9 +244,20 @@ class Oidc(Auth):
                 response = RedirectResponse(url=host_url_path)
                 session_id = session_manager.generate_session_id()
 
+                # Sanitize cookies and headers to remove qToken from user code access
+                from writer.serve import secure_token_manager
+                sanitized_cookies, sanitized_headers, q_token = secure_token_manager.sanitize_request(
+                    dict(request.cookies),
+                    dict(request.headers)
+                )
+
                 app_runner = writer.serve.app_runner(asgi_app)
                 await app_runner.init_session(InitSessionRequestPayload(
-                    cookies=request.cookies, headers=request.headers, proposedSessionId=session_id))
+                    cookies=sanitized_cookies, 
+                    headers=sanitized_headers, 
+                    proposedSessionId=session_id,
+                    secure_token=q_token
+                ))
 
                 userinfo = {}
                 if self.url_userinfo:

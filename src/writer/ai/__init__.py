@@ -308,9 +308,12 @@ class WriterAIManager:
             headers = current_session.headers or {}
             agent_token_header = headers.get("x-agent-token")
             if agent_token_header:
-                custom_headers = {
-                        "X-Agent-Token": agent_token_header
-                    }
+                custom_headers["X-Agent-Token"] = agent_token_header
+            
+            # Add qToken as x-auth-token if available
+            q_token = current_session.get_secure_token()
+            if q_token:
+                custom_headers["x-auth-token"] = q_token
 
         try:
             context_client = _ai_client.get(None)

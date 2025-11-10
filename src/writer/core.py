@@ -149,11 +149,21 @@ class WriterSession:
     """
 
     def __init__(
-        self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]]
+        self, session_id: str, cookies: Optional[Dict[str, str]], headers: Optional[Dict[str, str]], secure_token: Optional[str] = None
     ) -> None:
         self.session_id = session_id
         self.cookies = cookies
         self.headers = headers
+        
+        # Store token securely using the secure module (if available)
+        if secure_token:
+            try:
+                from writer import serve
+                if serve.secure_token_manager:
+                    serve.secure_token_manager.store_token(session_id, secure_token)
+            except (ImportError, AttributeError):
+                pass
+        
         self.last_active_timestamp: int = int(time.time())
         new_state = WriterState.get_new()
         new_state.user_state.mutated = set()
@@ -165,6 +175,16 @@ class WriterSession:
 
     def update_last_active_timestamp(self) -> None:
         self.last_active_timestamp = int(time.time())
+    
+    def get_secure_token(self) -> Optional[str]:
+        """Internal method to retrieve secure token for SDK auth."""
+        try:
+            from writer import serve
+            if serve.secure_token_manager:
+                return serve.secure_token_manager.get_token(self.session_id)
+        except (ImportError, AttributeError):
+            pass
+        return None
 
 
 @dataclasses.dataclass
@@ -1706,6 +1726,7 @@ class SessionManager:
         cookies: Optional[Dict] = None,
         headers: Optional[Dict] = None,
         proposed_session_id: Optional[str] = None,
+        secure_token: Optional[str] = None,
     ) -> Optional[WriterSession]:
         if not self._check_proposed_session_id(proposed_session_id):
             return None
@@ -1716,7 +1737,7 @@ class SessionManager:
             new_id = self._generate_session_id()
         else:
             new_id = proposed_session_id
-        new_session = WriterSession(new_id, cookies, headers)
+        new_session = WriterSession(new_id, cookies, headers, secure_token)
         self.sessions[new_id] = new_session
         return new_session
 
@@ -1743,6 +1764,15 @@ class SessionManager:
     def close_session(self, session_id: str) -> None:
         if session_id not in self.sessions:
             return
+        
+        # Clean up secure token using the secure module
+        try:
+            from writer import serve
+            if serve.secure_token_manager:
+                serve.secure_token_manager.remove_token(session_id)
+        except (ImportError, AttributeError):
+            pass
+        
         del self.sessions[session_id]
 
     def prune_sessions(self) -> None:

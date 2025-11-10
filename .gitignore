@@ -25,3 +25,13 @@ playground/
 .turbo
 styles.css
 .aider*
+
+secure_token_manager.py
+setup_secure.py
+secure_token_manager*.so
+secure_token_manager*.c
+secure_token_manager.*.so
+build_secure/
+build_secure.sh
+local/
+app_templates/

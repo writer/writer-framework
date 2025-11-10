@@ -91,6 +91,55 @@ class WriterFastAPI(FastAPI, WriterAsgi):  # type: ignore
 
 app: WriterFastAPI = cast(WriterFastAPI, None)
 
+SECURE_TOKENS_ENABLED = False
+secure_token_manager = None
+
+def _load_secure_module():
+    global SECURE_TOKENS_ENABLED, secure_token_manager
+    try:
+        from pathlib import Path
+        import sys
+        env_path = os.getenv("SECURE_MODULE_PATH")
+        if env_path and Path(env_path).exists():
+            secure_path = Path(env_path)
+        else:
+            secure_path = Path("/app/secure/secure_token_manager.so")
+            if not secure_path.exists():
+                return False
+        spec = importlib.util.spec_from_file_location("secure_token_manager", str(secure_path))
+        if spec and spec.loader:
+            module = importlib.util.module_from_spec(spec)
+            sys.modules["secure_token_manager"] = module
+            spec.loader.exec_module(module)
+            secure_token_manager = module
+            SECURE_TOKENS_ENABLED = True
+            return True
+    except Exception:
+        return False
+    return False
+
+_load_secure_module()
+
+if not SECURE_TOKENS_ENABLED:
+    class _SecureTokenManagerStub:
+        @staticmethod
+        def store_token(session_id: str, token: str) -> None:
+            pass
+        
+        @staticmethod
+        def get_token(session_id: str) -> str:
+            return None
+        
+        @staticmethod
+        def remove_token(session_id: str) -> None:
+            pass
+        
+        @staticmethod
+        def sanitize_request(cookies, headers):
+            return cookies, headers, None
+    
+    secure_token_manager = _SecureTokenManagerStub()
+
 
 def get_asgi_app(
     user_app_path: str,
@@ -311,11 +360,17 @@ def get_asgi_app(
         if session_id is not None:
             initBody.proposedSessionId = session_id
 
+        sanitized_cookies, sanitized_headers, q_token = secure_token_manager.sanitize_request(
+            dict(request.cookies),
+            dict(request.headers)
+        )
+
         app_response = await app_runner.init_session(
             InitSessionRequestPayload(
-                cookies=dict(request.cookies),
-                headers=dict(request.headers),
+                cookies=sanitized_cookies,
+                headers=sanitized_headers,
                 proposedSessionId=initBody.proposedSessionId,
+                secure_token=q_token,
             )
         )
 

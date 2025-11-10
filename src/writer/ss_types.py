@@ -130,6 +130,7 @@ class InitSessionRequestPayload(BaseModel):
     cookies: Optional[Dict[str, str]] = None
     headers: Optional[Dict[str, str]] = None
     proposedSessionId: Optional[str] = None
+    secure_token: Optional[str] = None
 
 
 class InitSessionRequest(AppProcessServerRequest):

@@ -162,8 +162,13 @@ class AppProcess(multiprocessing.Process):
         )
         if session is None:
             session = writer.session_manager.get_new_session(
-                payload.cookies, payload.headers, payload.proposedSessionId
+                payload.cookies, payload.headers, payload.proposedSessionId, payload.secure_token
             )
+        else:
+            # Update existing session with sanitized cookies/headers
+            # This ensures qToken is removed even when reusing sessions
+            session.cookies = payload.cookies
+            session.headers = payload.headers
 
         if session is None:
             raise MessageHandlingException("Session rejected.")
