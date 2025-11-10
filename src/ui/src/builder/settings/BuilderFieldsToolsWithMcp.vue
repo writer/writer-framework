@@ -127,6 +127,7 @@ import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 import injectionKeys from "@/injectionKeys";
 import { useWriterApi } from "@/composables/useWriterApi";
 import type { WriterApiMcpTool } from "@/writerApi";
+import { useLogger } from "@/composables/useLogger";
 
 type FunctionTool = {
 	type: "function";
@@ -169,6 +170,7 @@ type McpTool = {
 type Tool = FunctionTool | GraphTool | WebSearchTool | McpTool;
 
 const wf = inject(injectionKeys.core);
+const logger = useLogger();
 
 const { writerApi } = useWriterApi();
 
@@ -287,15 +289,14 @@ const fieldViewModel = useComponentFieldViewModel({
 const tools = computed<Record<string, Tool>>(() => {
 	try {
 		return JSON.parse(fieldViewModel.value);
-	} catch {
+	} catch (e) {
+		logger.error(e);
 		return {};
 	}
 });
 </script>
 
 <style scoped>
-@import "../sharedStyles.css";
-
 .BuilderFieldsToolsWithMcp {
 	--separatorColor: var(--builderSeparatorColor);
 	--intensifiedButtonColor: red;

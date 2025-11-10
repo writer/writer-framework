@@ -17,7 +17,7 @@ class WriterChatReplyWithToolConfig(WriterBlock):
                 baseType="blueprints_node",
                 writer={
                     "name": "Chat reply with tool config",
-                    "description": "Initializes conversations, adds messages, and generates replies with tool configuration.",
+                    "description": "Initializes conversations, adds messages, and generates replies with tool configuration. NOTE: This is a temporary block with MCP tools mocked - tool calls use hardcoded mock responses instead of making actual HTTP requests.",
                     "category": "Writer",
                     "fields": {
                         "conversationStateElement": {

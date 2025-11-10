@@ -253,7 +253,7 @@ export class WriterApi {
 	): Promise<WriterApiMcpApp[]> {
 		const url = new URL(
 			`/api/mcp-gateway/v2/organization/${orgId}/app-configurations`,
-			"https://app.qordobadev.com",
+			this.#baseUrl,
 		);
 		const params = new URLSearchParams({
 			limit: "100",
@@ -290,7 +290,7 @@ export class WriterApi {
 	): Promise<WriterApiMcpFunction[]> {
 		const url = new URL(
 			`/api/mcp-gateway/v1/functions/list/${appId}`,
-			"https://app.qordobadev.com",
+			this.#baseUrl,
 		);
 
 		const headers = {
