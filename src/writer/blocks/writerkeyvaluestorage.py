@@ -63,7 +63,7 @@ class WriterKeyValueStorage(WriterBlock):
         from writer.keyvalue_storage import KeyValueStorage
 
         try:
-            action = self._get_field("action", required=True)
+            action = self._get_field("action", default_field_value="Save")
             key = self._get_field("key", required=True)
             if not ALLOWED_CHARS.fullmatch(key):
                 raise ValueError("Key can only contain alphanumeric characters, underscores and hyphens")
