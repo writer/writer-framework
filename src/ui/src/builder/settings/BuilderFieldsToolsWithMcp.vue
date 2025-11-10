@@ -159,14 +159,14 @@ type McpToolFunction = {
 	[key: string]: unknown;
 };
 
-type McpToolType = {
+type McpTool = {
 	type: "mcp";
 	appId: string;
 	functionName: string;
 	function: McpToolFunction;
 };
 
-type Tool = FunctionTool | GraphTool | WebSearchTool | McpToolType;
+type Tool = FunctionTool | GraphTool | WebSearchTool | McpTool;
 
 const wf = inject(injectionKeys.core);
 
@@ -231,7 +231,7 @@ function toggleTool(tool: WriterApiMcpTool, checked: boolean) {
 	const toolName = normalizeToolName(tool);
 
 	if (checked) {
-		const mcpTool: McpToolType = {
+		const mcpTool: McpTool = {
 			type: "mcp",
 			appId: tool.appId,
 			functionName: tool.functionName,
@@ -242,18 +242,16 @@ function toggleTool(tool: WriterApiMcpTool, checked: boolean) {
 			[toolName]: mcpTool,
 		});
 	} else {
-		const updatedTools = { ...tools.value };
-		delete updatedTools[toolName];
+		const { [toolName]: _, ...updatedTools } = tools.value;
 		fieldViewModel.value = JSON.stringify(updatedTools);
 	}
 }
 
 async function loadMcpTools() {
-	const orgId = wf.writerOrgId.value || 1;
+	const orgId = wf.writerOrgId.value;
 
 	if (!orgId) {
-		const error = new Error("No organization ID available");
-		mcpToolsError.value = error;
+		mcpToolsError.value = new Error("No organization ID available");
 		return;
 	}
 
