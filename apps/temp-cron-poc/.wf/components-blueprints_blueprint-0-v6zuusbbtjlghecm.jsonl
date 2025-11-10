@@ -1,3 +1,0 @@
-{"id": "v6zuusbbtjlghecm", "type": "blueprints_blueprint", "content": {"key": "Scheduled_Blueprint"}, "handlers": {}, "isCodeManaged": false, "parentId": "blueprints_root", "position": 0}
-{"id": "mnneeyjwlfryecve", "type": "blueprints_crontrigger", "content": {"alias": "", "cronExpression": "* * * * *", "timezone": "Europe/London"}, "handlers": {}, "isCodeManaged": false, "outs": [{"toNodeId": "1o1ceu0ww0toe00b", "outId": "trigger"}], "parentId": "v6zuusbbtjlghecm", "position": 0, "x": 120, "y": 216}
-{"id": "1o1ceu0ww0toe00b", "type": "blueprints_returnvalue", "content": {"value": "Uzair's cron trigger executed successfully!"}, "handlers": {}, "isCodeManaged": false, "parentId": "v6zuusbbtjlghecm", "position": 1, "x": 721, "y": 290}

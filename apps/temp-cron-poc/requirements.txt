@@ -1,2 +1,0 @@
-writer==0.8.3rc21
-writer==1.16.1
