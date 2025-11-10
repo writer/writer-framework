@@ -198,8 +198,17 @@
 						:error="errorsByFields[fieldKey]"
 					/>
 
+					<BuilderFieldsToolsWithMcp
+						v-if="
+							fieldValue.type == FieldType.Tools &&
+							selectedComponent.type ===
+								'blueprints_writerchatreplywithtoolconfig'
+						"
+						:field-key="fieldKey"
+						:component-id="selectedComponent.id"
+					/>
 					<BuilderFieldsTools
-						v-if="fieldValue.type == FieldType.Tools"
+						v-else-if="fieldValue.type == FieldType.Tools"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 					/>
@@ -252,6 +261,7 @@ import BuilderFieldsShadow from "./BuilderFieldsShadow.vue";
 import BuilderFieldsText from "./BuilderFieldsText.vue";
 import BuilderFieldsWidth from "./BuilderFieldsWidth.vue";
 import BuilderFieldsTools from "./BuilderFieldsTools.vue";
+import BuilderFieldsToolsWithMcp from "./BuilderFieldsToolsWithMcp.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import BuilderFieldsCode from "./BuilderFieldsCode.vue";
 import BuilderFieldsBlueprintKey from "./BuilderFieldsBlueprintKey.vue";

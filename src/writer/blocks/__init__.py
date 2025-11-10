@@ -27,6 +27,7 @@ from writer.blocks.writerstructuredoutput import WriterStructuredOutput
 from writer.blocks.writertoolcalling import WriterToolCalling
 from writer.blocks.writervision import WriterVision
 from writer.blocks.writerwebsearch import WriterWebSearch
+from writer.blocks.writerchatreplywithtoolconfig import WriterChatReplyWithToolConfig
  
 SetState.register("blueprints_setstate")
 WriterClassification.register("blueprints_writerclassification")
@@ -57,3 +58,4 @@ WriterUploadFile.register("blueprints_writeruploadfile")
 WriterVision.register("blueprints_writervision")
 WriterWebSearch.register("blueprints_writerwebsearch")
 WriterKeyValueStorage.register("blueprints_writerkeyvaluestorage")
+WriterChatReplyWithToolConfig.register("blueprints_writerchatreplywithtoolconfig")
