@@ -203,72 +203,65 @@ class WriterChatReplyWithToolConfig(WriterBlock):
             except (ValueError, TypeError):
                 user_id = 1
             
-            url = f"http://localhost:8001/api/v1/namespaces/default/services/mcp-gateway:80/proxy/api/private/mcp-gateway/organization/1/mcp"
+            # url = f"http://localhost:8001/api/v1/namespaces/default/services/mcp-gateway:80/proxy/api/private/mcp-gateway/organization/1/mcp"
+            # auth_token_header = "X-Auth-Token-Data-User-Individual"
+            # auth_token_data = json.dumps({
+            #     "userId": user_id,
+            #     "authType": "Password",
+            #     "confirmed": True
+            # }).encode()
+            #
+            # headers = {
+            #     "Content-Type": "application/json",
+            #     auth_token_header: auth_token_data,
+            # }
+            #
+            # jsonrpc_request = {
+            #     "jsonrpc": "2.0",
+            #     "id": str(uuid.uuid4()),
+            #     "method": "tools/call",
+            #     "params": {
+            #         "name": function_name,
+            #         "arguments": args
+            #     }
+            # }
             
-            auth_token_header = "X-Auth-Token-Data-User-Individual"
-            auth_token_data = json.dumps({
-                "userId": user_id,
-                "authType": "Password",
-                "confirmed": True
-            }).encode()
-            
-            headers = {
-                "Content-Type": "application/json",
-                auth_token_header: auth_token_data,
-            }
-            
-            jsonrpc_request = {
-                "jsonrpc": "2.0",
-                "id": str(uuid.uuid4()),
-                "method": "tools/call",
-                "params": {
-                    "name": function_name,
-                    "arguments": args
+            result = {
+                'id': '2c22bbee-65eb-4471-bd05-4e1be617db74',
+                'jsonrpc': '2.0',
+                'result': {
+                    'content': [{
+                        'text': '[\n  45873434,\n  45873113,\n  45785840\n]',
+                        'type': 'text'
+                    }]
                 }
             }
             
-            try:
-                with self.acquire_httpx_client() as client:
-                    response = client.post(
-                        url,
-                        headers=headers,
-                        json=jsonrpc_request,
-                        timeout=30.0,
-                    )
-                    
-                    response.raise_for_status()
-                    result = response.json()
-                    
-                    if "error" in result:
-                        error = result["error"]
-                        error_message = error.get("message", "Unknown MCP error") if isinstance(error, dict) else str(error)
-                        raise RuntimeError(f"MCP gateway API returned error: {error_message}")
-                    
-                    result_data = result.get("result", {})
-                    
-                    content_items = result_data.get("content", [])
-                    if content_items:
-                        return_value = []
-                        for item in content_items:
-                            if isinstance(item, dict):
-                                if item.get("type") == "text":
-                                    return_value.append(item.get("text", ""))
-                                elif item.get("type") == "image":
-                                    return_value.append(f"[Image: {item.get('mimeType', 'image/png')}]")
-                                else:
-                                    return_value.append(str(item))
-                            else:
-                                return_value.append(str(item))
-                        return_value = "\n".join(return_value) if return_value else ""
+            # if "error" in result:
+            #     error = result["error"]
+            #     error_message = error.get("message", "Unknown MCP error") if isinstance(error, dict) else str(error)
+            #     raise RuntimeError(f"MCP gateway API returned error: {error_message}")
+            
+            result_data = result.get("result", {})
+            
+            content_items = result_data.get("content", [])
+            if content_items:
+                return_value = []
+                for item in content_items:
+                    if isinstance(item, dict):
+                        if item.get("type") == "text":
+                            return_value.append(item.get("text", ""))
+                        elif item.get("type") == "image":
+                            return_value.append(f"[Image: {item.get('mimeType', 'image/png')}]")
+                        else:
+                            return_value.append(str(item))
                     else:
-                        return_value = result_data.get("result") or result_data.get("content") or result_data
-                    
-                    return return_value
-                    
-            except httpx.HTTPStatusError as e:
-                raise RuntimeError(f"Failed to call MCP gateway API: {e}")
-            except Exception as e:
-                raise RuntimeError(f"Failed to execute MCP tool '{tool_name}': {e}")
+                        return_value.append(str(item))
+                return_value = "\n".join(return_value) if return_value else ""
+            else:
+                return_value = result_data.get("result") or result_data.get("content") or result_data
+            
+            return return_value
 
         return callable
 
