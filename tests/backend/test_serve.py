@@ -238,6 +238,24 @@ class TestServe:
             feature_flags = res.json().get("featureFlags")
             assert feature_flags == ["blueprints", "flag_one", "flag_two", "api_trigger"]
 
+    def test_get_cron_triggers_api(self):
+        """
+        Test that the cron triggers API endpoint returns a list of cron trigger blocks.
+        """
+        asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
+        with fastapi.testclient.TestClient(asgi_app) as client:
+            res = client.get("/private/api/cron-triggers")
+            assert res.status_code == 200
+            cron_triggers = res.json()
+            assert isinstance(cron_triggers, list)
+
+            for trigger in cron_triggers:
+                assert "id" in trigger and trigger.get("id") is not None
+                assert "blueprint_id" in trigger and trigger.get("blueprint_id") is not None
+                assert "name" in trigger and trigger.get("name") is not None
+                assert "cron_expression" in trigger and trigger.get("cron_expression") is not None
+                assert "timezone" in trigger and trigger.get("timezone") is not None
+
     def test_create_blueprint_job_api(self, monkeypatch):
         asgi_app = writer.serve.get_asgi_app(test_app_dir, "run")
         monkeypatch.setenv("WRITER_SECRET_KEY", "abc")
