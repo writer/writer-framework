@@ -392,7 +392,7 @@ def get_asgi_app(
                 "id": comp.get("id"),
                 "blueprint_id": comp.get("parentId"),
                 "name": comp.get("name") or comp.get("content", {}).get("name"),
-                "cron_expression": comp.get("content", {}).get("cronExpression"),
+                "cron_expression": comp.get("content", {}).get("cronExpression", ""),
                 "timezone": comp.get("content", {}).get("timezone", "UTC"),
             }
             for comp in app_runner.bmc_components.values()
