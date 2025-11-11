@@ -16,6 +16,7 @@ from writer.blocks.writeraddtokg import WriterAddToKG
 from writer.blocks.writeraskkg import WriterAskGraphQuestion
 from writer.blocks.writerchat import WriterChat
 from writer.blocks.writerchatreply import WriterChatReply
+from writer.blocks.writerchatreplywithtoolconfig import WriterChatReplyWithToolConfig
 from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerfileapi import WriterUploadFile
@@ -27,8 +28,7 @@ from writer.blocks.writerstructuredoutput import WriterStructuredOutput
 from writer.blocks.writertoolcalling import WriterToolCalling
 from writer.blocks.writervision import WriterVision
 from writer.blocks.writerwebsearch import WriterWebSearch
-from writer.blocks.writerchatreplywithtoolconfig import WriterChatReplyWithToolConfig
- 
+
 SetState.register("blueprints_setstate")
 WriterClassification.register("blueprints_writerclassification")
 WriterCompletion.register("blueprints_writercompletion")

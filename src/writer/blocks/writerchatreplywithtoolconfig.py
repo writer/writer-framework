@@ -175,11 +175,12 @@ class WriterChatReplyWithToolConfig(WriterBlock):
 
     def _make_callable(self, tool_name: str, app_id: str, function_name: str):
         def callable(**args):
-            import os
-            import httpx
-            import uuid
             import json
-            
+            import os
+            import uuid
+
+            import httpx
+
             from writer.core import get_session
             current_session = get_session()
             
@@ -283,8 +284,7 @@ class WriterChatReplyWithToolConfig(WriterBlock):
                 raise WriterConfigurationError(f"Invalid numeric value in configuration: {e}")
             use_streaming = self._get_field("useStreaming", False, "yes") == "yes"
             tools_raw = self._get_field("tools", True)
-            tool_config = self._get_field("toolConfig", True, default_field_value="{}")
-            
+
             tools = []
 
             conversation = self.evaluator.evaluate_expression(
@@ -361,8 +361,8 @@ class WriterChatReplyWithToolConfig(WriterBlock):
                         parameters=parameters or {},
                     )
                     tools.append(tool)
-                        
-                except Exception as e:
+
+                except Exception:
                     continue
             
             if tools_raw and len(tools) == 0:
