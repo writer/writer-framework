@@ -379,31 +379,24 @@ def get_asgi_app(
 
         return JSONResponse(content=blueprints)
 
-    @app.get("/private/api/blueprint/{blueprint_id}/cron-triggers")
-    async def get_blueprint_cron_triggers(blueprint_id: str, request: Request):
+    @app.get("/private/api/cron-triggers")
+    async def get_cron_triggers(request: Request):
         """
-        Returns a list of Cron Trigger blocks for the given blueprint.
+        Returns a list of Cron Trigger blocks.
         """
         if not app_runner.bmc_components:
             return JSONResponse(content=[], status_code=200)
 
-        bp = app_runner.bmc_components.get(blueprint_id)
-        if not bp or bp.get("type") != "blueprints_blueprint":
-            return JSONResponse(
-                content={"error": f"Blueprint '{blueprint_id}' was not found."},
-                status_code=404,
-            )
-
         cron_triggers = [
             {
                 "id": comp.get("id"),
+                "blueprint_id": comp.get("parentId"),
                 "name": comp.get("name") or comp.get("content", {}).get("name"),
                 "cron_expression": comp.get("content", {}).get("cronExpression"),
                 "timezone": comp.get("content", {}).get("timezone", "UTC"),
             }
             for comp in app_runner.bmc_components.values()
             if comp.get("type") == "blueprints_crontrigger"
-            and comp.get("parentId") == blueprint_id
         ]
 
         return JSONResponse(content=cron_triggers, status_code=200)
