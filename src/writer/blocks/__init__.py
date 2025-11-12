@@ -3,6 +3,7 @@ from writer.blocks.apitrigger import APITrigger
 from writer.blocks.calleventhandler import CallEventHandler
 from writer.blocks.changepage import ChangePage
 from writer.blocks.code import CodeBlock
+from writer.blocks.crontrigger import CronTrigger
 from writer.blocks.foreach import ForEach
 from writer.blocks.httprequest import HTTPRequest
 from writer.blocks.logmessage import LogMessage
@@ -27,7 +28,7 @@ from writer.blocks.writerstructuredoutput import WriterStructuredOutput
 from writer.blocks.writertoolcalling import WriterToolCalling
 from writer.blocks.writervision import WriterVision
 from writer.blocks.writerwebsearch import WriterWebSearch
- 
+
 SetState.register("blueprints_setstate")
 WriterClassification.register("blueprints_writerclassification")
 WriterCompletion.register("blueprints_writercompletion")
@@ -47,6 +48,7 @@ WriterInitChat.register("blueprints_writerinitchat")
 WriterAddToKG.register("blueprints_writeraddtokg")
 UIEventTrigger.register("blueprints_uieventtrigger")
 APITrigger.register("blueprints_apitrigger")
+CronTrigger.register("blueprints_crontrigger")
 CodeBlock.register("blueprints_code")
 ChangePage.register("blueprints_changepage")
 WriterStructuredOutput.register("blueprints_writerstructuredoutput")
