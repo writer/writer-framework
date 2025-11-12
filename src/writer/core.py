@@ -1651,6 +1651,12 @@ class EventDeserialiser:
         payload = _deserialize_bigint_format(payload)
         return payload
 
+    def _transform_tab_change(self, ev: WriterEvent) -> Optional[str]:
+        payload = ev.payload
+        if not isinstance(payload, str):
+            return None
+        return payload
+
 
 class SessionManager:
     """
