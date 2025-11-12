@@ -402,7 +402,7 @@ def get_asgi_app(
         return JSONResponse(content=cron_triggers, status_code=200)
 
     @app.post("/private/api/blueprint/{blueprint_id}")
-    async def create_blueprint_job(blueprint_id: str, request: Request, response: Response, branch_id: str | None = None):
+    async def create_blueprint_job(blueprint_id: str, request: Request, response: Response, branch_id: Optional[str] = None):
         # Keep-alive interval for SSE streaming
         KEEPALIVE_INTERVAL = 15
         payload = await _get_payload_as_json(request)
