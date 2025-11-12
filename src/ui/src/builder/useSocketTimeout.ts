@@ -1,4 +1,5 @@
 import { useAbortController } from "@/composables/useAbortController";
+import { useLogger } from "@/composables/useLogger";
 import type { Core } from "@/writerTypes";
 import { ref, onMounted, watch } from "vue";
 
@@ -7,6 +8,7 @@ import { ref, onMounted, watch } from "vue";
  */
 export function useSocketTimeout(wf: Core, timeoutMin: number) {
 	const timeoutMs = timeoutMin * 60 * 1_000;
+	const logger = useLogger();
 
 	let timer = undefined;
 
@@ -18,8 +20,10 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 		if (document.visibilityState === "visible") return;
 		clearSchedule();
 		timer = setTimeout(() => {
+			logger.warn(`[SocketTimeout] Closing socket after ${timeoutMin} minutes of inactivity (tab hidden)`);
 			wf.stopSync();
 			socketClosed.value = true;
+			logger.info(`[SocketTimeout] Socket closed`);
 		}, timeoutMs);
 	}
 
@@ -32,11 +36,14 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 	});
 
 	async function reconnect() {
+		logger.info(`[SocketTimeout] Attempting to reconnect socket...`);
 		reconnecting.value = true;
 		try {
 			await wf.init();
 			socketClosed.value = false;
-		} catch {
+			logger.info(`[SocketTimeout] Socket reconnected successfully`);
+		} catch (error) {
+			logger.error(`[SocketTimeout] Failed to reconnect socket, reloading page`, error);
 			window.location.reload(); // fallback to full reload
 		} finally {
 			reconnecting.value = false;
