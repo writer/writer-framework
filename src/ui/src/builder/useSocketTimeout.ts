@@ -1,7 +1,7 @@
 import { useAbortController } from "@/composables/useAbortController";
 import { useLogger } from "@/composables/useLogger";
 import type { Core } from "@/writerTypes";
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 
 /**
  * @param timeoutMin the inactivity time required to close the socket
@@ -16,23 +16,55 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 	const reconnecting = ref(false);
 	const prevent = ref(false);
 
+	const ignoreMessageType = new Set([
+		"collaborationPing",
+		"listResources",
+		"keepAlive",
+	]);
+
+	const isMessagePending = computed(() => {
+		for (const a of wf.frontendMessageMap.value.values()) {
+			if (!ignoreMessageType.has(a.type)) return true;
+		}
+		return false;
+	});
+
+	const canCloseSocket = computed(
+		() => !prevent.value && !isMessagePending.value,
+	);
+
+	const abort = useAbortController();
+
 	function schedule() {
-		if (document.visibilityState === "visible") return;
+		if (!canCloseSocket.value || document.visibilityState !== "hidden")
+			return false;
 		clearSchedule();
+		logger.log(`[SocketTimeout] planning timeout in ${timeoutMin}min`);
 		timer = setTimeout(() => {
-			logger.warn(`[SocketTimeout] Closing socket after ${timeoutMin} minutes of inactivity (tab hidden)`);
+			if (!canCloseSocket.value) return;
+			logger.warn(
+				`[SocketTimeout] Closing socket after ${timeoutMin} minutes of inactivity (tab hidden)`,
+			);
 			wf.stopSync();
 			socketClosed.value = true;
 			logger.info(`[SocketTimeout] Socket closed`);
 		}, timeoutMs);
+		return true;
 	}
 
 	function clearSchedule() {
-		if (timer) clearTimeout(timer);
+		if (!timer) return;
+		logger.log(`[SocketTimeout] canceling timeout `);
+		clearTimeout(timer);
+		timer = undefined;
 	}
 
-	watch(prevent, () => {
-		if (prevent.value) clearSchedule();
+	watch(canCloseSocket, () => {
+		if (!canCloseSocket.value) {
+			clearSchedule();
+		} else if (document.visibilityState === "hidden") {
+			schedule(); // Reschedule now that activity is complete
+		}
 	});
 
 	async function reconnect() {
@@ -43,27 +75,28 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 			socketClosed.value = false;
 			logger.info(`[SocketTimeout] Socket reconnected successfully`);
 		} catch (error) {
-			logger.error(`[SocketTimeout] Failed to reconnect socket, reloading page`, error);
+			logger.error(
+				`[SocketTimeout] Failed to reconnect socket, reloading page`,
+				error,
+			);
 			window.location.reload(); // fallback to full reload
 		} finally {
 			reconnecting.value = false;
 		}
 	}
 
-	const abort = useAbortController();
+	function onVisibilityChange() {
+		if (document.visibilityState === "visible") {
+			clearSchedule();
+		} else if (canCloseSocket.value) {
+			schedule();
+		}
+	}
 
 	onMounted(() => {
-		document.addEventListener(
-			"visibilitychange",
-			() => {
-				if (document.visibilityState === "visible") {
-					clearSchedule();
-				} else if (!prevent.value) {
-					schedule();
-				}
-			},
-			{ signal: abort.signal },
-		);
+		document.addEventListener("visibilitychange", onVisibilityChange, {
+			signal: abort.signal,
+		});
 	});
 
 	return {
@@ -71,6 +104,7 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 		socketClosed,
 		reconnecting,
 		prevent,
+		onVisibilityChange,
 		clearSchedule,
 		schedule,
 		reconnect,
