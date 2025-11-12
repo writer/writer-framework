@@ -32,6 +32,8 @@ type WriterTrackingEventName =
 	| "blueprints_block_deleted"
 	| "blueprints_run_started"
 	| "blueprints_run_failed"
+	| "blueprints_run_stopped"
+	| "blueprints_run_stop_failed"
 	| "blueprints_run_succeeded"
 	| "blueprints_logs_trace_opened"
 	| "blueprints_new_added"
