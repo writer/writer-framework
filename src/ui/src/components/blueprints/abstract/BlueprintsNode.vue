@@ -61,17 +61,12 @@
 					display-label
 					@click="$emit('outMousedown', outId)"
 				/>
-				<div
-					v-if="Object.keys(outs).length == 0"
-					class="BlueprintsNode__main__outputs__output BlueprintsNode__main__outputs__empty"
-				>
-					{{
-						def.fields?.[fieldKey]?.type === FieldType.Tools &&
-						hasToolsButNoFunctionTools(fieldKey)
-							? "No outputs"
-							: "None configured."
-					}}
-				</div>
+				<BlueprintsNodeTools
+					:field-key="fieldKey"
+					:field-type="def.fields?.[fieldKey]?.type ?? ''"
+					:field-value="fields[fieldKey]?.value"
+					:has-outputs="Object.keys(outs).length > 0"
+				/>
 			</div>
 			<div
 				v-if="Object.keys(staticOuts).length > 0"
@@ -153,6 +148,8 @@ import { useComponentInformation } from "@/composables/useComponentInformation";
 import BlueprintsNodeActions from "./BlueprintsNodeActions.vue";
 import BlueprintsNodeOutput from "./BlueprintsNodeOutput.vue";
 import BlueprintsNodeLogs from "./BlueprintsNodeLogs.vue";
+import BlueprintsNodeTools from "./BlueprintsNodeTools.vue";
+import { useBlueprintNodeTools } from "@/composables/useBlueprintNodeTools";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
@@ -185,66 +182,10 @@ const completionStyle = computed(() => {
 	return def.value?.outs?.[latestKnownOutcome.value]?.style ?? "success";
 });
 
-type Tool = {
-	type: "function" | "graph" | "web_search";
-	[key: string]: unknown;
-};
-
-type ToolsRecord = Record<string, Tool>;
-
-function parseToolsField(fieldValue: unknown): ToolsRecord {
-	if (!fieldValue) return {};
-
-	if (typeof fieldValue === "string") {
-		try {
-			const parsed = JSON.parse(fieldValue);
-			return typeof parsed === "object" && parsed !== null
-				? (parsed as ToolsRecord)
-				: {};
-		} catch {
-			return {};
-		}
-	}
-
-	if (typeof fieldValue === "object" && fieldValue !== null) {
-		return fieldValue as ToolsRecord;
-	}
-
-	return {};
-}
-
-function hasToolsButNoFunctionTools(fieldKey: string): boolean {
-	const tools = parseToolsField(fields[fieldKey]?.value);
-	const toolKeys = Object.keys(tools);
-	if (toolKeys.length === 0) return false;
-	return !toolKeys.some((key) => tools[key]?.type === "function");
-}
-
-const hasOnlyNonFunctionTools = computed(() => {
-	const toolsFields = Object.entries(def.value.fields ?? {}).filter(
-		([_, field]) => field.type === FieldType.Tools,
-	);
-
-	if (toolsFields.length === 0) return false;
-
-	const parsedTools = toolsFields.map(([fieldKey]) => ({
-		fieldKey,
-		tools: parseToolsField(fields[fieldKey]?.value),
-	}));
-
-	const hasAnyTools = parsedTools.some(
-		({ tools }) => Object.keys(tools).length > 0,
-	);
-
-	if (!hasAnyTools) return false;
-
-	return parsedTools.every(({ tools }) => {
-		const toolKeys = Object.keys(tools);
-		if (toolKeys.length === 0) return true;
-
-		return !toolKeys.some((key) => tools[key]?.type === "function");
-	});
-});
+const { hasOnlyNonFunctionTools } = useBlueprintNodeTools(
+	computed(() => def.value),
+	fields,
+);
 
 const hasDynamicNonToolOutputs = computed(() => {
 	const dynamicOutsEntries = Object.entries(def.value.outs ?? {});
@@ -661,10 +602,6 @@ watch(isEngaged, () => {
 .BlueprintsNode__main__outputs__output {
 	grid-column: 2;
 	text-align: right;
-}
-
-.BlueprintsNode__main__outputs__empty {
-	margin-right: 5px;
 }
 .BlueprintsNode__main__outputs--float {
 	position: absolute;
