@@ -1,3 +1,5 @@
+import { useLogger } from "@/composables/useLogger";
+
 export class WriterApi {
 	#signal: AbortSignal | undefined;
 	#baseUrl: string;
@@ -89,7 +91,7 @@ export class WriterApi {
 				| "id"
 				| "applicationId"
 				| "createdBy"
-				| "createdBy"
+				| "createdAt"
 				| "updatedAt"
 				| "updatedBy"
 			>
@@ -244,6 +246,134 @@ export class WriterApi {
 
 		return key ? `${url}/${key}` : url;
 	}
+
+	async fetchMcpConnectedApps(
+		orgId: number,
+		appId?: string,
+	): Promise<WriterApiMcpApp[]> {
+		const url = new URL(
+			`/api/mcp-gateway/v2/organization/${orgId}/app-configurations`,
+			this.#baseUrl,
+		);
+		const params = new URLSearchParams({
+			limit: "100",
+		});
+
+		const headers = {
+			...this.#requestInitBase.headers,
+		};
+
+		if (appId) {
+			headers["X-Agent-Id"] = appId;
+		}
+
+		const requestUrl = `${url}?${params.toString()}`;
+
+		const res = await fetch(requestUrl, {
+			...this.#requestInitBase,
+			headers,
+		});
+
+		if (!res.ok) {
+			const errorText = await res.text();
+			throw Error(errorText);
+		}
+
+		const data = await res.json();
+
+		return data.result || [];
+	}
+
+	async fetchMcpAppFunctions(
+		appId: string,
+		agentId?: string,
+	): Promise<WriterApiMcpFunction[]> {
+		const url = new URL(
+			`/api/mcp-gateway/v1/functions/list/${appId}`,
+			this.#baseUrl,
+		);
+
+		const headers = {
+			...this.#requestInitBase.headers,
+		};
+
+		if (agentId) {
+			headers["X-Agent-Id"] = agentId;
+		}
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			headers,
+		});
+
+		if (!res.ok) {
+			const errorText = await res.text();
+			throw Error(errorText);
+		}
+
+		return await res.json();
+	}
+
+	async fetchMcpTools(
+		orgId: number,
+		appId?: string,
+	): Promise<WriterApiMcpTool[]> {
+		const apps = await this.fetchMcpConnectedApps(orgId, appId);
+		const allTools: WriterApiMcpTool[] = [];
+
+		for (const app of apps) {
+			const appConfigId = app.appId;
+			if (!appConfigId) {
+				continue;
+			}
+
+			try {
+				const functions = await this.fetchMcpAppFunctions(
+					appConfigId,
+					appId,
+				);
+
+				const allFunctionsEnabled = app.allFunctionsEnabled ?? true;
+				const enabledFunctions = app.enabledFunctions || [];
+
+				let filteredFunctions: WriterApiMcpFunction[];
+				if (allFunctionsEnabled) {
+					filteredFunctions = functions;
+				} else if (enabledFunctions.length > 0) {
+					filteredFunctions = functions.filter(
+						(func) =>
+							func.name && enabledFunctions.includes(func.name),
+					);
+				} else {
+					filteredFunctions = [];
+				}
+
+				const appName =
+					app.connector?.displayName ||
+					app.connector?.name ||
+					app.name ||
+					"";
+
+				for (const func of filteredFunctions) {
+					allTools.push({
+						appId: appConfigId,
+						appName,
+						functionName: func.name || "",
+						function: func,
+						connector: app.connector
+							? {
+									logo: app.connector.logo,
+								}
+							: undefined,
+					});
+				}
+			} catch (e) {
+				useLogger().error("Error fetching MCP app functions:", e);
+			}
+		}
+
+		return allTools;
+	}
 }
 
 export type WriterApiUser = Pick<
@@ -382,4 +512,54 @@ export type WriterApiThirdUserProfile = {
 export type WriterApiSecretResponse = {
 	name: string;
 	secret: Record<string, string>;
+};
+
+export type WriterApiMcpApp = {
+	allFunctionsEnabled: boolean;
+	appId: string;
+	connector?: {
+		name: string;
+		displayName: string;
+		logo: string;
+		scopes: null;
+	};
+	displayName: string;
+	name: string | null;
+	scopes: null;
+	createdAt: string;
+	createdBy: number;
+	createdByTeamId: null;
+	credentialLevel: string;
+	credentialManager: string;
+	description: null;
+	enabled: boolean;
+	enabledFunctions: string[];
+	id: string;
+	linkedAccountId: null;
+	orgId: number;
+	securityScheme: string;
+	securitySchemeOverrides: Record<string, unknown>;
+	status: string;
+	teamIds: number[];
+	tenantUrl: null;
+	totalToolCount: number;
+	updatedAt: string;
+	visibility: string;
+};
+
+export type WriterApiMcpFunction = {
+	name: string;
+	description?: string;
+	parameters?: Record<string, unknown>;
+	[key: string]: unknown;
+};
+
+export type WriterApiMcpTool = {
+	appId: string;
+	appName: string;
+	functionName: string;
+	function: WriterApiMcpFunction;
+	connector?: {
+		logo?: string;
+	};
 };

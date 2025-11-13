@@ -17,6 +17,7 @@ from writer.blocks.writeraddtokg import WriterAddToKG
 from writer.blocks.writeraskkg import WriterAskGraphQuestion
 from writer.blocks.writerchat import WriterChat
 from writer.blocks.writerchatreply import WriterChatReply
+from writer.blocks.writerchatreplywithtoolconfig import WriterChatReplyWithToolConfig
 from writer.blocks.writerclassification import WriterClassification
 from writer.blocks.writercompletion import WriterCompletion
 from writer.blocks.writerfileapi import WriterUploadFile
@@ -59,3 +60,4 @@ WriterUploadFile.register("blueprints_writeruploadfile")
 WriterVision.register("blueprints_writervision")
 WriterWebSearch.register("blueprints_writerwebsearch")
 WriterKeyValueStorage.register("blueprints_writerkeyvaluestorage")
+WriterChatReplyWithToolConfig.register("blueprints_writerchatreplywithtoolconfig")
