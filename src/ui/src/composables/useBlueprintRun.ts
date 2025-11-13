@@ -100,17 +100,14 @@ export function useBlueprintRun(
 	blueprintComponentId: string | Ref<string>,
 ) {
 	const isRunning = ref(false);
-	const socketTimeout = inject(injectionKeys.socketTimeout);
 
 	async function run(branchId?: string) {
 		if (isRunning.value) return;
 		isRunning.value = true;
-		if (socketTimeout) socketTimeout.prevent.value = true;
 		try {
 			await runBlueprint(wf, unref(blueprintComponentId), branchId);
 		} finally {
 			isRunning.value = false;
-			if (socketTimeout) socketTimeout.prevent.value = false;
 		}
 	}
 
@@ -131,7 +128,6 @@ export function useBlueprintsRun(
 	blueprintComponentIds: MaybeRef<BlueprintsRunListItem[]>,
 ) {
 	const runningBlueprintIds = ref<string[]>([]);
-	const socketTimeout = inject(injectionKeys.socketTimeout);
 
 	async function handleRunBlueprint({
 		blueprintId,
@@ -140,7 +136,6 @@ export function useBlueprintsRun(
 		if (runningBlueprintIds.value.includes(blueprintId)) return;
 
 		try {
-			if (socketTimeout) socketTimeout.prevent.value = true;
 			runningBlueprintIds.value = [
 				blueprintId,
 				...runningBlueprintIds.value,
@@ -150,7 +145,6 @@ export function useBlueprintsRun(
 			runningBlueprintIds.value = runningBlueprintIds.value.filter(
 				(id) => id !== blueprintId,
 			);
-			if (socketTimeout) socketTimeout.prevent.value = false;
 		}
 	}
 	async function run() {

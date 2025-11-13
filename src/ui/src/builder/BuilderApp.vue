@@ -181,8 +181,7 @@ const collaborationManager = inject(injectionKeys.collaborationManager);
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
 
-const socketTimeoutMin = 20 * 60;
-provide(injectionKeys.socketTimeout, useSocketTimeout(wf, socketTimeoutMin));
+provide(injectionKeys.socketTimeout, useSocketTimeout(wf, 10));
 
 const noteEl = useTemplateRef("noteEl");
 
