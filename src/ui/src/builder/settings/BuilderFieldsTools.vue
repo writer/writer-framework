@@ -320,16 +320,15 @@ function saveToolForm() {
 		return;
 	}
 
-	const updatedTools = { ...tools.value };
+	const { originalName, name } = toolForm.value;
+	let updatedTools = { ...tools.value };
 
-	if (
-		toolForm.value.originalName &&
-		toolForm.value.originalName !== toolForm.value.name
-	) {
-		delete updatedTools[toolForm.value.originalName];
+	if (originalName && originalName !== name) {
+		const { [originalName]: _, ...rest } = updatedTools;
+		updatedTools = rest;
 	}
 
-	updatedTools[toolForm.value.name] = toolFromForm;
+	updatedTools[name] = toolFromForm;
 
 	fieldViewModel.value = JSON.stringify(updatedTools);
 
@@ -391,8 +390,7 @@ function editTool(toolName: string) {
 }
 
 function deleteTool(toolName: string) {
-	const updatedTools = { ...tools.value };
-	delete updatedTools[toolName];
+	const { [toolName]: _, ...updatedTools } = { ...tools.value };
 	fieldViewModel.value = JSON.stringify(updatedTools);
 }
 
