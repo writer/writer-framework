@@ -61,7 +61,17 @@
 					display-label
 					@click="$emit('outMousedown', outId)"
 				/>
-				<div v-if="Object.keys(outs).length == 0">None configured.</div>
+				<div
+					v-if="Object.keys(outs).length == 0"
+					class="BlueprintsNode__main__outputs__output BlueprintsNode__main__outputs__empty"
+				>
+					{{
+						def.fields?.[fieldKey]?.type === FieldType.Tools &&
+						hasToolsButNoFunctionTools(fieldKey)
+							? "No outputs"
+							: "None configured."
+					}}
+				</div>
 			</div>
 			<div
 				v-if="Object.keys(staticOuts).length > 0"
@@ -72,10 +82,7 @@
 				}"
 			>
 				<h4
-					v-if="
-						!hasOnlySuccessOut &&
-						Object.keys(dynamicOuts).length > 0
-					"
+					v-if="shouldShowStaticOutLabel"
 					class="BlueprintsNode__main__outputs__title"
 				>
 					{{ staticOutLabel }}
@@ -178,9 +185,88 @@ const completionStyle = computed(() => {
 	return def.value?.outs?.[latestKnownOutcome.value]?.style ?? "success";
 });
 
-const staticOutLabel = computed(() =>
-	component.value?.type === "blueprints_writerclassification" ? "OR" : "THEN",
-);
+type Tool = {
+	type: "function" | "graph" | "web_search";
+	[key: string]: unknown;
+};
+
+type ToolsRecord = Record<string, Tool>;
+
+function parseToolsField(fieldValue: unknown): ToolsRecord {
+	if (!fieldValue) return {};
+
+	if (typeof fieldValue === "string") {
+		try {
+			const parsed = JSON.parse(fieldValue);
+			return typeof parsed === "object" && parsed !== null
+				? (parsed as ToolsRecord)
+				: {};
+		} catch {
+			return {};
+		}
+	}
+
+	if (typeof fieldValue === "object" && fieldValue !== null) {
+		return fieldValue as ToolsRecord;
+	}
+
+	return {};
+}
+
+function hasToolsButNoFunctionTools(fieldKey: string): boolean {
+	const tools = parseToolsField(fields[fieldKey]?.value);
+	const toolKeys = Object.keys(tools);
+	if (toolKeys.length === 0) return false;
+	return !toolKeys.some((key) => tools[key]?.type === "function");
+}
+
+const hasOnlyNonFunctionTools = computed(() => {
+	const toolsFields = Object.entries(def.value.fields ?? {}).filter(
+		([_, field]) => field.type === FieldType.Tools,
+	);
+
+	if (toolsFields.length === 0) return false;
+
+	const parsedTools = toolsFields.map(([fieldKey]) => ({
+		fieldKey,
+		tools: parseToolsField(fields[fieldKey]?.value),
+	}));
+
+	const hasAnyTools = parsedTools.some(
+		({ tools }) => Object.keys(tools).length > 0,
+	);
+
+	if (!hasAnyTools) return false;
+
+	return parsedTools.every(({ tools }) => {
+		const toolKeys = Object.keys(tools);
+		if (toolKeys.length === 0) return true;
+
+		return !toolKeys.some((key) => tools[key]?.type === "function");
+	});
+});
+
+const hasDynamicNonToolOutputs = computed(() => {
+	const dynamicOutsEntries = Object.entries(def.value.outs ?? {});
+	return dynamicOutsEntries.some(([_, out]) => {
+		if (out.style !== "dynamic" || !out.field) return false;
+		const fieldType = def.value.fields?.[out.field]?.type;
+		return fieldType !== FieldType.Tools;
+	});
+});
+
+const staticOutLabel = computed(() => {
+	if (hasDynamicNonToolOutputs.value) return "OR";
+	if (hasOnlyNonFunctionTools.value) return "No outputs";
+	return "THEN";
+});
+
+const shouldShowStaticOutLabel = computed(() => {
+	return (
+		hasOnlyNonFunctionTools.value ||
+		(!hasOnlySuccessOut.value && Object.keys(dynamicOuts.value).length > 0)
+	);
+});
 
 const latestRun = computed(() => {
 	const logEntries = wfbm.getLogEntries();
@@ -574,6 +660,11 @@ watch(isEngaged, () => {
 }
 .BlueprintsNode__main__outputs__output {
 	grid-column: 2;
+	text-align: right;
+}
+
+.BlueprintsNode__main__outputs__empty {
+	margin-right: 5px;
 }
 .BlueprintsNode__main__outputs--float {
 	position: absolute;
