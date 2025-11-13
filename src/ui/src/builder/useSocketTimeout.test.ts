@@ -73,6 +73,30 @@ describe("useSocketTimeout", () => {
 		expect(schedule()).toBe(false);
 	});
 
+	it("should schedule timeout if frontend message exists, but it's collaborationPing", () => {
+		mockCore.frontendMessageMap.value.set(1, { type: "collaborationPing" });
+		const { schedule, onVisibilityChange } = useSocketTimeout(
+			mockCore.core,
+			1,
+		);
+		changeVisibilityState("hidden");
+		onVisibilityChange();
+
+		expect(schedule()).toBe(true);
+	});
+
+	it("should not schedule timeout if frontend message exists", () => {
+		mockCore.frontendMessageMap.value.set(1, { type: "event" });
+		const { schedule, onVisibilityChange } = useSocketTimeout(
+			mockCore.core,
+			1,
+		);
+		changeVisibilityState("hidden");
+		onVisibilityChange();
+
+		expect(schedule()).toBe(false);
+	});
+
 	it("should clear schedule when clearSchedule is called", () => {
 		const { schedule, clearSchedule } = useSocketTimeout(mockCore.core, 1);
 		changeVisibilityState("hidden");

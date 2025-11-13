@@ -55,6 +55,10 @@ export function buildMockCore() {
 	core.featureFlags = featureFlags;
 	core.writerApplication = writerApplication;
 	core.mode = mode;
+	const frontendMessageMap = ref<
+		Map<number, { type: string; callback?: Function }>
+	>(new Map());
+	core.frontendMessageMap = frontendMessageMap;
 
 	core.isWriterCloudApp = computed(
 		() => writerApplication.value !== undefined,
@@ -75,6 +79,7 @@ export function buildMockCore() {
 		userFunctions,
 		featureFlags,
 		writerApplication,
+		frontendMessageMap,
 	};
 }
 
