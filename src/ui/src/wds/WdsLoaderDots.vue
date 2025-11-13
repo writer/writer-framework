@@ -8,38 +8,53 @@ defineProps({
 </script>
 
 <template>
-	<svg
-		:width="size"
-		:height="size"
-		viewBox="0 0 16 16"
-		fill="none"
-		xmlns="http://www.w3.org/2000/svg"
+	<div
+		class="WdsLoaderDots"
+		:style="{ color: color, '--dot-size': `${size / 4}px` }"
 	>
-		<circle cx="4" cy="8" :fill="color">
-			<animate
-				attributeName="r"
-				values="0.5;3;0"
-				dur="1.2s"
-				repeatCount="indefinite"
-			/>
-		</circle>
-		<circle cx="8" cy="8" :fill="color">
-			<animate
-				attributeName="r"
-				values="0.5;3;0"
-				dur="1.2s"
-				begin="0.4s"
-				repeatCount="indefinite"
-			/>
-		</circle>
-		<circle cx="12" cy="8" :fill="color">
-			<animate
-				attributeName="r"
-				values="0.5;3;0"
-				dur="1.2s"
-				begin="0.8s"
-				repeatCount="indefinite"
-			/>
-		</circle>
-	</svg>
+		<span class="WdsLoaderDots__dot"></span>
+		<span class="WdsLoaderDots__dot WdsLoaderDots__dot--delay-1"></span>
+		<span class="WdsLoaderDots__dot WdsLoaderDots__dot--delay-2"></span>
+	</div>
 </template>
+
+<style scoped>
+.WdsLoaderDots {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--dot-size, 4px);
+	width: fit-content;
+	height: fit-content;
+}
+
+.WdsLoaderDots__dot {
+	display: inline-flex;
+	width: var(--dot-size, 4px);
+	height: var(--dot-size, 4px);
+	border-radius: 50%;
+	background-color: currentColor;
+	will-change: transform;
+	animation: loader 1.4s infinite ease;
+}
+
+.WdsLoaderDots__dot--delay-1 {
+	animation-delay: 350ms;
+}
+
+.WdsLoaderDots__dot--delay-2 {
+	animation-delay: 700ms;
+}
+
+@keyframes loader {
+	0% {
+		transform: scale(1, 1);
+	}
+	50% {
+		transform: scale(2, 2);
+	}
+	100% {
+		transform: scale(1, 1);
+	}
+}
+</style>
