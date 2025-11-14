@@ -61,7 +61,12 @@
 					display-label
 					@click="$emit('outMousedown', outId)"
 				/>
-				<div v-if="Object.keys(outs).length == 0">None configured.</div>
+				<BlueprintsNodeTools
+					:field-key="fieldKey"
+					:field-type="def.fields?.[fieldKey]?.type ?? ''"
+					:field-value="fields[fieldKey]?.value"
+					:has-outputs="Object.keys(outs).length > 0"
+				/>
 			</div>
 			<div
 				v-if="Object.keys(staticOuts).length > 0"
@@ -72,10 +77,7 @@
 				}"
 			>
 				<h4
-					v-if="
-						!hasOnlySuccessOut &&
-						Object.keys(dynamicOuts).length > 0
-					"
+					v-if="shouldShowStaticOutLabel"
 					class="BlueprintsNode__main__outputs__title"
 				>
 					{{ staticOutLabel }}
@@ -146,6 +148,8 @@ import { useComponentInformation } from "@/composables/useComponentInformation";
 import BlueprintsNodeActions from "./BlueprintsNodeActions.vue";
 import BlueprintsNodeOutput from "./BlueprintsNodeOutput.vue";
 import BlueprintsNodeLogs from "./BlueprintsNodeLogs.vue";
+import BlueprintsNodeTools from "./BlueprintsNodeTools.vue";
+import { useBlueprintNodeTools } from "@/composables/useBlueprintNodeTools";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
@@ -178,9 +182,32 @@ const completionStyle = computed(() => {
 	return def.value?.outs?.[latestKnownOutcome.value]?.style ?? "success";
 });
 
-const staticOutLabel = computed(() =>
-	component.value?.type === "blueprints_writerclassification" ? "OR" : "THEN",
+const { hasOnlyNonFunctionTools } = useBlueprintNodeTools(
+	computed(() => def.value),
+	fields,
 );
+
+const hasDynamicNonToolOutputs = computed(() => {
+	const dynamicOutsEntries = Object.entries(def.value.outs ?? {});
+	return dynamicOutsEntries.some(([_, out]) => {
+		if (out.style !== "dynamic" || !out.field) return false;
+		const fieldType = def.value.fields?.[out.field]?.type;
+		return fieldType !== FieldType.Tools;
+	});
+});
+
+const staticOutLabel = computed(() => {
+	if (hasDynamicNonToolOutputs.value) return "OR";
+	if (hasOnlyNonFunctionTools.value) return "No outputs";
+	return "THEN";
+});
+
+const shouldShowStaticOutLabel = computed(() => {
+	return (
+		hasOnlyNonFunctionTools.value ||
+		(!hasOnlySuccessOut.value && Object.keys(dynamicOuts.value).length > 0)
+	);
+});
 
 const latestRun = computed(() => {
 	const logEntries = wfbm.getLogEntries();
@@ -574,6 +601,7 @@ watch(isEngaged, () => {
 }
 .BlueprintsNode__main__outputs__output {
 	grid-column: 2;
+	text-align: right;
 }
 .BlueprintsNode__main__outputs--float {
 	position: absolute;

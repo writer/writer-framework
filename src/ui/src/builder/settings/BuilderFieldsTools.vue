@@ -320,13 +320,17 @@ function saveToolForm() {
 		return;
 	}
 
-	fieldViewModel.value = JSON.stringify({
-		...tools.value,
-		...(toolForm.value.originalName
-			? { [toolForm.value.originalName]: undefined }
-			: {}),
-		[toolForm.value.name]: toolFromForm,
-	});
+	const { originalName, name } = toolForm.value;
+	let updatedTools = { ...tools.value };
+
+	if (originalName && originalName !== name) {
+		const { [originalName]: _, ...rest } = updatedTools;
+		updatedTools = rest;
+	}
+
+	updatedTools[name] = toolFromForm;
+
+	fieldViewModel.value = JSON.stringify(updatedTools);
 
 	toolForm.value.isShown = false;
 }
@@ -386,10 +390,8 @@ function editTool(toolName: string) {
 }
 
 function deleteTool(toolName: string) {
-	fieldViewModel.value = JSON.stringify({
-		...tools.value,
-		[toolName]: undefined,
-	});
+	const { [toolName]: _, ...updatedTools } = { ...tools.value };
+	fieldViewModel.value = JSON.stringify(updatedTools);
 }
 
 const modalActions = computed<ModalAction[]>(() => [
