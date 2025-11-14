@@ -4,34 +4,109 @@ Thank you for your interest in contributing to Writer Framework.
 
 ## Ways to contribute
 
-Beyond contributing to the repository, some ways to contribute to this project include:
+- **Report bugs**: Include steps to reproduce the bug. Use "Issues" on GitHub.
+- **Suggest enhancements**: Use "Discussions" on GitHub for feature requests.
+- **Browse Issues and Discussions**: See if you can help with existing issues.
 
-- _Reporting bugs_. Bug reports are relatively easy to write, but have a big impact. Please include the steps required to reproduce the bug. Use "Issues" on GitHub. This is an example of a [wonderful bug report](https://github.com/streamsync-cloud/streamsync/issues/24).
-- _Creating content_. Think articles or tutorials. It doesn't have to be overwhelmingly positive; constructive criticism is appreciated. A great example is [this review](https://jreyesr.github.io/posts/streamsync-review/). A YouTube tutorial would be fantastic!
-- _Browse Issues and Discussions_. Browse these sections on GitHub and see if you can help.
-- _Suggesting valuable enhancements_. If you think of a feature that can have a positive impact, suggest it. Please use the "Discussions" on GitHub.
-- _Sponsoring the project_. Helps offset hosting and other expenses.
-- _Promoting the project_. Star it, share on LinkedIn or other social media.
+## Development Setup
 
-## Contributing to the repository
+### Prerequisites
 
-If you wish to contribute to the repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change. Failure to discuss the changes beforehand will likely cause your pull request to be rejected, regrettably.
+- Python 3.9.2 - 3.12
+- Node.js 22.x
+- [Poetry](https://python-poetry.org/) for Python dependency management
 
-Make sure to run the tests, which can be found in `/tests`, and pass mypy validation. Code formatting is important; Prettier is used in the frontend while autopep8 is used in the backend.
+### Setup Steps
 
-Pull requests should be done on the `dev` branch. When the release is finalised, `dev` will be merged into `master`.
+1. **Install dependencies**:
+   ```sh
+   poetry install --with build
+   alfred install.dev
+   ```
 
-## Setting up a development environment
+2. **Activate virtual environment**:
+   ```sh
+   # Bash/Zsh/Csh
+   eval "$(poetry env activate)"
+   
+   # Fish
+   eval (poetry env activate)
+   
+   # PowerShell
+   Invoke-Expression (poetry env activate)
+   ```
 
-Whether you're interested in contributing to the repository, creating a fork, or just improving your understanding of Writer Framework, these are the suggested steps for setting up a development environment.
+3. **Test the setup**:
+   ```sh
+   writer edit apps/hello --port 5000
+   ```
 
-- Writer Framework uses [Poetry](https://python-poetry.org/) for dependency management. Please see the [Poetry installation docs](https://python-poetry.org/docs/#installation) if you don't already have it installed.
-- You can install the package in editable mode using `poetry install  --with build`
-- Enable the virtual environment:
-  - Bash/Zsh/Csh: `eval "$(poetry env activate)"`
-  - Fish: `eval (poetry env activate)`
-  - PowerShell: `Invoke-Expression (poetry env activate)`
- 
-  (see [Poetry docs](https://python-poetry.org/docs/managing-environments/) for more info)
-- Install all the dev dependencies with `alfred install.dev`
-- Run Writer Framework on port 5000. For example, `writer edit apps/hello --port 5000`.
+## Frontend Development
+
+For frontend development with auto-reload:
+
+1. **Run the app on default port**:
+   ```sh
+   writer edit apps/hello
+   ```
+
+2. **Start the frontend dev server**:
+   ```sh
+   npm run dev
+   ```
+
+This will start the frontend development server with auto-reload for faster development.
+
+## Development Workflow
+
+1. **Create a feature branch** off `dev`:
+   ```sh
+   git checkout dev
+   git pull origin dev
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes** and ensure they pass all checks
+
+3. **Run tests locally**:
+   ```sh
+   alfred ci
+   ```
+
+4. **Create a pull request** to the `dev` branch
+
+## Testing and Code Quality
+
+### Running Tests
+
+```sh
+# Run all tests (backend + frontend)
+alfred ci
+
+# Backend only
+alfred ci --back
+
+# Frontend only  
+alfred ci --front
+
+# End-to-end tests
+alfred ci --e2e chromium
+```
+
+### Code Standards
+
+- **Backend**: Use `ruff` for linting (automatically runs in CI)
+- **Frontend**: Use Prettier for formatting
+- **Type checking**: `mypy` validation is required
+- **Tests**: All tests must pass
+
+### CI Requirements
+
+Your pull request must pass all CI checks:
+- Python linting (`ruff`)
+- Type checking (`mypy`)
+- Backend tests (`pytest`)
+- Frontend linting and build
+- End-to-end tests (when applicable)
+
+The CI runs on Python versions 3.9-3.13 and Node.js 22.x.
