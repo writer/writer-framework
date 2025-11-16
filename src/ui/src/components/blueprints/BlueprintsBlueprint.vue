@@ -1195,7 +1195,6 @@ onUnmounted(() => {
 </style>
 
 <style>
-/* Non-scoped styles for selection rectangle to ensure CSS variables are accessible */
 .BlueprintsBlueprint .selectionRectangle {
 	position: absolute;
 	border: 2px solid var(--builderAccentColor, #3b82f6);
