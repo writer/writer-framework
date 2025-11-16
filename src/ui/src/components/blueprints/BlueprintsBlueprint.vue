@@ -1192,12 +1192,16 @@ onUnmounted(() => {
 	width: 100%;
 	height: 100%;
 }
+</style>
 
-.selectionRectangle {
+<style>
+/* Non-scoped styles for selection rectangle to ensure CSS variables are accessible */
+.BlueprintsBlueprint .selectionRectangle {
 	position: absolute;
-	border: 2px solid var(--builderAccentColor);
+	border: 2px solid var(--builderAccentColor, #3b82f6);
 	background: rgba(59, 130, 246, 0.1);
 	pointer-events: none;
-	z-index: 2;
+	z-index: 1000;
+	box-sizing: border-box;
 }
 </style>
