@@ -10,25 +10,74 @@ const props = defineProps<{
 	hasOutputs: boolean;
 }>();
 
-const hasToolsButNoFunctionTools = computed(() => {
-	if (props.fieldType !== FieldType.Tools) return false;
-	const tools = parseToolsField(props.fieldValue);
-	const toolKeys = Object.keys(tools);
-	if (toolKeys.length === 0) return false;
-	return !toolKeys.some((key) => tools[key]?.type === "function");
+const tools = computed(() => {
+	if (props.fieldType !== FieldType.Tools) return {};
+	return parseToolsField(props.fieldValue);
 });
 
+const hasToolsButNoFunctionTools = computed(() => {
+	if (props.fieldType !== FieldType.Tools) return false;
+	const toolKeys = Object.keys(tools.value);
+	if (toolKeys.length === 0) return false;
+	return !toolKeys.some((key) => tools.value[key]?.type === "function");
+});
+
+function formatGraphIds(graphIds: unknown): string | null {
+	if (!graphIds) return null;
+
+	if (Array.isArray(graphIds) && graphIds.length > 0) {
+		const ids = graphIds.filter(
+			(id) => typeof id === "string" && !id.startsWith("@{"),
+		);
+		return ids.length > 0 ? ids.join(", ") : null;
+	}
+
+	if (typeof graphIds === "string" && !graphIds.startsWith("@{")) {
+		return graphIds;
+	}
+
+	return null;
+}
+
+function formatToolName(toolName: string, tool: unknown): string {
+	if (!tool || typeof tool !== "object" || !("type" in tool)) {
+		return toolName;
+	}
+
+	if (tool.type === "graph" && "graph_ids" in tool) {
+		const formattedIds = formatGraphIds(tool.graph_ids);
+		if (formattedIds) {
+			return `${toolName} (${formattedIds})`;
+		}
+	}
+
+	return toolName;
+}
+
 const displayText = computed(() => {
+	const toolKeys = Object.keys(tools.value);
+
+	if (toolKeys.length > 0) {
+		return toolKeys
+			.map((toolName) => formatToolName(toolName, tools.value[toolName]))
+			.join(", ");
+	}
+
 	if (!props.hasOutputs && hasToolsButNoFunctionTools.value) {
 		return "No outputs";
 	}
+
 	return "None configured.";
+});
+
+const shouldRender = computed(() => {
+	return !props.hasOutputs || Object.keys(tools.value).length > 0;
 });
 </script>
 
 <template>
 	<div
-		v-if="!hasOutputs"
+		v-if="shouldRender"
 		class="BlueprintsNode__main__outputs__output BlueprintsNode__main__outputs__empty"
 	>
 		{{ displayText }}
