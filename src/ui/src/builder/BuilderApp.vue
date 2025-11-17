@@ -24,6 +24,7 @@
 						<BuilderVault v-if="builderMode === 'vault'" />
 						<div
 							v-else
+							ref="rendererWrapperEl"
 							class="rendererWrapper"
 							:class="{
 								addNoteCursor:
@@ -33,6 +34,7 @@
 							@scroll="refreshNotesPosition"
 						>
 							<ComponentRenderer
+								ref="rendererEl"
 								class="componentRenderer"
 								:class="{
 									settingsOpen: ssbm.isSingleSelectionActive,
@@ -184,6 +186,8 @@ const toasts = useToasts();
 provide(injectionKeys.socketTimeout, useSocketTimeout(wf, 10));
 
 const noteEl = useTemplateRef("noteEl");
+const rendererEl = useTemplateRef("rendererEl");
+const rendererWrapperEl = useTemplateRef("rendererWrapperEl");
 
 function refreshNotesPosition() {
 	const isNotesIterable =
@@ -361,12 +365,26 @@ function handleRendererDrop(ev: DragEvent) {
 function handleRendererClick(ev: PointerEvent): void {
 	if (builderMode.value === "preview") return;
 
-	const unselectableEl: HTMLElement = (ev.target as HTMLElement).closest(
+	const unselectableEl = (ev.target as HTMLElement).closest<HTMLElement>(
 		"[data-writer-unselectable]",
 	);
 	if (unselectableEl) return;
 
-	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
+	if (
+		builderMode.value === "blueprints" &&
+		ssbm.selectionStatus.value === SelectionStatus.Multiple
+	) {
+		const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
+			"[data-writer-id]",
+		);
+		if (targetEl && ssbm.isComponentIdSelected(targetEl.dataset.writerId)) {
+			ev.preventDefault();
+			ev.stopPropagation();
+			return;
+		}
+	}
+
+	const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
 		"[data-writer-id]",
 	);
 	if (!targetEl) return;
@@ -397,14 +415,16 @@ function handleRendererDblClick() {
 const handleRendererDragStart = (ev: DragEvent) => {
 	if (builderMode.value === "preview") return;
 
-	const targetEl: HTMLElement = (ev.target as HTMLElement).closest(
+	const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
 		"[data-writer-id]",
 	);
+	if (!targetEl) return;
 
 	const componentId = targetEl.dataset.writerId;
+	if (!componentId) return;
+
 	const { type } = wf.getComponentById(componentId);
 
-	// we don't support yet dragginfg multiple components in UI. If drag is starting with multiple selections, we select only one component
 	if (ssbm.selectionStatus.value === SelectionStatus.Multiple) {
 		ssbm.setSelection(componentId, undefined, "click");
 		ssbm.isSettingsBarCollapsed.value = true;
@@ -531,9 +551,18 @@ onUnmounted(() => {
 	flex-direction: column;
 	height: 100%;
 	overflow-y: auto;
+	position: relative;
 }
 .rendererWrapper--annotating {
 	cursor: context-menu;
+}
+
+.rendererWrapper.isSelecting {
+	cursor: crosshair;
+}
+
+.rendererWrapper.canSelect {
+	cursor: crosshair;
 }
 
 .componentRenderer {

@@ -2,6 +2,11 @@
 	<div
 		ref="rootEl"
 		class="BlueprintsBlueprint"
+		:class="{
+			isPanning: activeCanvasMove !== null,
+			isSelecting: isCursorSelecting,
+			canSelect: isHoveringSelectableArea && !isCursorSelecting,
+		}"
 		:data-writer-unselectable="isUnselectable"
 		@click="handleClick"
 		@dragover.prevent.stop
@@ -10,7 +15,14 @@
 		@mousedown="handleMousedown"
 		@mouseup="handleMouseup"
 	>
-		<div ref="nodeContainerEl" class="nodeContainer">
+		<div
+			ref="nodeContainerEl"
+			class="nodeContainer"
+			@mousedown="handleDragToSelectMousedown"
+			@mousemove="handleDragToSelectMousemove"
+			@mouseup="handleDragToSelectMouseup"
+			@mouseleave="handleDragToSelectMouseleave"
+		>
 			<svg class="BlueprintsBlueprint__svg">
 				<defs>
 					<pattern
@@ -87,6 +99,16 @@
 					left: `${(temporaryNodeCoordinates?.[node.id]?.x ?? node.x) - renderOffset.x}px`,
 				}"
 			/>
+			<div
+				v-if="selectionRect.isSelecting"
+				class="selectionRectangle"
+				:style="{
+					left: `${selectionRect.left}px`,
+					top: `${selectionRect.top}px`,
+					width: `${selectionRect.width}px`,
+					height: `${selectionRect.height}px`,
+				}"
+			></div>
 		</div>
 		<BlueprintToolbar
 			class="blueprintsToolbar"
@@ -199,6 +221,8 @@ import {
 } from "@/utils/geometry";
 import BaseNote from "@/components/core/base/BaseNote.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import { useDragToSelect } from "@/builder/composables/useDragToSelect";
+import { useAbortController } from "@/composables/useAbortController";
 
 const BlueprintToolbar = defineAsyncComponentWithLoader({
 	loader: () => import("./base/BlueprintToolbar.vue"),
@@ -221,6 +245,23 @@ function showAutogen() {
 
 const rootEl = useTemplateRef("rootEl");
 const nodeContainerEl = useTemplateRef("nodeContainerEl");
+
+const {
+	selectionRect,
+	isCursorSelecting,
+	isHoveringSelectableArea,
+	justCompletedDragSelection: _justCompletedDragSelection,
+	handleMousedown: handleDragToSelectMousedown,
+	handleMousemove: handleDragToSelectMousemove,
+	handleMouseup: handleDragToSelectMouseup,
+	handleMouseleave: handleDragToSelectMouseleave,
+	handleDocumentMouseup,
+	handleDocumentClick,
+} = useDragToSelect({
+	wrapperRef: nodeContainerEl,
+	builderManager: wfbm,
+	isAnnotating: notesManager.isAnnotating,
+});
 
 const arrows = shallowRef<BlueprintArrowData[]>([]);
 const renderOffset = shallowRef({ x: 0, y: 0 });
@@ -307,6 +348,12 @@ const isUnselectable = computed(() => {
 });
 
 function handleClick(ev: MouseEvent) {
+	if (_justCompletedDragSelection.value) {
+		ev.preventDefault();
+		ev.stopPropagation();
+		return;
+	}
+
 	selectedArrow.value = null;
 
 	if (!(ev.target instanceof Element)) return;
@@ -730,7 +777,17 @@ function moveCanvas(ev: MouseEvent) {
 	);
 }
 
+function isDragToSelectActive(): boolean {
+	return selectionRect.value.isSelecting;
+}
+
 function handleMousemove(ev: MouseEvent) {
+	handleDragToSelectMousemove(ev);
+
+	if (isDragToSelectActive()) {
+		return;
+	}
+
 	if (ev.buttons != 1) return;
 
 	if (activeConnection.value) {
@@ -741,13 +798,17 @@ function handleMousemove(ev: MouseEvent) {
 		moveNode(ev);
 		return;
 	}
-	if (activeCanvasMove.value) {
+	if (activeCanvasMove.value && !isDragToSelectActive()) {
 		moveCanvas(ev);
 		return;
 	}
 }
 
 function handleMousedown(ev: MouseEvent) {
+	if (isDragToSelectActive()) {
+		return;
+	}
+
 	clearActiveOperations();
 	if (ev.buttons != 1) return;
 
@@ -1027,7 +1088,7 @@ function handleKeydown(event: KeyboardEvent) {
 	changeCoordinatesMultipleWithCheck(coordinates);
 }
 
-const abort = new AbortController();
+const abort = useAbortController();
 
 onMounted(async () => {
 	await resetZoom();
@@ -1039,6 +1100,13 @@ onMounted(async () => {
 
 	document.addEventListener("keydown", handleKeydown, {
 		signal: abort.signal,
+	});
+	document.addEventListener("mouseup", handleDocumentMouseup, {
+		signal: abort.signal,
+	});
+	document.addEventListener("click", handleDocumentClick, {
+		signal: abort.signal,
+		capture: true,
 	});
 	arrowRefresherObserver.observe(nodeContainerEl.value, {
 		attributes: true,
@@ -1071,6 +1139,19 @@ onUnmounted(() => {
 	align-items: stretch;
 	position: relative;
 	overflow: hidden;
+	cursor: grab;
+}
+
+.BlueprintsBlueprint.isPanning {
+	cursor: grabbing;
+}
+
+.BlueprintsBlueprint.isSelecting {
+	cursor: crosshair;
+}
+
+.BlueprintsBlueprint.canSelect {
+	cursor: crosshair;
 }
 
 .blueprintsToolbar {
@@ -1110,5 +1191,16 @@ onUnmounted(() => {
 	left: 0;
 	width: 100%;
 	height: 100%;
+}
+</style>
+
+<style>
+.BlueprintsBlueprint .selectionRectangle {
+	position: absolute;
+	border: 2px solid var(--builderAccentColor, #3b82f6);
+	background: rgba(59, 130, 246, 0.1);
+	pointer-events: none;
+	z-index: 1000;
+	box-sizing: border-box;
 }
 </style>
