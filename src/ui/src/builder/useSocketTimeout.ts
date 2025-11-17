@@ -3,6 +3,8 @@ import { useLogger } from "@/composables/useLogger";
 import type { Core } from "@/writerTypes";
 import { ref, onMounted, watch, computed } from "vue";
 
+const WEBSOCKET_INACTIVITY_CLOSE_CODE = 4000;
+
 /**
  * @param timeoutMin the inactivity time required to close the socket
  */
@@ -45,7 +47,7 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 			logger.warn(
 				`[SocketTimeout] Closing socket after ${timeoutMin} minutes of inactivity (tab hidden)`,
 			);
-			wf.stopSync(4000);
+			wf.stopSync(WEBSOCKET_INACTIVITY_CLOSE_CODE);
 			socketClosed.value = true;
 			logger.info(`[SocketTimeout] Socket closed`);
 		}, timeoutMs);
