@@ -39,6 +39,15 @@ function formatGraphIds(graphIds: unknown): string | null {
 	return null;
 }
 
+function isFunctionTool(tool: unknown): boolean {
+	return (
+		tool !== null &&
+		typeof tool === "object" &&
+		"type" in tool &&
+		tool.type === "function"
+	);
+}
+
 function formatToolName(toolName: string, tool: unknown): string {
 	if (!tool || typeof tool !== "object" || !("type" in tool)) {
 		return toolName;
@@ -54,11 +63,15 @@ function formatToolName(toolName: string, tool: unknown): string {
 	return toolName;
 }
 
-const displayText = computed(() => {
-	const toolKeys = Object.keys(tools.value);
+const nonFunctionToolKeys = computed(() => {
+	return Object.keys(tools.value).filter((toolName) => {
+		return !isFunctionTool(tools.value[toolName]);
+	});
+});
 
-	if (toolKeys.length > 0) {
-		return toolKeys
+const displayText = computed(() => {
+	if (nonFunctionToolKeys.value.length > 0) {
+		return nonFunctionToolKeys.value
 			.map((toolName) => formatToolName(toolName, tools.value[toolName]))
 			.join(", ");
 	}
@@ -71,7 +84,7 @@ const displayText = computed(() => {
 });
 
 const shouldRender = computed(() => {
-	return !props.hasOutputs || Object.keys(tools.value).length > 0;
+	return !props.hasOutputs || nonFunctionToolKeys.value.length > 0;
 });
 </script>
 
