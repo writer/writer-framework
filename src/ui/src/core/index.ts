@@ -404,10 +404,10 @@ export function generateCore() {
 		});
 	}
 
-	function stopSync(): void {
+	function stopSync(closeCode: number = 1000): void {
 		if (!webSocket) return;
 		webSocket.onclose = () => {};
-		webSocket.close();
+		webSocket.close(closeCode);
 		syncHealth.value = "offline";
 	}
 

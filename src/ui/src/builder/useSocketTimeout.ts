@@ -45,7 +45,7 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 			logger.warn(
 				`[SocketTimeout] Closing socket after ${timeoutMin} minutes of inactivity (tab hidden)`,
 			);
-			wf.stopSync();
+			wf.stopSync(4000);
 			socketClosed.value = true;
 			logger.info(`[SocketTimeout] Socket closed`);
 		}, timeoutMs);
