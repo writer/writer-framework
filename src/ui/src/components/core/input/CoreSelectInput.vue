@@ -9,6 +9,7 @@
 			:options="options"
 			:placeholder="fields.placeholder.value"
 			:enable-multi-selection="fields.allowMultiSelect.value"
+			enable-search
 			hide-icons
 		/>
 	</BaseInputWrapper>
@@ -49,6 +50,7 @@ export default {
 	writer: {
 		name: "Select input",
 		description,
+		docs: "This component provides a searchable dropdown for selecting one or multiple values. Usage: supply the Options field with a key-value object; open the dropdown and use the search box at the top to filter options by label (and detail, when provided). Configuration: Enable multi-selection via the 'Allow Multi-select' field; set a placeholder and limit selections with 'Maximum count' (applies only to multi-select). Limitations: search is client-side, case-insensitive, and matches label/detail text only (not the option key); no remote/async search; very large option lists are filtered in-memory.",
 		category: "Input",
 		fields: {
 			label: {
