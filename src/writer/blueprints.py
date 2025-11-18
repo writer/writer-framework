@@ -14,6 +14,7 @@ import writer.blocks
 import writer.blocks.base_block
 import writer.core
 import writer.core_ui
+from writer.journal import JournalRecord
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
 MAX_DAG_DEPTH = 32
@@ -744,6 +745,12 @@ class GraphRunner:
                 return self._execute(executor, event)
 
     def _execute(self, executor: ThreadPoolExecutor, abort_event: threading.Event) -> Optional[Any]:
+        journal_record = JournalRecord(
+            execution_environment=self.execution_environment,
+            title=self.status_logger.title,
+            graph=self.graph
+        )
+
         while self.queue or self.futures:
             while self.queue:
                 node: GraphNode = self.queue.pop(0)
@@ -756,6 +763,7 @@ class GraphRunner:
                 if abort_event.is_set():
                     self._cancel_all_jobs()
                     self.status_logger.log("Terminated.", entry_type="info", exit="aborted")
+                    journal_record.save(result="stopped")
                     return None
                 else:
                     continue
@@ -768,11 +776,13 @@ class GraphRunner:
                 except BlueprintExecutionError as e:
                     self._cancel_all_jobs()
                     self.status_logger.log("Execution failed", entry_type="error", exit=str(e))
+                    journal_record.save(result="error")
                     raise e
                 except BaseException as e:
                     abort_event.set()
                     self._cancel_all_jobs()
                     self.status_logger.log("Execution failed.", entry_type="error", exit=str(e))
+                    journal_record.save(result="error")
                     raise BlueprintExecutionError(
                         f"Blueprint execution was stopped due to an error - {e.__class__.__name__}: {e}"
                     ) from e 
@@ -793,6 +803,7 @@ class GraphRunner:
                         self.queue.append(next_node)
 
         self.status_logger.log("Execution completed.", entry_type="info", exit="completed")
+        journal_record.save(result="success")
         return None
 
     def _cancel_local_jobs(self):
