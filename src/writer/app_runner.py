@@ -1178,12 +1178,23 @@ class AppRunner:
                 
                 if self.observer is not None:
                     logging.info("[Import Debug] Unscheduling file system observer")
-                    self.observer.unschedule_all()
+                    try:
+                        self.observer.unschedule_all()
+                        logging.info("[Import Debug] File system observer unscheduled successfully")
+                    except Exception as e:
+                        logging.error("[Import Debug] Error unscheduling observer: %s", e, exc_info=True)
 
                 self._sync_folders(main_py_dir, self.app_path)
                 logging.info("[Import Debug] Folder sync complete")
+                
+                # Force log flush to ensure we see this even if process crashes
+                import sys
+                sys.stdout.flush()
+                sys.stderr.flush()
 
-                logging.info("[Import Debug] Restarting file system observer")
+                logging.info("[Import Debug] About to restart file system observer - process still alive")
+                sys.stdout.flush()
+                sys.stderr.flush()
                 try:
                     self._start_fs_observer()
                     logging.info("[Import Debug] File system observer restarted successfully")
