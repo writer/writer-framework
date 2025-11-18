@@ -55,9 +55,9 @@
 			</button>
 		</template>
 
-		<template v-else-if="hasNoResults">
-			<div class="WdsDropdownMenu__no-results">No results</div>
-		</template>
+		<div v-else-if="hasNoResults" class="WdsDropdownMenu__no-results">
+			No results
+		</div>
 		<SharedLazyLoader
 			v-for="option in optionsFiltered"
 			v-else
@@ -229,6 +229,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 .WdsDropdownMenu__item {
 	background-color: transparent;
 	border: none;
+	display: block;
 	width: 100%;
 
 	display: grid;
@@ -330,13 +331,13 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 }
 
 .WdsDropdownMenu__header__search--no-results {
-	border-color: #e53e3e !important;
+	border-color: var(--wdsColorOrange2, #e53e3e) !important;
 }
 .WdsDropdownMenu__header__search--no-results:hover {
-	border-color: #e53e3e !important;
+	border-color: var(--wdsColorOrange2, #e53e3e) !important;
 }
 .WdsDropdownMenu__header__search--no-results:focus-within {
-	border-color: #e53e3e !important;
+	border-color: var(--wdsColorOrange2, #e53e3e) !important;
 	outline: 4px solid rgba(229, 62, 62, 0.2) !important;
 }
 
