@@ -13,12 +13,12 @@ export function useUnsavedChangesPrevention(socketTimeout?: SocketTimeout) {
 
 	function enablePrevention() {
 		hasUnsavedChanges.value = true;
-		if (socketTimeout) socketTimeout.prevent.value = true;
+		socketTimeout?.preventTasks.value.add("codeUnsaved");
 	}
 
 	function disablePrevention() {
 		hasUnsavedChanges.value = false;
-		if (socketTimeout) socketTimeout.prevent.value = false;
+		socketTimeout?.preventTasks.value.delete("codeUnsaved");
 	}
 
 	function handleBeforeUnload(event: BeforeUnloadEvent) {

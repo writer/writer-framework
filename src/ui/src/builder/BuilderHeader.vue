@@ -66,12 +66,24 @@
 					</p>
 				</WdsModal>
 			</WdsButton>
-			<BuilderHeaderConnected></BuilderHeaderConnected>
+			<BuilderHeaderConnected />
 			<WdsStateDot
 				:state="stateDotState"
 				:data-writer-tooltip="syncHealthStatus"
 				data-writer-tooltip-placement="left"
 			/>
+
+			<WdsButton
+				v-if="stayAwake"
+				variant="secondary"
+				size="smallIcon"
+				data-writer-tooltip="Turn off stay awake mode that prevents the session from expiring."
+				data-writer-tooltip-placement="left"
+				@click="toggleStayAwake"
+			>
+				<WdsIcon name="coffee" />
+			</WdsButton>
+
 			<WdsModal
 				v-if="isStateExplorerShown"
 				title="State Explorer"
@@ -124,6 +136,7 @@ import { useClipboard } from "@vueuse/core";
 import { useSyncHealth } from "./useSyncHealth";
 
 const wf = inject(injectionKeys.core);
+const socketTimeout = inject(injectionKeys.socketTimeout);
 
 const isStateExplorerShown = ref(false);
 const isInviteCollaboratorsShown = ref(false);
@@ -132,6 +145,14 @@ const tracking = useWriterTracking(wf);
 const toasts = useToasts();
 const clipboard = useClipboard();
 const { stateDotState, syncHealthStatus } = useSyncHealth(wf);
+
+const stayAwake = computed(() =>
+	socketTimeout?.preventTasks.value.has("stayAwake"),
+);
+
+function toggleStayAwake() {
+	socketTimeout?.togglePreventTaskId("stayAwake");
+}
 
 const {
 	canDeploy,

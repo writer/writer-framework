@@ -37,12 +37,20 @@ import SharedMoreDropdown, {
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsCheckbox from "@/wds/WdsCheckbox.vue";
 
-const options: Option[] = [
+const options = computed<Option[]>(() => [
 	{ label: "Import agent .zip file", value: "import", icon: "upload" },
 	{ label: "Download agent .zip file", value: "export", icon: "download" },
-];
+	{
+		label: socketTimeout.preventTasks.value.has("stayAwake")
+			? "Turn off stay awake mode"
+			: "Prevent session to expire",
+		value: "awake",
+		icon: "coffee",
+	},
+]);
 
 const wf = inject(injectionKeys.core);
+const socketTimeout = inject(injectionKeys.socketTimeout);
 
 const exportInput = useTemplateRef("exportInput");
 
@@ -129,24 +137,29 @@ async function importModalConfirm() {
 }
 
 async function onSelect(key: string) {
-	if (key === "export") {
-		try {
-			await exportProject();
-		} catch (e) {
-			toasts.pushToast({
-				message: `Failed to export the project: ${e}`,
-				type: "error",
-			});
-		}
-	} else if (key === "import") {
-		exportInput.value.value = "";
-		exportInput.value.click();
+	switch (key) {
+		case "export":
+			try {
+				await exportProject();
+			} catch (e) {
+				toasts.pushToast({
+					message: `Failed to export the project: ${e}`,
+					type: "error",
+				});
+			}
+			break;
+		case "import":
+			exportInput.value.value = "";
+			exportInput.value.click();
+			break;
+		case "awake":
+			socketTimeout?.togglePreventTaskId("stayAwake");
 	}
 }
 </script>
 
 <style scoped>
 .BuilderHeaderMoreDropdown:deep(.SharedMoreDropdown__dropdown) {
-	min-width: 200px;
+	min-width: 220px;
 }
 </style>

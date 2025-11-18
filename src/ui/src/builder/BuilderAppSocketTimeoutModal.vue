@@ -8,6 +8,14 @@ const socketTimeout = inject(injectionKeys.socketTimeout)!;
 
 const actions = computed<ModalAction[]>(() => [
 	{
+		desc: "Prevent session to expire",
+		loading: socketTimeout.reconnecting.value,
+		fn: () => {
+			socketTimeout.preventTasks.value.add("stayAwake");
+			socketTimeout.reconnect();
+		},
+	},
+	{
 		desc: "Reconnect",
 		loading: socketTimeout.reconnecting.value,
 		fn: () => {

@@ -21,6 +21,12 @@ vi.mock("@/composables/useLogger", () => ({
 	}),
 }));
 
+vi.stubGlobal("sessionStorage", {
+	getItem: vi.fn().mockReturnValue(null),
+	setItem: vi.fn(),
+	removeItem: vi.fn(),
+});
+
 describe("useSocketTimeout", () => {
 	let mockCore: ReturnType<typeof buildMockCore>;
 	let stopSync: MockInstance;
@@ -62,11 +68,9 @@ describe("useSocketTimeout", () => {
 	});
 
 	it("should not schedule timeout if prevent is true", () => {
-		const { schedule, prevent, onVisibilityChange } = useSocketTimeout(
-			mockCore.core,
-			1,
-		);
-		prevent.value = true;
+		const { schedule, togglePreventTaskId, onVisibilityChange } =
+			useSocketTimeout(mockCore.core, 1);
+		togglePreventTaskId("foo");
 		changeVisibilityState("hidden");
 		onVisibilityChange();
 
@@ -151,14 +155,14 @@ describe("useSocketTimeout", () => {
 	});
 
 	it("should watch canCloseSocket and clear/reschedule accordingly", async () => {
-		const { prevent } = useSocketTimeout(mockCore.core, 1);
+		const { togglePreventTaskId } = useSocketTimeout(mockCore.core, 1);
 		changeVisibilityState("hidden");
 		// Initially can close, so schedule
 		expect(vi.getTimerCount()).toBe(0); // No timer yet
-		prevent.value = true; // Now cannot close
+		togglePreventTaskId("foo");
 		await nextTick();
 		expect(vi.getTimerCount()).toBe(0); // Should clear
-		prevent.value = false; // Can close again
+		togglePreventTaskId("foo");
 		await nextTick();
 		expect(vi.getTimerCount()).toBe(1); // Should reschedule
 	});
