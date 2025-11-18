@@ -256,15 +256,22 @@ def get_asgi_app(
 
     @app.post("/api/import")
     async def import_zip(file: UploadFile = File(...)):
+        import traceback
+        
+        logging.info("[Import Debug] Received import request, filename=%s", file.filename)
+        
         if serve_mode != "edit":
+            logging.error("[Import Debug] Rejected - serve_mode is '%s', not 'edit'", serve_mode)
             raise HTTPException(status_code=403, detail="Invalid mode.")
         if not file.filename or not file.filename.endswith(".zip"):
+            logging.error("[Import Debug] Rejected - invalid filename: %s", file.filename)
             raise HTTPException(status_code=400, detail="Only .zip files are supported.")
 
         MAX_FILE_SIZE = 200 * 1024 * 1024
         tmp_path = None
 
         try:
+            logging.info("[Import Debug] Creating temporary file for upload")
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 # Stream file to disk to avoid memory issues
                 size = 0
@@ -273,24 +280,38 @@ def get_asgi_app(
                     if size > MAX_FILE_SIZE:
                         tmp.close()
                         os.unlink(tmp.name)
+                        logging.error("[Import Debug] File too large: %d bytes", size)
                         raise HTTPException(status_code=413, detail=f"File too large. Max file size: {MAX_FILE_SIZE}")
                     tmp.write(chunk)
                 tmp_path = tmp.name
+            
+            logging.info("[Import Debug] File saved to temp path: %s (size: %d bytes)", tmp_path, size)
+            logging.info("[Import Debug] Calling app_runner.import_zip")
+            
             await app_runner.import_zip(tmp_path)
+            
+            logging.info("[Import Debug] app_runner.import_zip completed successfully")
             return {"status": "success", "message": "Import completed successfully"}
         except ValueError as e:
+            logging.error("[Import Debug] ValueError: %s", e, exc_info=True)
             raise HTTPException(status_code=400, detail=f"Invalid upload: {str(e)}")
         except PermissionError as e:
+            logging.error("[Import Debug] PermissionError: %s", e, exc_info=True)
             raise HTTPException(status_code=403, detail=str(e))
+        except HTTPException:
+            # Re-raise HTTP exceptions without modification
+            raise
         except Exception as e:
-            logging.error(f"Unexpected error during import: {e}")
+            error_details = traceback.format_exc()
+            logging.error(f"[Import Debug] Unexpected exception in endpoint handler:\n{error_details}")
             raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
         finally:
             if tmp_path and os.path.exists(tmp_path):
                 try:
+                    logging.info("[Import Debug] Cleaning up temp file: %s", tmp_path)
                     os.remove(tmp_path)
-                except Exception:
-                    pass
+                except Exception as cleanup_error:
+                    logging.warning("[Import Debug] Failed to clean up temp file: %s", cleanup_error)
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):

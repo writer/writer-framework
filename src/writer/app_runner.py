@@ -1130,42 +1130,58 @@ class AppRunner:
                     shutil.rmtree(dst_dir)
 
     async def import_zip(self, zip_path: str):
+        logging.info("[Import Debug] Starting import_zip, mode=%s", self.mode)
+        
         if self.mode != "edit":
+            logging.error("[Import Debug] Import rejected - not in edit mode")
             raise PermissionError("Cannot import in non-edit mode.")
 
         try:
+            logging.info("[Import Debug] Creating temporary directory for extraction")
             with tempfile.TemporaryDirectory() as tmpdir:
                 extracted_path = os.path.join(tmpdir, "imported_agent")
                 os.makedirs(extracted_path, exist_ok=True)
+                
+                logging.info("[Import Debug] Extracting zip file: %s", zip_path)
                 with zipfile.ZipFile(zip_path, "r") as zip_ref:
                     zip_ref.extractall(extracted_path)
 
+                logging.info("[Import Debug] Searching for main.py in extracted files")
                 main_py_dir = None
                 for root, _, files in os.walk(extracted_path):
                     if "main.py" in files:
                         main_py_dir = root
+                        logging.info("[Import Debug] Found main.py at: %s", root)
                         break
 
                 if main_py_dir is None:
+                    logging.error("[Import Debug] main.py not found in archive")
                     raise ValueError("main.py not found in the imported archive.")
 
                 wf_dir_path = os.path.join(main_py_dir, ".wf")
                 if not os.path.isdir(wf_dir_path):
+                    logging.error("[Import Debug] .wf directory not found at: %s", wf_dir_path)
                     raise ValueError(".wf directory not found alongside main.py in the archive.")
 
                 # Passed all checks; replace current app contents
-
-                logging.info("Copying app at %s", main_py_dir)
+                logging.info("[Import Debug] Validation passed, copying app from %s to %s", main_py_dir, self.app_path)
+                
                 if self.observer is not None:
+                    logging.info("[Import Debug] Unscheduling file system observer")
                     self.observer.unschedule_all()
 
                 self._sync_folders(main_py_dir, self.app_path)
+                logging.info("[Import Debug] Folder sync complete")
 
+                logging.info("[Import Debug] Restarting file system observer")
                 self._start_fs_observer()
+                
+                logging.info("[Import Debug] Loading persisted components")
                 self.bmc_components = self._load_persisted_components()
                 
                 # Run reload in executor to avoid blocking the event loop
                 # Use a short timeout to detect failures quickly
+                logging.info("[Import Debug] Starting async reload process")
                 loop = asyncio.get_event_loop()
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     try:
@@ -1177,11 +1193,19 @@ class AppRunner:
                             timeout=8.0  # Outer timeout slightly longer than inner
                         )
                         if not success:
-                            logging.warning("App process failed to start after import. Check main.py for errors.")
+                            logging.warning("[Import Debug] App process failed to start after import. Check main.py for errors.")
+                        else:
+                            logging.info("[Import Debug] App process started successfully")
                     except asyncio.TimeoutError:
-                        logging.warning("App process restart timed out after import, continuing in background")
-        except zipfile.BadZipFile:
+                        logging.warning("[Import Debug] App process restart timed out after import, continuing in background")
+                
+                logging.info("[Import Debug] Import completed successfully")
+        except zipfile.BadZipFile as e:
+            logging.error("[Import Debug] BadZipFile error: %s", e)
             raise ValueError("Uploaded file is not a valid ZIP.")
+        except Exception as e:
+            logging.error("[Import Debug] Unexpected exception in import_zip: %s", e, exc_info=True)
+            raise
 
     def _clean_process(self) -> None:
         # Terminate the AppProcess server by sending an empty message
@@ -1272,39 +1296,49 @@ class AppRunner:
         Returns:
             True if app started successfully, False otherwise.
         """
-        if not self.is_app_process_server_ready.is_set():
-            return False
+        logging.info(f"[Import Debug] Starting non-blocking reload, wait_timeout={wait_timeout}")
         
         try:
+            logging.info("[Import Debug] Loading persisted script")
             run_code = self.load_persisted_script()
-            if self.mode != "edit":
-                raise PermissionError("Cannot update code in non-edit mode.")
-            if not self.is_app_process_server_ready.is_set():
-                return False
             
+            if self.mode != "edit":
+                logging.error("[Import Debug] Cannot reload - not in edit mode")
+                raise PermissionError("Cannot update code in non-edit mode.")
+            
+            logging.info("[Import Debug] Building source files")
             self.run_code = run_code
             self.source_files = wf_project.build_source_files(self.app_path)
+            
+            logging.info("[Import Debug] Cleaning existing process")
             self._clean_process()
+            
+            logging.info("[Import Debug] Starting new app process")
             self._start_app_process()
             
             if wait_timeout is not None:
                 # Poll with timeout instead of blocking indefinitely
+                logging.info(f"[Import Debug] Waiting up to {wait_timeout}s for app to be ready")
                 elapsed = 0.0
                 poll_interval = 0.1
                 while elapsed < wait_timeout:
                     if self.is_app_process_server_ready.is_set():
+                        logging.info("[Import Debug] App process is ready!")
                         self.queue_announcement("codeUpdate", None)
                         return True
                     if self.is_app_process_server_failed.is_set():
+                        logging.warning("[Import Debug] App process failed to start")
                         return False
                     threading.Event().wait(poll_interval)
                     elapsed += poll_interval
+                logging.warning(f"[Import Debug] Timeout after {wait_timeout}s waiting for app to be ready")
                 return False
             else:
                 # Don't wait at all, just start and return
+                logging.info("[Import Debug] Not waiting for app to be ready, returning immediately")
                 return True
         except Exception as e:
-            logging.error(f"Error during non-blocking reload: {e}")
+            logging.error(f"[Import Debug] Exception during non-blocking reload: {e}", exc_info=True)
             return False
 
     def update_code(self, session_id: Optional[str], run_code: str) -> None:
