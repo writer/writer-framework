@@ -1182,10 +1182,22 @@ def _mount_render_index_html(app: FastAPI, server_static_path: pathlib.Path):
     def _render_index_html():
         with io.open(server_static_path.joinpath("index.html"), "r", encoding="utf-8") as f:
             index_html = f.read()
+            index_html = index_html.replace(
+                "<title>Writer</title>",
+                "<title>BANANA</title>",
+            )
+            index_html = index_html.replace(
+                "<title>Writer Framework</title>",
+                "<title>BANANA</title>",
+            )
             if hasattr(app.state, "title"):
                 index_html = index_html.replace(
                     "<title>Writer Framework</title>",
-                    f"<title>{html.escape(app.state.title)}</title>",
+                    "<title>BANANA</title>",
+                )
+                index_html = index_html.replace(
+                    "<title>Writer</title>",
+                    "<title>BANANA</title>",
                 )
 
             if hasattr(app.state, "meta"):
