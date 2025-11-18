@@ -3,7 +3,6 @@
 		ref="rootEl"
 		class="BlueprintsBlueprint"
 		:class="{
-			isPanning: activeCanvasMove !== null,
 			isSelecting: isCursorSelecting,
 			canSelect: isHoveringSelectableArea && !isCursorSelecting,
 		}"
@@ -1139,11 +1138,6 @@ onUnmounted(() => {
 	align-items: stretch;
 	position: relative;
 	overflow: hidden;
-	cursor: grab;
-}
-
-.BlueprintsBlueprint.isPanning {
-	cursor: grabbing;
 }
 
 .BlueprintsBlueprint.isSelecting {
