@@ -1,5 +1,6 @@
 import { useAbortController } from "@/composables/useAbortController";
 import { useLogger } from "@/composables/useLogger";
+import { useSessionStorageJSON } from "@/composables/useStorageJSON";
 import type { Core } from "@/writerTypes";
 import { ref, onMounted, watch, computed } from "vue";
 
@@ -14,7 +15,22 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 
 	const socketClosed = ref(false);
 	const reconnecting = ref(false);
-	const prevent = ref(false);
+
+	const preventTasksCache = useSessionStorageJSON<string[]>(
+		"useSocketTimeout_preventTasks",
+		(v) => Array.isArray(v) && v.every((k) => typeof k === "string"),
+	);
+	/* List of task Ids that prevent the socket to be closed */
+	const preventTasks = ref(new Set<string>());
+	const prevent = computed(() => preventTasks.value.size > 0);
+
+	function togglePreventTaskId(id: string) {
+		if (preventTasks.value.has(id)) {
+			preventTasks.value.delete(id);
+		} else {
+			preventTasks.value.add(id);
+		}
+	}
 
 	const ignoreMessageType = new Set([
 		"collaborationPing",
@@ -66,6 +82,13 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 			schedule(); // Reschedule now that activity is complete
 		}
 	});
+	watch(
+		preventTasks,
+		() => {
+			preventTasksCache.value = [...preventTasks.value];
+		},
+		{ deep: true },
+	);
 
 	async function reconnect() {
 		logger.info(`[SocketTimeout] Attempting to reconnect socket...`);
@@ -94,6 +117,9 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 	}
 
 	onMounted(() => {
+		if (preventTasksCache) {
+			preventTasks.value = new Set(preventTasksCache.value);
+		}
 		document.addEventListener("visibilitychange", onVisibilityChange, {
 			signal: abort.signal,
 		});
@@ -104,6 +130,8 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 		socketClosed,
 		reconnecting,
 		prevent,
+		preventTasks,
+		togglePreventTaskId,
 		onVisibilityChange,
 		clearSchedule,
 		schedule,
