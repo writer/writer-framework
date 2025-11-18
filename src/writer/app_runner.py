@@ -944,9 +944,14 @@ class AppRunner:
                 contents = f.read()
             return contents
         except FileNotFoundError as error:
-            logger.error("Couldn't find %s in the path provided: %s.", file, self.app_path)
+            error_msg = f"Couldn't find {file} in the path provided: {self.app_path}"
+            logger.error(error_msg)
             if file == "main.py":
-                sys.exit(1)
+                # Don't use sys.exit() - raise exception so it can be caught and handled
+                if self.mode == "run":
+                    sys.exit(1)
+                else:
+                    raise ValueError(error_msg) from error
             else:
                 raise error
 
@@ -968,8 +973,13 @@ class AppRunner:
             wf_project.create_default_blueprints_root(self.app_path)
 
         if not os.path.isdir(os.path.join(self.app_path, ".wf")):
-            logger.error("Couldn't find .wf in the path provided: %s.", self.app_path)
-            sys.exit(1)
+            error_msg = f"Couldn't find .wf directory in the path provided: {self.app_path}"
+            logger.error(error_msg)
+            # Don't use sys.exit() - raise exception so it can be caught and handled
+            if self.mode == "run":
+                sys.exit(1)
+            else:
+                raise ValueError(error_msg)
 
         _, components = wf_project.read_files(self.app_path)
         components = audit_and_fix.fix_components(components)
@@ -1174,30 +1184,49 @@ class AppRunner:
                 logging.info("[Import Debug] Folder sync complete")
 
                 logging.info("[Import Debug] Restarting file system observer")
-                self._start_fs_observer()
+                try:
+                    self._start_fs_observer()
+                    logging.info("[Import Debug] File system observer restarted successfully")
+                except Exception as e:
+                    logging.error("[Import Debug] Failed to start file system observer: %s", e, exc_info=True)
+                    raise
                 
                 logging.info("[Import Debug] Loading persisted components")
-                self.bmc_components = self._load_persisted_components()
+                try:
+                    self.bmc_components = self._load_persisted_components()
+                    logging.info("[Import Debug] Loaded %d components", len(self.bmc_components) if self.bmc_components else 0)
+                except Exception as e:
+                    logging.error("[Import Debug] Failed to load persisted components: %s", e, exc_info=True)
+                    raise
                 
                 # Run reload in executor to avoid blocking the event loop
                 # Use a short timeout to detect failures quickly
                 logging.info("[Import Debug] Starting async reload process")
-                loop = asyncio.get_event_loop()
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    try:
-                        success = await asyncio.wait_for(
-                            loop.run_in_executor(
-                                executor, 
-                                lambda: self.reload_code_from_saved_nonblocking(wait_timeout=5.0)
-                            ),
-                            timeout=8.0  # Outer timeout slightly longer than inner
-                        )
-                        if not success:
-                            logging.warning("[Import Debug] App process failed to start after import. Check main.py for errors.")
-                        else:
-                            logging.info("[Import Debug] App process started successfully")
-                    except asyncio.TimeoutError:
-                        logging.warning("[Import Debug] App process restart timed out after import, continuing in background")
+                try:
+                    loop = asyncio.get_event_loop()
+                    logging.info("[Import Debug] Got event loop, creating executor")
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        logging.info("[Import Debug] Executor created, submitting reload task")
+                        try:
+                            success = await asyncio.wait_for(
+                                loop.run_in_executor(
+                                    executor, 
+                                    lambda: self.reload_code_from_saved_nonblocking(wait_timeout=5.0)
+                                ),
+                                timeout=8.0  # Outer timeout slightly longer than inner
+                            )
+                            if not success:
+                                logging.warning("[Import Debug] App process failed to start after import. Check main.py for errors.")
+                            else:
+                                logging.info("[Import Debug] App process started successfully")
+                        except asyncio.TimeoutError:
+                            logging.warning("[Import Debug] App process restart timed out after import, continuing in background")
+                        except Exception as e:
+                            logging.error("[Import Debug] Exception during reload task execution: %s", e, exc_info=True)
+                            raise
+                except Exception as e:
+                    logging.error("[Import Debug] Exception in async reload process setup: %s", e, exc_info=True)
+                    raise
                 
                 logging.info("[Import Debug] Import completed successfully")
         except zipfile.BadZipFile as e:
