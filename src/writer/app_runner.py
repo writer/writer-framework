@@ -1163,7 +1163,18 @@ class AppRunner:
 
                 self._start_fs_observer()
                 self.bmc_components = self._load_persisted_components()
-                self.reload_code_from_saved()
+                
+                # Run reload in executor to avoid blocking the event loop
+                # This allows the HTTP response to be sent while the app restarts
+                loop = asyncio.get_event_loop()
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    try:
+                        await asyncio.wait_for(
+                            loop.run_in_executor(executor, self.reload_code_from_saved),
+                            timeout=10.0
+                        )
+                    except asyncio.TimeoutError:
+                        logging.warning("App process restart timed out after 10 seconds, continuing in background")
         except zipfile.BadZipFile:
             raise ValueError("Uploaded file is not a valid ZIP.")
 

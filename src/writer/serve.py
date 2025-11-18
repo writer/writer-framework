@@ -277,6 +277,7 @@ def get_asgi_app(
                 tmp_path = tmp.name
             await app_runner.import_zip(tmp_path)
             os.remove(tmp_path)
+            return {"status": "success", "message": "Import completed successfully"}
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid upload.")
 
