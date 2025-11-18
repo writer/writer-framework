@@ -199,7 +199,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 <style scoped>
 .WdsDropdownMenu {
 	position: absolute;
-	border: 1px solid var(--wdsColorGray2);
+	border: none;
 	background: #fff;
 	z-index: 2;
 	width: 100%;
