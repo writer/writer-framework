@@ -769,8 +769,22 @@ class AppRunner:
         self.log_listener.start()
 
     def _start_fs_observer(self):
+        # If observer exists but isn't alive, we need to recreate it
+        # (can't restart a stopped PollingObserver)
+        if self.observer is not None and not self.observer.is_alive():
+            logging.info("[Observer Debug] Stopping dead observer before recreating")
+            try:
+                self.observer.stop()
+                self.observer.join(timeout=2.0)
+            except Exception as e:
+                logging.warning("[Observer Debug] Error stopping dead observer: %s", e)
+            self.observer = None
+        
         if self.observer is None:
+            logging.info("[Observer Debug] Creating new PollingObserver")
             self.observer = PollingObserver(AppRunner.UPDATE_CHECK_INTERVAL_SECONDS)
+        
+        logging.info("[Observer Debug] Scheduling file event handler for path: %s", self.app_path)
         self.observer.schedule(
             FileEventHandler(self.reload_code_from_saved, patterns=["*.py"]),
             path=self.app_path,
@@ -782,7 +796,11 @@ class AppRunner:
         #     path=self.app_path,
         # )
         if not self.observer.is_alive():
+            logging.info("[Observer Debug] Starting observer")
             self.observer.start()
+            logging.info("[Observer Debug] Observer started successfully")
+        else:
+            logging.info("[Observer Debug] Observer already alive, not restarting")
 
     def _start_wf_project_process_write_files(self):
         wf_project.start_process_write_files_async(
@@ -1186,21 +1204,19 @@ class AppRunner:
 
                 self._sync_folders(main_py_dir, self.app_path)
                 logging.info("[Import Debug] Folder sync complete")
+                logging.info("[Import Debug] Observer state before restart: %s, alive=%s", 
+                            self.observer, 
+                            self.observer.is_alive() if self.observer else "N/A")
                 
-                # Force log flush to ensure we see this even if process crashes
-                import sys
-                sys.stdout.flush()
-                sys.stderr.flush()
-
-                logging.info("[Import Debug] About to restart file system observer - process still alive")
-                sys.stdout.flush()
-                sys.stderr.flush()
                 try:
+                    logging.info("[Import Debug] Starting file system observer (may fail on second import)")
                     self._start_fs_observer()
-                    logging.info("[Import Debug] File system observer restarted successfully")
+                    logging.info("[Import Debug] File system observer restarted successfully, alive=%s",
+                                self.observer.is_alive() if self.observer else "N/A")
                 except Exception as e:
-                    logging.error("[Import Debug] Failed to start file system observer: %s", e, exc_info=True)
-                    raise
+                    logging.error("[Import Debug] CRITICAL: Failed to start file system observer: %s", e, exc_info=True)
+                    # Don't raise - continue with import even if observer fails
+                    logging.warning("[Import Debug] Continuing import without file system observer")
                 
                 logging.info("[Import Debug] Loading persisted components")
                 try:
