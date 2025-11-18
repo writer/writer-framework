@@ -39,7 +39,7 @@ class JournalRecord:
             self.trigger["component"]["id"] = graph.get_start_nodes()[0].id
 
         if "API" in title:
-            if component.type == "blueprints_crontrigger":
+            if getattr(component, "type", "") == "blueprints_crontrigger":
                 self.trigger["type"] = "Cron"
             else:
                 self.trigger["type"] = "API"
