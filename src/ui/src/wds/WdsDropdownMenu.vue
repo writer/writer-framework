@@ -19,7 +19,13 @@
 					Clear all
 				</button>
 			</div>
-			<div v-if="enableSearch" class="WdsDropdownMenu__header__search">
+			<div
+				v-if="enableSearch"
+				class="WdsDropdownMenu__header__search"
+				:class="{
+					'WdsDropdownMenu__header__search--no-results': hasNoResults,
+				}"
+			>
 				<WdsIcon name="search" />
 				<input
 					ref="searchInput"
@@ -49,6 +55,9 @@
 			</button>
 		</template>
 
+		<template v-else-if="hasNoResults">
+			<div class="WdsDropdownMenu__no-results">No results</div>
+		</template>
 		<SharedLazyLoader
 			v-for="option in optionsFiltered"
 			v-else
@@ -154,6 +163,15 @@ const optionsFiltered = computed(() => {
 	);
 });
 
+const hasNoResults = computed(() => {
+	return (
+		props.enableSearch &&
+		searchTerm.value.trim() !== "" &&
+		optionsFiltered.value.length === 0 &&
+		!props.loading
+	);
+});
+
 function isSelected(value: string) {
 	return Array.isArray(props.selected)
 		? props.selected.includes(value)
@@ -182,7 +200,6 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 .WdsDropdownMenu {
 	position: absolute;
 	border: 1px solid var(--wdsColorGray2);
-	border: none;
 	background: #fff;
 	z-index: 2;
 	width: 100%;
@@ -212,7 +229,6 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 .WdsDropdownMenu__item {
 	background-color: transparent;
 	border: none;
-	display: block;
 	width: 100%;
 
 	display: grid;
@@ -237,7 +253,7 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 
 .WdsDropdownMenu__header {
 	position: sticky;
-	top: 0px;
+	top: 0;
 	padding-top: 8px;
 	padding-bottom: 8px;
 	background: #fff;
@@ -311,5 +327,23 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	cursor: pointer;
 	text-align: right;
 	color: var(--wdsColorGray4);
+}
+
+.WdsDropdownMenu__header__search--no-results {
+	border-color: #e53e3e !important;
+}
+.WdsDropdownMenu__header__search--no-results:hover {
+	border-color: #e53e3e !important;
+}
+.WdsDropdownMenu__header__search--no-results:focus-within {
+	border-color: #e53e3e !important;
+	outline: 4px solid rgba(229, 62, 62, 0.2) !important;
+}
+
+.WdsDropdownMenu__no-results {
+	padding: 12px;
+	text-align: center;
+	color: var(--wdsColorGray5, #6b7280);
+	font-size: 0.875rem;
 }
 </style>
