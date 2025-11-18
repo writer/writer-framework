@@ -1300,6 +1300,15 @@ class AppRunner:
         self._clean_process()
 
     def _start_app_process(self) -> None:
+        """Starts app process and waits (blocking) for it to be ready."""
+        self._start_app_process_nonblocking()
+        self.is_app_process_server_ready.wait()
+        if self.mode == "run" and self.is_app_process_server_failed.is_set():
+            self.shut_down()
+            sys.exit(1)
+    
+    def _start_app_process_nonblocking(self) -> None:
+        """Starts app process without waiting for it to be ready."""
         if self.run_code is None:
             raise ValueError("Cannot start app process. Code hasn't been set.")
         if self.bmc_components is None:
@@ -1331,10 +1340,6 @@ class AppRunner:
             self.response_events,
         )
         self.app_process_listener.start()
-        self.is_app_process_server_ready.wait()
-        if self.mode == "run" and self.is_app_process_server_failed.is_set():
-            self.shut_down()
-            sys.exit(1)
 
     def reload_code_from_saved(self) -> None:
         if not self.is_app_process_server_ready.is_set():
@@ -1369,8 +1374,9 @@ class AppRunner:
             logging.info("[Import Debug] Cleaning existing process")
             self._clean_process()
             
-            logging.info("[Import Debug] Starting new app process")
-            self._start_app_process()
+            logging.info("[Import Debug] Starting new app process (non-blocking)")
+            self._start_app_process_nonblocking()
+            logging.info("[Import Debug] App process started, not waiting for ready signal yet")
             
             if wait_timeout is not None:
                 # Poll with timeout instead of blocking indefinitely
