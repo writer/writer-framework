@@ -37,6 +37,19 @@
 			<WdsIcon name="view" />
 			Preview
 		</button>
+		<button
+			v-if="
+				wf.isWriterCloudApp.value &&
+				wf.featureFlags.value.includes('journal')
+			"
+			:class="{ active: activeId == 'journal' }"
+			data-automation-action="set-mode-journal"
+			type="button"
+			@click="selectOption('journal')"
+		>
+			<WdsIcon name="scroll-text" />
+			Journal
+		</button>
 	</div>
 </template>
 
@@ -85,6 +98,9 @@ function selectOption(optionId: BuilderManagerMode) {
 			break;
 		case "vault":
 			tracking.track("nav_vault_opened");
+			break;
+		case "journal":
+			tracking.track("nav_journal_opened");
 			break;
 	}
 
