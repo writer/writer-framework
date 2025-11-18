@@ -1165,16 +1165,21 @@ class AppRunner:
                 self.bmc_components = self._load_persisted_components()
                 
                 # Run reload in executor to avoid blocking the event loop
-                # This allows the HTTP response to be sent while the app restarts
+                # Use a short timeout to detect failures quickly
                 loop = asyncio.get_event_loop()
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     try:
-                        await asyncio.wait_for(
-                            loop.run_in_executor(executor, self.reload_code_from_saved),
-                            timeout=10.0
+                        success = await asyncio.wait_for(
+                            loop.run_in_executor(
+                                executor, 
+                                lambda: self.reload_code_from_saved_nonblocking(wait_timeout=5.0)
+                            ),
+                            timeout=8.0  # Outer timeout slightly longer than inner
                         )
+                        if not success:
+                            logging.warning("App process failed to start after import. Check main.py for errors.")
                     except asyncio.TimeoutError:
-                        logging.warning("App process restart timed out after 10 seconds, continuing in background")
+                        logging.warning("App process restart timed out after import, continuing in background")
         except zipfile.BadZipFile:
             raise ValueError("Uploaded file is not a valid ZIP.")
 
@@ -1255,6 +1260,52 @@ class AppRunner:
         if not self.is_app_process_server_ready.is_set():
             return
         self.update_code(None, self.load_persisted_script())
+
+    def reload_code_from_saved_nonblocking(self, wait_timeout: Optional[float] = None) -> bool:
+        """
+        Reloads code from saved files without blocking indefinitely.
+        Used during import to restart the app without hanging on errors.
+        
+        Args:
+            wait_timeout: Maximum seconds to wait for app to be ready. None = don't wait.
+        
+        Returns:
+            True if app started successfully, False otherwise.
+        """
+        if not self.is_app_process_server_ready.is_set():
+            return False
+        
+        try:
+            run_code = self.load_persisted_script()
+            if self.mode != "edit":
+                raise PermissionError("Cannot update code in non-edit mode.")
+            if not self.is_app_process_server_ready.is_set():
+                return False
+            
+            self.run_code = run_code
+            self.source_files = wf_project.build_source_files(self.app_path)
+            self._clean_process()
+            self._start_app_process()
+            
+            if wait_timeout is not None:
+                # Poll with timeout instead of blocking indefinitely
+                elapsed = 0.0
+                poll_interval = 0.1
+                while elapsed < wait_timeout:
+                    if self.is_app_process_server_ready.is_set():
+                        self.queue_announcement("codeUpdate", None)
+                        return True
+                    if self.is_app_process_server_failed.is_set():
+                        return False
+                    threading.Event().wait(poll_interval)
+                    elapsed += poll_interval
+                return False
+            else:
+                # Don't wait at all, just start and return
+                return True
+        except Exception as e:
+            logging.error(f"Error during non-blocking reload: {e}")
+            return False
 
     def update_code(self, session_id: Optional[str], run_code: str) -> None:
         """

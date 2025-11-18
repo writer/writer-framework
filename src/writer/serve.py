@@ -262,6 +262,7 @@ def get_asgi_app(
             raise HTTPException(status_code=400, detail="Only .zip files are supported.")
 
         MAX_FILE_SIZE = 200 * 1024 * 1024
+        tmp_path = None
 
         try:
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
@@ -276,10 +277,20 @@ def get_asgi_app(
                     tmp.write(chunk)
                 tmp_path = tmp.name
             await app_runner.import_zip(tmp_path)
-            os.remove(tmp_path)
             return {"status": "success", "message": "Import completed successfully"}
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid upload.")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid upload: {str(e)}")
+        except PermissionError as e:
+            raise HTTPException(status_code=403, detail=str(e))
+        except Exception as e:
+            logging.error(f"Unexpected error during import: {e}")
+            raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+        finally:
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except Exception:
+                    pass
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):
