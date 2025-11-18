@@ -47,7 +47,10 @@ from writer.ss_types import (
     AppProcessServerResponse,
     AutogenRequestBody,
     ComponentUpdateRequestPayload,
+    DeleteDataRequestBody,
     EventResponsePayload,
+    RetrieveDataRequestBody,
+    RetrieveDataResponseBody,
     HashRequestPayload,
     HashRequestResponsePayload,
     InitRequestBody,
@@ -289,6 +292,38 @@ def get_asgi_app(
             requestBody.description,
             agent_token_header
             )
+
+    @app.post("/api/data/retrieve")
+    async def retrieve_data(requestBody: RetrieveDataRequestBody) -> RetrieveDataResponseBody:
+        from writer.keyvalue_storage import writer_kv_storage
+
+        all_keys = writer_kv_storage.get_data_keys()
+
+        keys_to_fetch = []
+        for key in all_keys:
+            if key in requestBody.skip_keys:
+                continue
+            if requestBody.key_contains and requestBody.key_contains not in key:
+                continue
+            keys_to_fetch.append(key)
+        
+        async def fetch_value(key: str):
+            return key, await asyncio.to_thread(writer_kv_storage.get, key, "data")
+
+        kv_pairs = await asyncio.gather(*(fetch_value(key) for key in keys_to_fetch))
+
+        return RetrieveDataResponseBody(result={k: v["data"] for k, v in kv_pairs})
+
+    @app.post("/api/data/delete")
+    async def delete_data(requestBody: DeleteDataRequestBody) -> None:
+        from writer.keyvalue_storage import writer_kv_storage
+
+        async def delete_key(key: str):
+            return key, await asyncio.to_thread(writer_kv_storage.delete, key)
+
+        await asyncio.gather(*(delete_key(key) for key in requestBody.keys))
+
+        return None
 
     @app.post("/api/init")
     async def init(

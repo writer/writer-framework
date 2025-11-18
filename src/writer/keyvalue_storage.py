@@ -1,7 +1,7 @@
 import logging
 import os
 from functools import partial
-from typing import Any, Dict, Literal, Optional, Protocol
+from typing import Any, Dict, List, Literal, Optional, Protocol
 
 import httpx
 
@@ -42,6 +42,9 @@ class KeyValueStorage:
 
     def get(self, key: str, type_: Literal["data", "secret"]) -> Dict[str, Any]:
         return self._request(partial(self._client.get, url=f"{self.api_url}/agent_{type_}/{key}")).json()
+
+    def get_data_keys(self) -> List[str]:
+        return self._request(partial(self._client.get, url=f"{self.api_url}/agent_data")).json()["keys"]
     
     def save(self, key: str, data: Any) -> Dict[str, Any]:
         try:
