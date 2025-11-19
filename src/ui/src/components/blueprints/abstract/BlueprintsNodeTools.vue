@@ -22,23 +22,6 @@ const hasToolsButNoFunctionTools = computed(() => {
 	return !toolKeys.some((key) => tools.value[key]?.type === "function");
 });
 
-function formatGraphIds(graphIds: unknown): string | null {
-	if (!graphIds) return null;
-
-	if (Array.isArray(graphIds) && graphIds.length > 0) {
-		const ids = graphIds.filter(
-			(id) => typeof id === "string" && !id.startsWith("@{"),
-		);
-		return ids.length > 0 ? ids.join(", ") : null;
-	}
-
-	if (typeof graphIds === "string" && !graphIds.startsWith("@{")) {
-		return graphIds;
-	}
-
-	return null;
-}
-
 function isFunctionTool(tool: unknown): boolean {
 	return (
 		tool !== null &&
@@ -46,21 +29,6 @@ function isFunctionTool(tool: unknown): boolean {
 		"type" in tool &&
 		tool.type === "function"
 	);
-}
-
-function formatToolName(toolName: string, tool: unknown): string {
-	if (!tool || typeof tool !== "object" || !("type" in tool)) {
-		return toolName;
-	}
-
-	if (tool.type === "graph" && "graph_ids" in tool) {
-		const formattedIds = formatGraphIds(tool.graph_ids);
-		if (formattedIds) {
-			return `${toolName} (${formattedIds})`;
-		}
-	}
-
-	return toolName;
 }
 
 const nonFunctionToolKeys = computed(() => {
@@ -71,9 +39,7 @@ const nonFunctionToolKeys = computed(() => {
 
 const displayText = computed(() => {
 	if (nonFunctionToolKeys.value.length > 0) {
-		return nonFunctionToolKeys.value
-			.map((toolName) => formatToolName(toolName, tools.value[toolName]))
-			.join(", ");
+		return nonFunctionToolKeys.value.join(", ");
 	}
 
 	if (!props.hasOutputs && hasToolsButNoFunctionTools.value) {
