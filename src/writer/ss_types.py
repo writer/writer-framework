@@ -79,6 +79,19 @@ class AutogenRequestBody(BaseModel):
     description: str
 
 
+class RetrieveDataRequestBody(BaseModel):
+    skip_keys: List[str] = []
+    key_contains: Optional[str] = None
+
+
+class RetrieveDataResponseBody(BaseModel):
+    result: Dict[str, Any]
+
+
+class DeleteDataRequestBody(BaseModel):
+    keys: List[str]
+
+
 class InitRequestBody(BaseModel):
     proposedSessionId: Optional[str] = None
 
