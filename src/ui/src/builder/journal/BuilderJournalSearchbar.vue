@@ -4,7 +4,6 @@
 			v-model="searchText"
 			class="searchInput"
 			left-icon="search"
-			@input="onSearchChange"
 		/>
 		<div class="BuilderJournalSearchbar__dropdown">
 			<WdsDropdownMenu
@@ -28,7 +27,7 @@
 <script setup lang="ts">
 import WdsDropdownMenu from "@/wds/WdsDropdownMenu.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import { Ref, ref } from "vue";
+import { PropType } from "vue";
 
 const statusOptions = [
 	{ value: "success", label: "Success" },
@@ -42,28 +41,14 @@ const triggerOptions = [
 	{ value: "Cron", label: "Scheduled" },
 ];
 
-const searchText = ref("");
-const statuses: Ref<string[]> = ref([]);
-const triggers: Ref<string[]> = ref([]);
-
-const emit = defineEmits<{
-	(e: "update:search", value: string): void;
-	(e: "update:statuses", value: string[]): void;
-	(e: "update:triggers", value: string[]): void;
-}>();
-
-function onSearchChange() {
-	emit("update:search", searchText.value);
-}
-
+const searchText = defineModel("search", { type: String });
+const statuses = defineModel("statuses", { type: Array as PropType<string[]> });
+const triggers = defineModel("triggers", { type: Array as PropType<string[]> });
 function onStatusesChange(val: string[]) {
 	statuses.value = val;
-	emit("update:statuses", val);
 }
-
 function onTriggersChange(val: string[]) {
 	triggers.value = val;
-	emit("update:triggers", val);
 }
 </script>
 

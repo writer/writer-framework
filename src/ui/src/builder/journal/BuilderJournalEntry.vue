@@ -25,27 +25,28 @@
 <script setup lang="ts">
 import BuilderJournalEntryResult from "./BuilderJournalEntryResult.vue";
 import { JournalEntry } from "../BuilderJournal.vue";
+import { computed, PropType } from "vue";
+import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
 
-const props = defineProps<{
-	journalEntry: JournalEntry;
-}>();
+const props = defineProps({
+	journalEntry: { type: Object as PropType<JournalEntry>, required: true },
+});
 
-const dateObj = new Date(props.journalEntry.timestamp);
+const dateObj = computed(() => new Date(props.journalEntry.timestamp));
 
-const optionsDate: Intl.DateTimeFormatOptions = {
-	year: "numeric",
-	month: "short",
-	day: "numeric",
-};
-const formattedDate = dateObj.toLocaleDateString(undefined, optionsDate);
-
-const optionsTime: Intl.DateTimeFormatOptions = {
-	hour: "numeric",
-	minute: "2-digit",
-	second: "2-digit",
-	hour12: true,
-};
-const formattedTime = dateObj.toLocaleTimeString(undefined, optionsTime);
+const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
+	dateOptions: {
+		year: "numeric",
+		month: "short",
+		day: "numeric",
+	},
+	timeOptions: {
+		hour: "numeric",
+		minute: "2-digit",
+		second: "2-digit",
+		hour12: true,
+	},
+});
 </script>
 
 <style scoped>

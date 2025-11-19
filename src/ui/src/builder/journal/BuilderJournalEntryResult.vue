@@ -10,10 +10,14 @@
 
 <script setup lang="ts">
 import WdsIcon from "@/wds/WdsIcon.vue";
+import { PropType } from "vue";
 
-defineProps<{
-	result: "success" | "error" | "stopped";
-}>();
+defineProps({
+	result: {
+		type: String as PropType<"success" | "error" | "stopped">,
+		required: true,
+	},
+});
 </script>
 
 <style scoped>
@@ -27,15 +31,15 @@ defineProps<{
 }
 
 .BuilderJournalEntryResult.success {
-	background-color: #a9f9e1;
+	background-color: var(--wdsColorGreen3);
 }
 
 .BuilderJournalEntryResult.error {
-	background-color: #ffcfc2;
+	background-color: var(--wdsColorOrange2);
 }
 
 .BuilderJournalEntryResult.stopped {
-	background-color: #f5f5f9;
+	background-color: var(--wdsColorGray1);
 }
 
 .BuilderJournalEntryResult__image {

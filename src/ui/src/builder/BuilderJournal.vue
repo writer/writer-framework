@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ComputedRef, inject, onMounted, Ref, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import BuilderJournalHeader from "./journal/BuilderJournalHeader.vue";
 import BuilderJournalEntry from "./journal/BuilderJournalEntry.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
@@ -59,13 +59,13 @@ export type JournalEntry = RawJournalEntry & {
 	componentDefinition: WriterComponentDefinition;
 };
 
-const rawEntries: Ref<Record<string, RawJournalEntry>> = ref({});
+const rawEntries = ref<Record<string, RawJournalEntry>>({});
 
 const searchText = ref("");
 const selectedStatuses = ref<string[]>([]);
 const selectedTriggers = ref<string[]>([]);
 
-const entries: ComputedRef<Record<string, JournalEntry>> = computed(() => {
+const entries = computed<Record<string, JournalEntry>>(() => {
 	return Object.fromEntries(
 		Object.entries(rawEntries.value).map(([key, entry]) => {
 			const component = wf.getComponentById(entry.trigger.component.id);
@@ -83,38 +83,32 @@ const entries: ComputedRef<Record<string, JournalEntry>> = computed(() => {
 	);
 });
 
-const filteredEntries: ComputedRef<Record<string, JournalEntry>> = computed(
-	() => {
-		return Object.fromEntries(
-			Object.entries(entries.value).filter(([_, entry]) => {
-				const searchMatch =
-					searchText.value === "" ||
-					entry.title
-						.toLowerCase()
-						.includes(searchText.value.toLowerCase());
-				const statusMatch =
-					selectedStatuses.value.length === 0 ||
-					selectedStatuses.value.includes(entry.result);
-				const triggerMatch =
-					selectedTriggers.value.length === 0 ||
-					selectedTriggers.value.includes(entry.trigger.type);
-				return searchMatch && statusMatch && triggerMatch;
-			}),
-		);
-	},
-);
+const filteredEntries = computed<Record<string, JournalEntry>>(() => {
+	const searchTextLower = searchText.value.toLowerCase();
+	return Object.fromEntries(
+		Object.entries(entries.value).filter(([_, entry]) => {
+			const searchMatch =
+				searchText.value === "" ||
+				entry.title.toLowerCase().includes(searchTextLower);
+			const statusMatch =
+				selectedStatuses.value.length === 0 ||
+				selectedStatuses.value.includes(entry.result);
+			const triggerMatch =
+				selectedTriggers.value.length === 0 ||
+				selectedTriggers.value.includes(entry.trigger.type);
+			return searchMatch && statusMatch && triggerMatch;
+		}),
+	);
+});
 
-const sortedEntries: ComputedRef<Record<string, JournalEntry>> = computed(
-	() => {
-		const sortedArray = Object.entries(filteredEntries.value).sort(
-			([_, a], [__, b]) =>
-				new Date(b.timestamp).getTime() -
-				new Date(a.timestamp).getTime(),
-		);
+const sortedEntries = computed<Record<string, JournalEntry>>(() => {
+	const sortedArray = Object.entries(filteredEntries.value).sort(
+		([_, a], [__, b]) =>
+			new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+	);
 
-		return Object.fromEntries(sortedArray);
-	},
-);
+	return Object.fromEntries(sortedArray);
+});
 
 async function loadEntries() {
 	const response = await fetch(
@@ -139,22 +133,33 @@ async function loadEntries() {
 		return;
 	}
 
-	const data = await response.json();
-
-	rawEntries.value = { ...rawEntries.value, ...data.result };
+	try {
+		const data = await response.json();
+		rawEntries.value = { ...rawEntries.value, ...data.result };
+	} catch {
+		pushToast({
+			type: "error",
+			message: "Failed to fetch the execution history",
+		});
+		return;
+	}
 }
 
 const downloadAsJson = () => {
 	const jsonString = JSON.stringify(filteredEntries.value, null, 2);
 	const blob = new Blob([jsonString], { type: "application/json" });
 
-	const a = document.createElement("a");
-	a.href = URL.createObjectURL(blob);
-	a.download = "agent-journal.json";
-
-	document.body.appendChild(a);
-	a.click();
-	document.body.removeChild(a);
+	const url = URL.createObjectURL(blob);
+	try {
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "agent-journal.json";
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+	} finally {
+		window.URL.revokeObjectURL(url);
+	}
 };
 
 async function deleteEntries() {

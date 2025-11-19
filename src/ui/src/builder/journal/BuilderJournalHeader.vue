@@ -1,9 +1,9 @@
 <template>
 	<div class="BuilderJournalHeader">
 		<BuilderJournalSearchbar
-			@update:search="(val) => emit('update:search', val)"
-			@update:statuses="(val) => emit('update:statuses', val)"
-			@update:triggers="(val) => emit('update:triggers', val)"
+			v-model:search="searchText"
+			v-model:statuses="statuses"
+			v-model:triggers="triggers"
 		>
 		</BuilderJournalSearchbar>
 		<div class="BuilderJournalHeader__actions">
@@ -42,15 +42,16 @@
 import WdsIcon from "@/wds/WdsIcon.vue";
 import BuilderJournalSearchbar from "./BuilderJournalSearchbar.vue";
 import WdsButton from "@/wds/WdsButton.vue";
+import { PropType } from "vue";
 
-const emit = defineEmits<{
-	(e: "refresh"): void;
-	(e: "clear"): void;
-	(e: "download"): void;
-	(e: "update:search", value: string): void;
-	(e: "update:statuses", value: string[]): void;
-	(e: "update:triggers", value: string[]): void;
-}>();
+const emit = defineEmits({
+	refresh: () => true,
+	clear: () => true,
+	download: () => true,
+});
+const searchText = defineModel("search", { type: String });
+const statuses = defineModel("statuses", { type: Array as PropType<string[]> });
+const triggers = defineModel("triggers", { type: Array as PropType<string[]> });
 </script>
 
 <style scoped>
