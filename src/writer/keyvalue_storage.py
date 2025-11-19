@@ -80,4 +80,11 @@ class KeyValueStorage:
         response.raise_for_status()
         return response
 
+    def is_accessible(self) -> bool:
+        if None in self._get_agent_ids():
+            return False
+        if None in (self.api_key, self.api_url):
+            return False
+        return True
+
 writer_kv_storage = KeyValueStorage()
