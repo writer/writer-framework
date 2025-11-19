@@ -10,6 +10,7 @@ import {
 import { nextTick } from "vue";
 import { useSocketTimeout } from "./useSocketTimeout";
 import { buildMockCore } from "@/tests/mocks";
+import { flushPromises } from "@vue/test-utils";
 
 // Mock dependencies
 vi.mock("@/composables/useLogger", () => ({
@@ -89,7 +90,7 @@ describe("useSocketTimeout", () => {
 		expect(schedule()).toBe(true);
 	});
 
-	it("should not schedule timeout if frontend message exists", () => {
+	it("should not schedule timeout if frontend message exists", async () => {
 		mockCore.frontendMessageMap.value.set(1, { type: "event" });
 		const { schedule, onVisibilityChange } = useSocketTimeout(
 			mockCore.core,
@@ -99,6 +100,12 @@ describe("useSocketTimeout", () => {
 		onVisibilityChange();
 
 		expect(schedule()).toBe(false);
+		expect(vi.getTimerCount()).toBe(0);
+
+		// even if the task finished in background
+		mockCore.frontendMessageMap.value.clear();
+		await flushPromises();
+		expect(vi.getTimerCount()).toBe(0);
 	});
 
 	it("should clear schedule when clearSchedule is called", () => {

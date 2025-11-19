@@ -12,6 +12,7 @@ const WEBSOCKET_INACTIVITY_CLOSE_CODE = 4000;
 export function useSocketTimeout(wf: Core, timeoutMin: number) {
 	const timeoutMs = timeoutMin * 60 * 1_000;
 	const logger = useLogger();
+	const abort = useAbortController();
 
 	let timer = undefined;
 
@@ -51,8 +52,6 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 		() => !prevent.value && !isMessagePending.value,
 	);
 
-	const abort = useAbortController();
-
 	function schedule() {
 		if (!canCloseSocket.value || document.visibilityState !== "hidden")
 			return false;
@@ -77,6 +76,7 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 		timer = undefined;
 	}
 
+	// cancel closing socket timer
 	watch(canCloseSocket, () => {
 		if (!canCloseSocket.value) {
 			clearSchedule();
@@ -84,6 +84,8 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 			schedule(); // Reschedule now that activity is complete
 		}
 	});
+
+	// reflect `preventTasks` changes in session storage
 	watch(
 		preventTasks,
 		() => {
@@ -91,6 +93,17 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 		},
 		{ deep: true },
 	);
+
+	// prevent closing socket when blueprint finish in background
+	watch(isMessagePending, (hasPending, hadPending) => {
+		const hadCompletedJob = hadPending && !hasPending;
+		if (hadCompletedJob && document.visibilityState === "hidden") {
+			logger.log(
+				`[SocketTimeout] Preventing socket to be closed due to finished task in background...`,
+			);
+			preventTasks.value.add("pendingMessageInBackground");
+		}
+	});
 
 	async function reconnect() {
 		logger.info(`[SocketTimeout] Attempting to reconnect socket...`);
@@ -112,6 +125,7 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 
 	function onVisibilityChange() {
 		if (document.visibilityState === "visible") {
+			preventTasks.value.delete("pendingMessageInBackground");
 			clearSchedule();
 		} else if (canCloseSocket.value) {
 			schedule();
