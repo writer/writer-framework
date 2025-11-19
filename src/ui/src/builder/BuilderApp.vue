@@ -16,12 +16,15 @@
 				:disabled="!isPanelOpen"
 				:class="{
 					'mainGrid--fullWidth':
-						builderMode === 'preview' || builderMode === 'vault',
+						builderMode === 'preview' ||
+						builderMode === 'vault' ||
+						builderMode === 'journal',
 				}"
 			>
 				<template #top>
 					<div class="builderMain">
 						<BuilderVault v-if="builderMode === 'vault'" />
+						<BuilderJournal v-else-if="builderMode === 'journal'" />
 						<div
 							v-else
 							ref="rendererWrapperEl"
@@ -173,6 +176,9 @@ const BuilderInsertionLabel = defineAsyncComponentWithLoader({
 });
 const BuilderVault = defineAsyncComponentWithLoader({
 	loader: () => import("./BuilderVault.vue"),
+});
+const BuilderJournal = defineAsyncComponentWithLoader({
+	loader: () => import("./BuilderJournal.vue"),
 });
 
 const wf = inject(injectionKeys.core);

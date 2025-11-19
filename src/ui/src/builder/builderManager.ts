@@ -72,13 +72,19 @@ export const enum SelectionStatus {
 	Multiple = 2,
 }
 
-export type BuilderManagerMode = "ui" | "blueprints" | "preview" | "vault";
+export type BuilderManagerMode =
+	| "ui"
+	| "blueprints"
+	| "preview"
+	| "vault"
+	| "journal";
 
 const BUILDER_MANAGER_MODES = new Set<BuilderManagerMode>([
 	"ui",
 	"blueprints",
 	"preview",
 	"vault",
+	"journal",
 ]);
 
 type State = {
