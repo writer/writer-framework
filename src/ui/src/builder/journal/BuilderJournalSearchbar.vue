@@ -49,7 +49,10 @@ import {
 } from "./journalConstants";
 import type { JournalFilters } from "./journalTypes";
 
-const filters = defineModel("filters", { type: Object as PropType<JournalFilters>, required: true });
+const filters = defineModel("filters", {
+	type: Object as PropType<JournalFilters>,
+	required: true,
+});
 
 const hasActiveFilters = computed(() =>
 	Object.values(filters.value).some((value) =>
