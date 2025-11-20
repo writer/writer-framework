@@ -27,6 +27,7 @@ class JournalRecord:
 
         self.trigger = {
             "event": execution_environment.get("context", {}).get("event"),
+            "payload": execution_environment.get("payload"),
             "component": {}
         }
 
