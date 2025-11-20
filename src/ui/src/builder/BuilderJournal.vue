@@ -11,8 +11,23 @@
 				v-for="(entry, key) of sortedEntries"
 				:key="key"
 				:journal-entry="entry"
+				@click="openEntryDetails(entry)"
 			></BuilderJournalEntry>
 		</div>
+
+		<!-- Drawer for entry details -->
+		<WdsDrawer
+			v-model="isDrawerOpen"
+			title="Execution Details"
+			size="large"
+		>
+			<BuilderJournalEntryDetails
+				v-if="selectedEntry"
+				:entry="selectedEntry"
+				@re-run="handleReRun"
+				@go-to-trigger="handleGoToTrigger"
+			/>
+		</WdsDrawer>
 	</div>
 </template>
 
@@ -20,6 +35,8 @@
 import { computed, inject, onMounted, onActivated, ref } from "vue";
 import BuilderJournalHeader from "./journal/BuilderJournalHeader.vue";
 import BuilderJournalEntry from "./journal/BuilderJournalEntry.vue";
+import BuilderJournalEntryDetails from "./journal/BuilderJournalEntryDetails.vue";
+import WdsDrawer from "@/wds/WdsDrawer.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useToasts } from "./useToast";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
@@ -32,6 +49,7 @@ defineOptions({
 
 const { pushToast } = useToasts();
 const wf = inject(injectionKeys.core);
+const builderManager = inject(injectionKeys.builderManager);
 
 type ComponentInfo = {
 	type: "blueprint" | "block";
@@ -71,6 +89,9 @@ const filters = ref<JournalFilters>({
 	triggers: [],
 	instanceTypes: [],
 });
+
+const isDrawerOpen = ref(false);
+const selectedEntry = ref<JournalEntry | null>(null);
 
 const entries = computed<Record<string, JournalEntry>>(() => {
 	return Object.fromEntries(
@@ -237,6 +258,42 @@ async function deleteEntries() {
 		delete newRawEntries[key];
 	}
 	rawEntries.value = newRawEntries;
+}
+
+function openEntryDetails(entry: JournalEntry) {
+	selectedEntry.value = entry;
+	isDrawerOpen.value = true;
+}
+
+function handleReRun(entry: JournalEntry) {
+	// TODO: Implement re-run logic
+	// This would trigger the same blueprint/workflow with the same inputs
+	pushToast({
+		type: "info",
+		message: `Re-run functionality for ${entry.title} will be implemented soon`,
+	});
+	// Placeholder for re-run implementation
+	// Will trigger the blueprint/workflow execution with entry data
+}
+
+function handleGoToTrigger(entry: JournalEntry) {
+	// Close the drawer
+	isDrawerOpen.value = false;
+
+	// Switch to the appropriate mode based on trigger component type
+	if (entry.trigger.component.type === "blueprint") {
+		builderManager.mode.value = "blueprints";
+	} else {
+		builderManager.mode.value = "ui";
+	}
+
+	// Select the trigger component
+	builderManager.setSelection(entry.trigger.component.id);
+
+	pushToast({
+		type: "success",
+		message: `Jumped to ${entry.title}`,
+	});
 }
 
 onMounted(() => {

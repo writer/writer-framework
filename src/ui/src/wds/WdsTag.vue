@@ -1,5 +1,12 @@
 <script lang="ts">
-export type WdsTagVariant = "normal" | "category" | "status";
+export type WdsTagVariant =
+	| "normal"
+	| "category"
+	| "status"
+	| "success"
+	| "error"
+	| "warning"
+	| "neutral";
 export type WdsTagSize = "normal" | "small";
 </script>
 <script setup lang="ts">
@@ -59,6 +66,26 @@ defineEmits({
 }
 .WdsTag--variant-normal:hover {
 	background-color: var(--wdsColorBlue3);
+}
+
+.WdsTag--variant-success {
+	background-color: var(--wdsColorGreen1);
+	color: var(--wdsColorGreen6);
+}
+
+.WdsTag--variant-error {
+	background-color: var(--wdsColorRed1);
+	color: var(--wdsColorRed6);
+}
+
+.WdsTag--variant-warning {
+	background-color: var(--wdsColorYellow1);
+	color: var(--wdsColorYellow6);
+}
+
+.WdsTag--variant-neutral {
+	background-color: var(--wdsColorGray2);
+	color: var(--wdsColorGray6);
 }
 
 .WdsTag__close {

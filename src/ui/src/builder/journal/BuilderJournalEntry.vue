@@ -1,5 +1,8 @@
 <template>
-	<div class="BuilderJournalEntry">
+	<div
+		class="BuilderJournalEntry BuilderJournalEntry--clickable"
+		@click="$emit('click')"
+	>
 		<div class="BuilderJournalEntry__summary">
 			<BuilderJournalEntryResult
 				:result="journalEntry.result"
@@ -37,6 +40,10 @@ const props = defineProps({
 	journalEntry: { type: Object as PropType<JournalEntry>, required: true },
 });
 
+defineEmits<{
+	click: [];
+}>();
+
 const dateObj = computed(() => new Date(props.journalEntry.timestamp));
 
 const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
@@ -64,6 +71,15 @@ const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
 	justify-content: space-between;
 	padding: 12px 20px;
 	border-bottom: 1px solid #e4e7ed;
+}
+
+.BuilderJournalEntry--clickable {
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.BuilderJournalEntry--clickable:hover {
+	background-color: var(--wdsColorBlue1);
 }
 
 .BuilderJournalEntry__summary {
