@@ -1,12 +1,14 @@
 import logging
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, Literal
+from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
+import writer.abstract
 from writer.core import Config
 from writer.keyvalue_storage import writer_kv_storage
 
 if TYPE_CHECKING:
     from writer.blueprints import Graph
+    from writer.core import Component
 
 
 logger = logging.getLogger("journal")
@@ -21,6 +23,8 @@ class JournalRecord:
         title: str,
         graph: "Graph"
     ):
+        from writer import core_ui
+
         self.started_at = datetime.now(timezone.utc)
         self.instance_type = "editor" if Config.mode == "edit" else "agent"
 
@@ -32,9 +36,13 @@ class JournalRecord:
         if self.trigger["event"] == "wf-run-blueprint":
             self.trigger["component"]["type"] = "blueprint"
             self.trigger["component"]["id"] = graph.nodes[0].component.parentId
+            blueprint_component = core_ui.current_component_tree().get_component(self.trigger["component"]["id"])
+            if blueprint_component is not None:
+                self.trigger["component"]["title"] = blueprint_component.content.get("key")
         else:
             self.trigger["component"]["type"] = "block"
-            self.trigger["component"]["id"] = graph.get_start_nodes()[0].id
+            component = graph.get_start_nodes()[0].component
+            self.trigger["component"]["title"] = self._get_block_name(component)
 
         if "API" in title:
             self.trigger["type"] = "API"
@@ -46,6 +54,15 @@ class JournalRecord:
             self.trigger["type"] = "On demand"
 
         self.graph = graph
+
+    def _get_block_name(self, component: "Component") -> str:
+        block_title = component.content.get("alias")
+        if block_title is not None:
+            return block_title
+        component_definition = writer.abstract.templates.get(component.type)
+        if component_definition is None:
+            return "Unknown block"
+        return component_definition.writer.get("name", "Unknown block")
 
     def to_dict(self) -> Dict[str, Any]:
         block_outputs = {}
