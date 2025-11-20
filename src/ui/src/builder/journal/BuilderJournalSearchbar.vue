@@ -51,13 +51,9 @@ const searchText = defineModel("search", { type: String });
 const statuses = defineModel("statuses", { type: Array as PropType<string[]> });
 const triggers = defineModel("triggers", { type: Array as PropType<string[]> });
 
-const hasActiveFilters = computed(() => {
-	return (
-		(searchText.value && searchText.value.length > 0) ||
-		(statuses.value && statuses.value.length > 0) ||
-		(triggers.value && triggers.value.length > 0)
-	);
-});
+const hasActiveFilters = computed(
+	() => searchText.value || statuses.value?.length || triggers.value?.length,
+);
 
 function clearAllFilters() {
 	searchText.value = "";

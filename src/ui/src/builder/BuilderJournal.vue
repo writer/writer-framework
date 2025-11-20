@@ -1,12 +1,12 @@
 <template>
 	<div class="BuilderJournal">
 		<BuilderJournalHeader
+			v-model:search="searchText"
+			v-model:statuses="selectedStatuses"
+			v-model:triggers="selectedTriggers"
 			@refresh="loadEntries"
 			@clear="deleteEntries"
 			@download="downloadAsJson"
-			@update:search="(val) => (searchText = val)"
-			@update:statuses="(val) => (selectedStatuses = val)"
-			@update:triggers="(val) => (selectedTriggers = val)"
 		></BuilderJournalHeader>
 		<div class="BuilderJournal__entries">
 			<BuilderJournalEntry
@@ -19,13 +19,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, onActivated, ref } from "vue";
 import BuilderJournalHeader from "./journal/BuilderJournalHeader.vue";
 import BuilderJournalEntry from "./journal/BuilderJournalEntry.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useToasts } from "./useToast";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
+
+defineOptions({
+	name: "BuilderJournal",
+});
 
 const { pushToast } = useToasts();
 const wf = inject(injectionKeys.core);
@@ -215,6 +219,12 @@ async function deleteEntries() {
 }
 
 onMounted(() => {
+	loadEntries();
+});
+
+onActivated(() => {
+	// Load new entries when returning to journal tab
+	// This is efficient because loadEntries() uses skip_keys to avoid re-fetching existing entries
 	loadEntries();
 });
 </script>
