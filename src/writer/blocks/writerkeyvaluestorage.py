@@ -36,12 +36,22 @@ class WriterKeyValueStorage(WriterBlock):
                             "type": "Text",
                             "description": "Unique identifier of your data that will be used to retrieve, update and delete it.",
                         },
+                        "valueType": {
+                            "name": "Value type",
+                            "type": "Text",
+                            "description": "Specify whether to interpret the value as plain text or JSON.",
+                            "options": {
+                                "text": "Plain text",
+                                "JSON": "JSON",
+                            },
+                            "default": "text",
+                        },
                         "value": {
                             "name": "Value",
                             "type": "Text",
                             "description": "Data that you want to store.",
                             "control": "Textarea",
-                        }
+                        },
                     },
                     "outs": {
                         "success": {
@@ -72,10 +82,11 @@ class WriterKeyValueStorage(WriterBlock):
                 writer_kv_storage = KeyValueStorage(client=client)
 
                 if action == "Save":
-                    value = self._get_field("value")
+                    value_type = self._get_field("valueType")
+                    value = self._get_field("value", as_json=value_type == "JSON")
                     response = writer_kv_storage.save(key, value)
                 elif action == "Get":
-                    response = writer_kv_storage.get(key, type_="data")
+                    response = writer_kv_storage.get(key, type_="data")["data"]
                 elif action == "Delete":
                     response = writer_kv_storage.delete(key)
                 else:
