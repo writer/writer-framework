@@ -2,28 +2,38 @@
 	<div class="BuilderJournalSearchbar">
 		<WdsTextInput v-model="searchText" left-icon="search" />
 		<div class="BuilderJournalSearchbar__dropdown">
-			<WdsDropdownMenu
-				:selected="statuses"
+			<WdsSelect
+				v-model="statuses"
 				:options="statusOptions"
 				:enable-multi-selection="true"
-				@select="onStatusesChange"
-			></WdsDropdownMenu>
+				placeholder="Status"
+			/>
 		</div>
 		<div class="BuilderJournalSearchbar__dropdown">
-			<WdsDropdownMenu
-				:selected="triggers"
+			<WdsSelect
+				v-model="triggers"
 				:options="triggerOptions"
 				:enable-multi-selection="true"
-				@select="onTriggersChange"
-			></WdsDropdownMenu>
+				placeholder="Trigger"
+			/>
 		</div>
+		<WdsButton
+			v-if="hasActiveFilters"
+			data-writer-tooltip="Clear filters"
+			data-writer-tooltip-placement="bottom"
+			variant="neutral"
+			@click="clearAllFilters"
+		>
+			Clear
+		</WdsButton>
 	</div>
 </template>
 
 <script setup lang="ts">
-import WdsDropdownMenu from "@/wds/WdsDropdownMenu.vue";
+import WdsSelect from "@/wds/WdsSelect.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import { PropType } from "vue";
+import WdsButton from "@/wds/WdsButton.vue";
+import { computed, PropType } from "vue";
 
 const statusOptions = [
 	{ value: "success", label: "Success" },
@@ -40,25 +50,39 @@ const triggerOptions = [
 const searchText = defineModel("search", { type: String });
 const statuses = defineModel("statuses", { type: Array as PropType<string[]> });
 const triggers = defineModel("triggers", { type: Array as PropType<string[]> });
-function onStatusesChange(val: string[]) {
-	statuses.value = val;
-}
-function onTriggersChange(val: string[]) {
-	triggers.value = val;
+
+const hasActiveFilters = computed(() => {
+	return (
+		(searchText.value && searchText.value.length > 0) ||
+		(statuses.value && statuses.value.length > 0) ||
+		(triggers.value && triggers.value.length > 0)
+	);
+});
+
+function clearAllFilters() {
+	searchText.value = "";
+	statuses.value = [];
+	triggers.value = [];
 }
 </script>
 
 <style scoped>
 .BuilderJournalSearchbar {
 	width: fit-content;
-	height: 100%;
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	gap: 8px;
 }
-
+.BuilderJournalSearchbar :deep(.WdsTextInput) {
+	background: var(--wdsColorWhite);
+	/* align with the height of the dropdown */
+	max-height: 43px;
+	height: 43px;
+	max-width: 250px;
+}
 .BuilderJournalSearchbar__dropdown {
-	width: 250px;
+	min-width: 250px;
 	position: relative;
 }
 </style>

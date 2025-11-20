@@ -795,6 +795,8 @@ class GraphRunner:
                         entry_type="info",
                         exit="return"
                     )
+                    
+                    journal_record.save(result="success")
                     return result_node.return_value
                 for output in result_node.outputs:
                     to_node_id = output.get("toNodeId")

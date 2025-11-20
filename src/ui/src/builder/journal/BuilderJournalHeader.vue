@@ -57,18 +57,19 @@ const triggers = defineModel("triggers", { type: Array as PropType<string[]> });
 <style scoped>
 .BuilderJournalHeader {
 	width: 100%;
-	height: 72px;
 	justify-content: space-between;
-	padding: 16px;
+	padding: 16px 20px;
 	display: flex;
 	flex-direction: row;
+	border-bottom: 1px solid var(--builderSeparatorColor);
+	background: var(--wdsColorGray1);
 }
 
 .BuilderJournalHeader__actions {
-	width: fit-content;
 	height: 100%;
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	gap: 8px;
 }
 </style>
