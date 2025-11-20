@@ -1,9 +1,7 @@
 <template>
 	<div class="BuilderJournal">
 		<BuilderJournalHeader
-			v-model:search="searchText"
-			v-model:statuses="selectedStatuses"
-			v-model:triggers="selectedTriggers"
+			v-model:filters="filters"
 			@refresh="loadEntries"
 			@clear="deleteEntries"
 			@download="downloadAsJson"
@@ -26,6 +24,7 @@ import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useToasts } from "./useToast";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
+import type { JournalFilters } from "./journal/journalTypes";
 
 defineOptions({
 	name: "BuilderJournal",
@@ -59,15 +58,19 @@ export type RawJournalEntry = {
 
 export type JournalEntry = RawJournalEntry & {
 	title: string;
+	instanceTypeLabel: string;
 	component: Component;
 	componentDefinition: WriterComponentDefinition;
 };
 
 const rawEntries = ref<Record<string, RawJournalEntry>>({});
 
-const searchText = ref("");
-const selectedStatuses = ref<string[]>([]);
-const selectedTriggers = ref<string[]>([]);
+const filters = ref<JournalFilters>({
+	search: "",
+	statuses: [],
+	triggers: [],
+	instanceTypes: [],
+});
 
 const entries = computed<Record<string, JournalEntry>>(() => {
 	return Object.fromEntries(
@@ -82,25 +85,43 @@ const entries = computed<Record<string, JournalEntry>>(() => {
 					? component.content.key
 					: component.content.alias || componentDefinition.name;
 
-			return [key, { ...entry, title, component, componentDefinition }];
+			const instanceTypeLabel =
+				entry.instanceType.charAt(0).toUpperCase() +
+				entry.instanceType.slice(1);
+
+			return [
+				key,
+				{
+					...entry,
+					title,
+					instanceTypeLabel,
+					component,
+					componentDefinition,
+				},
+			];
 		}),
 	);
 });
 
 const filteredEntries = computed<Record<string, JournalEntry>>(() => {
-	const searchTextLower = searchText.value.toLowerCase();
+	const searchTextLower = filters.value.search.toLowerCase();
 	return Object.fromEntries(
-		Object.entries(entries.value).filter(([_, entry]) => {
+		Object.entries(entries.value).filter(([_key, entry]) => {
 			const searchMatch =
-				searchText.value === "" ||
+				filters.value.search === "" ||
 				entry.title.toLowerCase().includes(searchTextLower);
 			const statusMatch =
-				selectedStatuses.value.length === 0 ||
-				selectedStatuses.value.includes(entry.result);
+				filters.value.statuses.length === 0 ||
+				filters.value.statuses.includes(entry.result);
 			const triggerMatch =
-				selectedTriggers.value.length === 0 ||
-				selectedTriggers.value.includes(entry.trigger.type);
-			return searchMatch && statusMatch && triggerMatch;
+				filters.value.triggers.length === 0 ||
+				filters.value.triggers.includes(entry.trigger.type);
+			const instanceTypeMatch =
+				filters.value.instanceTypes.length === 0 ||
+				filters.value.instanceTypes.includes(entry.instanceType);
+			return (
+				searchMatch && statusMatch && triggerMatch && instanceTypeMatch
+			);
 		}),
 	);
 });

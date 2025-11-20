@@ -1,20 +1,28 @@
 <template>
 	<div class="BuilderJournalSearchbar">
-		<WdsTextInput v-model="searchText" left-icon="search" />
+		<WdsTextInput v-model="filters.search" left-icon="search" />
 		<div class="BuilderJournalSearchbar__dropdown">
 			<WdsSelect
-				v-model="statuses"
-				:options="statusOptions"
+				v-model="filters.statuses"
+				:options="STATUS_OPTIONS"
 				:enable-multi-selection="true"
 				placeholder="Status"
 			/>
 		</div>
 		<div class="BuilderJournalSearchbar__dropdown">
 			<WdsSelect
-				v-model="triggers"
-				:options="triggerOptions"
+				v-model="filters.triggers"
+				:options="TRIGGER_OPTIONS"
 				:enable-multi-selection="true"
 				placeholder="Trigger"
+			/>
+		</div>
+		<div class="BuilderJournalSearchbar__dropdown">
+			<WdsSelect
+				v-model="filters.instanceTypes"
+				:options="INSTANCE_TYPE_OPTIONS"
+				:enable-multi-selection="true"
+				placeholder="Instance Type"
 			/>
 		</div>
 		<WdsButton
@@ -33,32 +41,29 @@
 import WdsSelect from "@/wds/WdsSelect.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import { computed, PropType } from "vue";
+import { computed } from "vue";
+import {
+	STATUS_OPTIONS,
+	TRIGGER_OPTIONS,
+	INSTANCE_TYPE_OPTIONS,
+} from "./journalConstants";
+import type { JournalFilters } from "./journalTypes";
 
-const statusOptions = [
-	{ value: "success", label: "Success" },
-	{ value: "error", label: "Error" },
-	{ value: "stopped", label: "Stopped" },
-];
-const triggerOptions = [
-	{ value: "On demand", label: "On demand" },
-	{ value: "UI", label: "UI" },
-	{ value: "API", label: "API" },
-	{ value: "Cron", label: "Scheduled" },
-];
+const filters = defineModel<JournalFilters>("filters", { required: true });
 
-const searchText = defineModel("search", { type: String });
-const statuses = defineModel("statuses", { type: Array as PropType<string[]> });
-const triggers = defineModel("triggers", { type: Array as PropType<string[]> });
-
-const hasActiveFilters = computed(
-	() => searchText.value || statuses.value?.length || triggers.value?.length,
+const hasActiveFilters = computed(() =>
+	Object.values(filters.value).some((value) =>
+		Array.isArray(value) ? value.length > 0 : Boolean(value),
+	),
 );
 
 function clearAllFilters() {
-	searchText.value = "";
-	statuses.value = [];
-	triggers.value = [];
+	filters.value = {
+		search: "",
+		statuses: [],
+		triggers: [],
+		instanceTypes: [],
+	};
 }
 </script>
 
@@ -78,7 +83,7 @@ function clearAllFilters() {
 	max-width: 250px;
 }
 .BuilderJournalSearchbar__dropdown {
-	min-width: 250px;
+	min-width: 200px;
 	position: relative;
 }
 </style>

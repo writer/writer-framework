@@ -4,8 +4,13 @@
 			<BuilderJournalEntryResult
 				:result="journalEntry.result"
 			></BuilderJournalEntryResult>
-			<div class="BuilderJournalEntry__summary__component">
-				{{ journalEntry.title }}
+			<div class="BuilderJournalEntry__summary__content">
+				<div class="BuilderJournalEntry__summary__component">
+					{{ journalEntry.title }}
+				</div>
+				<div class="BuilderJournalEntry__summary__instanceType">
+					{{ journalEntry.instanceTypeLabel }}
+				</div>
 			</div>
 		</div>
 		<div class="BuilderJournalEntry__info">
@@ -67,14 +72,24 @@ const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
 	height: 100%;
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	gap: 12px;
 }
 
-.BuilderJournalEntry__summary__component {
+.BuilderJournalEntry__summary__content {
 	display: flex;
-	align-items: center;
+	flex-direction: column;
+	gap: 0px;
 	justify-content: center;
+}
+
+.BuilderJournalEntry__summary__component {
 	font-weight: 500;
+}
+
+.BuilderJournalEntry__summary__instanceType {
+	font-size: 0.75rem;
+	color: var(--wdsColorGray5);
 }
 
 .BuilderJournalEntry__info {

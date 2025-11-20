@@ -1,10 +1,6 @@
 <template>
 	<div class="BuilderJournalHeader">
-		<BuilderJournalSearchbar
-			v-model:search="searchText"
-			v-model:statuses="statuses"
-			v-model:triggers="triggers"
-		>
+		<BuilderJournalSearchbar v-model:filters="filters">
 		</BuilderJournalSearchbar>
 		<div class="BuilderJournalHeader__actions">
 			<WdsButton
@@ -42,16 +38,14 @@
 import WdsIcon from "@/wds/WdsIcon.vue";
 import BuilderJournalSearchbar from "./BuilderJournalSearchbar.vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import { PropType } from "vue";
+import type { JournalFilters } from "./journalTypes";
 
 const emit = defineEmits({
 	refresh: () => true,
 	clear: () => true,
 	download: () => true,
 });
-const searchText = defineModel("search", { type: String });
-const statuses = defineModel("statuses", { type: Array as PropType<string[]> });
-const triggers = defineModel("triggers", { type: Array as PropType<string[]> });
+const filters = defineModel<JournalFilters>("filters", { required: true });
 </script>
 
 <style scoped>
