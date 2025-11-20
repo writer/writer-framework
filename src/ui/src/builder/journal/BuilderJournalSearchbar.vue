@@ -41,7 +41,7 @@
 import WdsSelect from "@/wds/WdsSelect.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
-import { computed } from "vue";
+import { computed, PropType } from "vue";
 import {
 	STATUS_OPTIONS,
 	TRIGGER_OPTIONS,
