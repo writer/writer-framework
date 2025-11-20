@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("journal")
 
+JOURNAL_KEY_PREFIX = "wf-journal-"
+
 
 class JournalRecord:
     def __init__(
@@ -62,7 +64,7 @@ class JournalRecord:
         }
 
     def construct_key(self) -> str:
-        return f"wf-journal-{self.instance_type[0]}-{int(self.started_at.timestamp() * 1000)}"
+        return f"{JOURNAL_KEY_PREFIX}{self.instance_type[0]}-{int(self.started_at.timestamp() * 1000)}"
     
     def save(self, result: Literal["success", "error", "stopped"]) -> None:
         if "journal" not in Config.feature_flags or not writer_kv_storage.is_accessible():
