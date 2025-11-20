@@ -1283,11 +1283,17 @@ class EventHandlerRegistry:
         blueprint_id = payload.pop("blueprint_id", None)
         if not blueprint_id:
             raise ValueError("Missing blueprint_id in payload")
+        trigger_type = payload.pop("trigger_type", None)
+        if not trigger_type:
+            raise ValueError("Missing trigger_type in payload")
         execution_environment = EventHandler._get_blueprint_execution_environment(
             payload, context, session, vault
         )
         return blueprint_runner.run_blueprint_via_api(
-            blueprint_id=blueprint_id, execution_environment=execution_environment
+            blueprint_id=blueprint_id,
+            trigger_type=trigger_type,
+            branch_id=payload.pop("branch_id", None),
+            execution_environment=execution_environment,
         )
 
     @staticmethod
