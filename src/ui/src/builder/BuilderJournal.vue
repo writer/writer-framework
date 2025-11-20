@@ -111,19 +111,28 @@ const sortedEntries = computed<Record<string, JournalEntry>>(() => {
 });
 
 async function loadEntries() {
-	const response = await fetch(
-		convertAbsolutePathtoFullURL("/api/data/retrieve"),
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
+	let response: Response;
+	try {
+		response = await fetch(
+			convertAbsolutePathtoFullURL("/api/data/retrieve"),
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					key_contains: "wf-journal-",
+					skip_keys: Object.keys(rawEntries.value),
+				}),
 			},
-			body: JSON.stringify({
-				key_contains: "wf-journal-",
-				skip_keys: Object.keys(rawEntries.value),
-			}),
-		},
-	);
+		);
+	} catch {
+		pushToast({
+			type: "error",
+			message: "Failed to fetch the execution history",
+		});
+		return;
+	}
 
 	if (!response.ok) {
 		pushToast({
@@ -163,18 +172,27 @@ const downloadAsJson = () => {
 };
 
 async function deleteEntries() {
-	const response = await fetch(
-		convertAbsolutePathtoFullURL("/api/data/delete"),
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
+	let response: Response;
+	try {
+		response = await fetch(
+			convertAbsolutePathtoFullURL("/api/data/delete"),
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					keys: Object.keys(filteredEntries.value),
+				}),
 			},
-			body: JSON.stringify({
-				keys: Object.keys(filteredEntries.value),
-			}),
-		},
-	);
+		);
+	} catch {
+		pushToast({
+			type: "error",
+			message: "Failed to delete the execution history",
+		});
+		return;
+	}
 
 	if (!response.ok) {
 		pushToast({
