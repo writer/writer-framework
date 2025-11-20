@@ -1,10 +1,6 @@
 <template>
 	<div class="BuilderJournalSearchbar">
-		<WdsTextInput
-			v-model="searchText"
-			class="searchInput"
-			left-icon="search"
-		/>
+		<WdsTextInput v-model="searchText" left-icon="search" />
 		<div class="BuilderJournalSearchbar__dropdown">
 			<WdsDropdownMenu
 				:selected="statuses"
@@ -60,10 +56,7 @@ function onTriggersChange(val: string[]) {
 	flex-direction: row;
 	gap: 8px;
 }
-.BuilderJournalSearchbar__search {
-	width: fit-content;
-	height: 100%;
-}
+
 .BuilderJournalSearchbar__dropdown {
 	width: 250px;
 	position: relative;

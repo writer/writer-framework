@@ -11,7 +11,7 @@
 		<div class="BuilderJournal__entries">
 			<BuilderJournalEntry
 				v-for="(entry, key) of sortedEntries"
-				:key
+				:key="key"
 				:journal-entry="entry"
 			></BuilderJournalEntry>
 		</div>
