@@ -21,7 +21,7 @@
 			<WdsSelect
 				v-model="filters.instanceTypes"
 				:options="INSTANCE_TYPE_OPTIONS"
-				:enable-multi-selection="true"
+				enable-multi-selection
 				placeholder="Instance Type"
 			/>
 		</div>
@@ -49,7 +49,7 @@ import {
 } from "./journalConstants";
 import type { JournalFilters } from "./journalTypes";
 
-const filters = defineModel<JournalFilters>("filters", { required: true });
+const filters = defineModel("filters", { type: Object as PropType<JournalFilters>, required: true });
 
 const hasActiveFilters = computed(() =>
 	Object.values(filters.value).some((value) =>

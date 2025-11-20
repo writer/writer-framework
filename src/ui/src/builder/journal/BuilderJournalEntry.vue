@@ -88,7 +88,7 @@ const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
 }
 
 .BuilderJournalEntry__summary__instanceType {
-	font-size: 0.75rem;
+	font-size: 12px;
 	color: var(--wdsColorGray5);
 }
 
