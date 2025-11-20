@@ -57,7 +57,7 @@ const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
-	padding: 12px 16px 12px 8px;
+	padding: 12px 20px;
 	border-bottom: 1px solid #e4e7ed;
 }
 
@@ -74,6 +74,7 @@ const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	font-weight: 500;
 }
 
 .BuilderJournalEntry__info {
