@@ -1,13 +1,12 @@
 import logging
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, Literal, Union
+from typing import TYPE_CHECKING, Any, Dict, Literal
 
 from writer.core import Config
 from writer.keyvalue_storage import writer_kv_storage
 
 if TYPE_CHECKING:
-    from writer.blueprints import Graph, GraphNode
-    from writer.core_ui import Component
+    from writer.blueprints import Graph
 
 
 logger = logging.getLogger("journal")
@@ -30,21 +29,17 @@ class JournalRecord:
             "component": {}
         }
 
-        component: "Union[GraphNode, Component]"
         if self.trigger["event"] == "wf-run-blueprint":
-            component = graph.nodes[0].component
             self.trigger["component"]["type"] = "blueprint"
             self.trigger["component"]["id"] = graph.nodes[0].component.parentId
         else:
-            component = graph.get_start_nodes()[0]
             self.trigger["component"]["type"] = "block"
             self.trigger["component"]["id"] = graph.get_start_nodes()[0].id
 
         if "API" in title:
-            if getattr(component, "type", "") == "blueprints_crontrigger":
-                self.trigger["type"] = "Cron"
-            else:
-                self.trigger["type"] = "API"
+            self.trigger["type"] = "API"
+        elif "Cron" in title:
+            self.trigger["type"] = "Cron"
         elif "UI" in title:
             self.trigger["type"] = "UI"
         else:
