@@ -11,7 +11,7 @@ export type InstanceTypeValue = (typeof INSTANCE_TYPE_OPTIONS)[number]["value"];
 
 export interface JournalFilters {
 	search: string;
-	statuses: string[];
-	triggers: string[];
-	instanceTypes: string[];
+	statuses: StatusValue[];
+	triggers: TriggerValue[];
+	instanceTypes: InstanceTypeValue[];
 }
