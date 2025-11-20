@@ -155,7 +155,12 @@ async function loadEntries() {
 }
 
 const downloadAsJson = () => {
-	const jsonString = JSON.stringify(filteredEntries.value, null, 2);
+	const rawFiltered = Object.fromEntries(
+		Object.keys(filteredEntries.value).map((key) => {
+			return [key, rawEntries.value[key]];
+		}),
+	);
+	const jsonString = JSON.stringify(rawFiltered, null, 2);
 	const blob = new Blob([jsonString], { type: "application/json" });
 
 	const url = URL.createObjectURL(blob);
