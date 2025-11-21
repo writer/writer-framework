@@ -184,7 +184,12 @@ async function requestDeployment() {
 
 const confirmDeployModalOpen = ref(false);
 const confirmDeployModalActions: ModalAction[] = [
-	{ desc: "Cancel", fn: () => (confirmDeployModalOpen.value = false) },
+	{
+		desc: "Cancel",
+		fn: () => {
+			confirmDeployModalOpen.value = false;
+		},
+	},
 	{
 		desc: "Yes, deploy changes",
 		fn: async () => {

@@ -23,34 +23,44 @@
 			>
 				<template #top>
 					<div class="builderMain">
-						<BuilderVault v-if="builderMode === 'vault'" />
-						<BuilderJournal v-else-if="builderMode === 'journal'" />
-						<div
-							v-else
-							ref="rendererWrapperEl"
-							class="rendererWrapper"
-							:class="{
-								addNoteCursor:
-									notesManager.isAnnotating.value &&
-									ssbm.mode.value !== 'preview',
-							}"
-							@scroll="refreshNotesPosition"
-						>
-							<ComponentRenderer
-								ref="rendererEl"
-								class="componentRenderer"
+						<KeepAlive include="BuilderJournal">
+							<BuilderVault
+								v-if="builderMode === 'vault'"
+								key="vault"
+							/>
+							<BuilderJournal
+								v-else-if="builderMode === 'journal'"
+								key="journal"
+							/>
+							<div
+								v-else
+								key="renderer"
+								ref="rendererWrapperEl"
+								class="rendererWrapper"
 								:class="{
-									settingsOpen: ssbm.isSingleSelectionActive,
+									addNoteCursor:
+										notesManager.isAnnotating.value &&
+										ssbm.mode.value !== 'preview',
 								}"
-								@dragover="handleRendererDragover"
-								@dragstart="handleRendererDragStart"
-								@dragend="handleRendererDragEnd"
-								@drop="handleRendererDrop"
-								@click.capture="handleRendererClick"
-								@dblclick="handleRendererDblClick"
+								@scroll="refreshNotesPosition"
 							>
-							</ComponentRenderer>
-						</div>
+								<ComponentRenderer
+									ref="rendererEl"
+									class="componentRenderer"
+									:class="{
+										settingsOpen:
+											ssbm.isSingleSelectionActive,
+									}"
+									@dragover="handleRendererDragover"
+									@dragstart="handleRendererDragStart"
+									@dragend="handleRendererDragEnd"
+									@drop="handleRendererDrop"
+									@click.capture="handleRendererClick"
+									@dblclick="handleRendererDblClick"
+								>
+								</ComponentRenderer>
+							</div>
+						</KeepAlive>
 						<BuilderSettings
 							v-if="ssbm.isSingleSelectionActive"
 							:key="selectedId ?? 'noneSelected'"
@@ -257,7 +267,7 @@ const notes = computed(() =>
 );
 
 async function handleKeydown(ev: KeyboardEvent) {
-	if (ev.key == "Escape") {
+	if (ev.key === "Escape") {
 		ssbm.setSelection(null);
 		return;
 	}
@@ -266,12 +276,12 @@ async function handleKeydown(ev: KeyboardEvent) {
 	const targetEl = ev.target as HTMLElement;
 	if (targetEl.closest("textarea, input, select, [contenteditable]")) return;
 
-	if (ev.key == "z" && isModifierKeyActive) {
+	if (ev.key === "z" && isModifierKeyActive) {
 		ev.preventDefault();
 		undo();
 		return;
 	}
-	if (ev.key == "y" && isModifierKeyActive) {
+	if (ev.key === "y" && isModifierKeyActive) {
 		ev.preventDefault();
 		redo();
 		return;
@@ -284,7 +294,7 @@ async function handleKeydown(ev: KeyboardEvent) {
 	const { componentId: selectedId, instancePath: selectedInstancePath } =
 		ssbm.firstSelectedItem.value;
 
-	if (ev.key == (isPlatformMac() ? "Backspace" : "Delete")) {
+	if (ev.key === (isPlatformMac() ? "Backspace" : "Delete")) {
 		const componentIds = ssbm.selection.value
 			.filter((s) => isDeleteAllowed(s.componentId))
 			.map((s) => s.componentId);

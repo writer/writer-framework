@@ -541,10 +541,15 @@ def get_asgi_app(
                         app_runner.handle_event(
                             session_id,
                             WriterEvent(
-                                type="wf-run-blueprint-branch",
+                                type="wf-run-blueprint-via-api",
                                 isSafe=True,
-                                handler="run_blueprint_branch",
-                                payload={"branch_id": branch_id, **(payload or {})},
+                                handler="run_blueprint_via_api",
+                                payload={
+                                    "blueprint_id": blueprint_id,
+                                    "trigger_type": "Cron",
+                                    "branch_id": branch_id,
+                                    **(payload or {})
+                                },
                             )
                         )
                     )
@@ -556,7 +561,11 @@ def get_asgi_app(
                                 type="wf-run-blueprint-via-api",
                                 isSafe=True,
                                 handler="run_blueprint_via_api",
-                                payload={"blueprint_id": blueprint_id, **(payload or {})},
+                                payload={
+                                    "blueprint_id": blueprint_id,
+                                    "trigger_type": "API",
+                                    **(payload or {})
+                                },
                             )
                         )
                     )

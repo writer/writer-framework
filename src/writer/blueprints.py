@@ -186,6 +186,8 @@ class BlueprintRunner:
     def run_blueprint_via_api(
         self,
         blueprint_id: str,
+        trigger_type: Literal["API", "Cron"],
+        branch_id: Optional[str] = None,
         execution_environment: Optional[Dict[str, Any]] = None
     ):
         """
@@ -199,13 +201,15 @@ class BlueprintRunner:
         if execution_environment is None:
             execution_environment = {}
 
-        trigger_id = self.get_blueprint_api_trigger(blueprint_id)
+        trigger_id = branch_id
+        if trigger_id is None:
+            trigger_id = self.get_blueprint_api_trigger(blueprint_id)
 
         return self.run_branch(
             trigger_id,
             None,
             execution_environment,
-            f"API trigger execution ({blueprint_id})"
+            f"{trigger_type} trigger execution ({blueprint_id} -> {trigger_id})"
         )
 
     def run_blueprint_batch(self, blueprint_key: str, execution_environments: List[Dict]):
@@ -795,6 +799,8 @@ class GraphRunner:
                         entry_type="info",
                         exit="return"
                     )
+                    
+                    journal_record.save(result="success")
                     return result_node.return_value
                 for output in result_node.outputs:
                     to_node_id = output.get("toNodeId")
