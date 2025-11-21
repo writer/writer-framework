@@ -23,34 +23,44 @@
 			>
 				<template #top>
 					<div class="builderMain">
-						<BuilderVault v-if="builderMode === 'vault'" />
-						<BuilderJournal v-else-if="builderMode === 'journal'" />
-						<div
-							v-else
-							ref="rendererWrapperEl"
-							class="rendererWrapper"
-							:class="{
-								addNoteCursor:
-									notesManager.isAnnotating.value &&
-									ssbm.mode.value !== 'preview',
-							}"
-							@scroll="refreshNotesPosition"
-						>
-							<ComponentRenderer
-								ref="rendererEl"
-								class="componentRenderer"
+						<KeepAlive include="BuilderJournal">
+							<BuilderVault
+								v-if="builderMode === 'vault'"
+								key="vault"
+							/>
+							<BuilderJournal
+								v-else-if="builderMode === 'journal'"
+								key="journal"
+							/>
+							<div
+								v-else
+								key="renderer"
+								ref="rendererWrapperEl"
+								class="rendererWrapper"
 								:class="{
-									settingsOpen: ssbm.isSingleSelectionActive,
+									addNoteCursor:
+										notesManager.isAnnotating.value &&
+										ssbm.mode.value !== 'preview',
 								}"
-								@dragover="handleRendererDragover"
-								@dragstart="handleRendererDragStart"
-								@dragend="handleRendererDragEnd"
-								@drop="handleRendererDrop"
-								@click.capture="handleRendererClick"
-								@dblclick="handleRendererDblClick"
+								@scroll="refreshNotesPosition"
 							>
-							</ComponentRenderer>
-						</div>
+								<ComponentRenderer
+									ref="rendererEl"
+									class="componentRenderer"
+									:class="{
+										settingsOpen:
+											ssbm.isSingleSelectionActive,
+									}"
+									@dragover="handleRendererDragover"
+									@dragstart="handleRendererDragStart"
+									@dragend="handleRendererDragEnd"
+									@drop="handleRendererDrop"
+									@click.capture="handleRendererClick"
+									@dblclick="handleRendererDblClick"
+								>
+								</ComponentRenderer>
+							</div>
+						</KeepAlive>
 						<BuilderSettings
 							v-if="ssbm.isSingleSelectionActive"
 							:key="selectedId ?? 'noneSelected'"
