@@ -6,6 +6,7 @@ from writer.blocks.code import CodeBlock
 from writer.blocks.crontrigger import CronTrigger
 from writer.blocks.foreach import ForEach
 from writer.blocks.httprequest import HTTPRequest
+from writer.blocks.ifelse import IfElseBlock
 from writer.blocks.logmessage import LogMessage
 from writer.blocks.parsejson import ParseJSON
 from writer.blocks.returnvalue import ReturnValue
@@ -38,6 +39,7 @@ HTTPRequest.register("blueprints_httprequest")
 RunBlueprint.register("blueprints_runblueprint")
 WriterNoCodeApp.register("blueprints_writernocodeapp")
 ForEach.register("blueprints_foreach")
+IfElseBlock.register("blueprints_ifelse")
 LogMessage.register("blueprints_logmessage")
 WriterChat.register("blueprints_writerchat")
 WriterAddChatMessage.register("blueprints_writeraddchatmessage")

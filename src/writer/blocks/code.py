@@ -1,4 +1,3 @@
-import io
 import logging
 import sys
 import traceback
@@ -67,6 +66,9 @@ class CodeBlock(BlueprintBlock):
     def set_output(self, output: Any):
         self.result = output
 
+    def _get_block_global_functions(self):
+        return {"set_output": self.set_output}
+
     def run(self):
         try:
             code = self._get_field("code")
@@ -74,17 +76,23 @@ class CodeBlock(BlueprintBlock):
 
             writeruserapp = sys.modules.get("writeruserapp")
             block_globals = (
-                {
-                    "state": self.runner.session.session_state,
-                }
+                self._get_block_global_functions()
+                | {"state": self.runner.session.session_state}
                 | self.execution_environment
                 | writeruserapp.__dict__
-                | {"set_output": self.set_output}
             )
 
             with (
-                use_stdout_redirect(lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured stdout", entry)),
-                use_logging_redirect(lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured logs", entry)),
+                use_stdout_redirect(
+                    lambda entry: self.runner.session.session_state.add_log_entry(
+                        "info", "Captured stdout", entry
+                    )
+                ),
+                use_logging_redirect(
+                    lambda entry: self.runner.session.session_state.add_log_entry(
+                        "info", "Captured logs", entry
+                    )
+                ),
             ):
                 exec(code, block_globals | {"logger": exec_logger})
 
