@@ -15,7 +15,7 @@ class HTTPRequest(BlueprintBlock):
                 baseType="blueprints_node",
                 writer={
                     "name": "HTTP request",
-                    "description": "Sends a HTTP request to an API endpoint. Used to fetch data or send data.",
+                    "description": "Sends an HTTP request to an API endpoint. Used to fetch or send data.",
                     "category": "Other",
                     "fields": {
                         "method": {

@@ -13,7 +13,7 @@ class WriterNoCodeApp(WriterBlock):
                 baseType="blueprints_node",
                 writer={
                     "name": "AI Studio agent",
-                    "description": "Runs an Writer AI Studio agent app by ID.",
+                    "description": "Runs a Writer AI Studio agent app by ID.",
                     "category": "Writer",
                     "fields": {
                         "appId": {

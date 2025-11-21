@@ -27,12 +27,12 @@ class LogMessage(BlueprintBlock):
                     "outs": {
                         "success": {
                             "name": "Success",
-                            "description": "The request was successful.",
+                            "description": "The message was logged successfully.",
                             "style": "success",
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The blueprint was executed successfully.",
+                            "description": "There was an error logging the message.",
                             "style": "error",
                         },
                     },

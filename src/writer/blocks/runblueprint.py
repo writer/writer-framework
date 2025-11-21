@@ -40,7 +40,7 @@ class RunBlueprint(BlueprintBlock):
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The blueprint was executed successfully.",
+                            "description": "The blueprint execution failed.",
                             "style": "error",
                         },
                     },

@@ -17,7 +17,7 @@ class WriterStructuredOutput(WriterBlock):
                 baseType="blueprints_node",
                 writer={
                     "name": "Structured output",
-                    "description": "Allows to define a JSON response format, which the agent will use to structure its output.",
+                    "description": "Defines a JSON response format that the agent will use to structure its output.",
                     "category": "Writer",
                     "fields": {
                         "prompt": {"name": "Prompt", "type": "Text", "control": "Textarea", "desc": "Description of a JSON object to be created."},

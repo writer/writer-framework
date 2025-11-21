@@ -30,7 +30,7 @@ class ChangePage(BlueprintBlock):
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The event handler execution wasn't successful.",
+                            "description": "There was an error changing the page.",
                             "style": "error",
                         },
                     },
