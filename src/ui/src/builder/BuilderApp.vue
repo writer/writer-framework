@@ -23,46 +23,45 @@
 			>
 				<template #top>
 					<div class="builderMain">
-						<KeepAlive include="BuilderJournal">
-							<BuilderVault
-								v-if="builderMode === 'vault'"
-								key="vault"
-							/>
-							<BuilderJournal
-								v-else-if="builderMode === 'journal'"
-								key="journal"
-							/>
-							<div
-								v-else
-								key="renderer"
-								ref="rendererWrapperEl"
-								class="rendererWrapper"
-								:class="{
-									addNoteCursor:
-										notesManager.isAnnotating.value &&
-										ssbm.mode.value !== 'preview',
-								}"
-								@scroll="refreshNotesPosition"
-							>
-								<ComponentRenderer
-									ref="rendererEl"
-									class="componentRenderer"
-									:class="{
-										settingsOpen:
-											ssbm.isSingleSelectionActive,
-									}"
-									@dragover="handleRendererDragover"
-									@dragstart="handleRendererDragStart"
-									@dragend="handleRendererDragEnd"
-									@drop="handleRendererDrop"
-									@click.capture="handleRendererClick"
-									@dblclick="handleRendererDblClick"
-								>
-								</ComponentRenderer>
-							</div>
+						<BuilderVault v-if="builderMode === 'vault'" />
+						<KeepAlive>
+							<BuilderJournal v-if="builderMode === 'journal'" />
 						</KeepAlive>
+						<div
+							v-if="
+								builderMode !== 'vault' &&
+								builderMode !== 'journal'
+							"
+							ref="rendererWrapperEl"
+							class="rendererWrapper"
+							:class="{
+								addNoteCursor:
+									notesManager.isAnnotating.value &&
+									ssbm.mode.value !== 'preview',
+							}"
+							@scroll="refreshNotesPosition"
+						>
+							<ComponentRenderer
+								ref="rendererEl"
+								class="componentRenderer"
+								:class="{
+									settingsOpen: ssbm.isSingleSelectionActive,
+								}"
+								@dragover="handleRendererDragover"
+								@dragstart="handleRendererDragStart"
+								@dragend="handleRendererDragEnd"
+								@drop="handleRendererDrop"
+								@click.capture="handleRendererClick"
+								@dblclick="handleRendererDblClick"
+							>
+							</ComponentRenderer>
+						</div>
 						<BuilderSettings
-							v-if="ssbm.isSingleSelectionActive"
+							v-if="
+								ssbm.isSingleSelectionActive &&
+								builderMode !== 'journal' &&
+								builderMode !== 'vault'
+							"
 							:key="selectedId ?? 'noneSelected'"
 						/>
 					</div>
@@ -126,8 +125,10 @@
 		</template>
 
 		<!-- MODAL -->
-
 		<div id="modal"></div>
+
+		<!-- DRAWER -->
+		<div id="drawer"></div>
 
 		<BuilderAppSocketTimeoutModal />
 		<!-- TOOLTIP -->
@@ -612,11 +613,11 @@ onUnmounted(() => {
 	position: absolute;
 	top: 0;
 	left: 0;
-	z-index: 10;
+	z-index: 100;
 }
 
 #tooltip {
 	position: absolute;
-	z-index: 11;
+	z-index: 110;
 }
 </style>

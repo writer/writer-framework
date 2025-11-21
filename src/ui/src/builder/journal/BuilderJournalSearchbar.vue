@@ -5,7 +5,7 @@
 			<WdsSelect
 				v-model="filters.statuses"
 				:options="STATUS_OPTIONS"
-				:enable-multi-selection="true"
+				enable-multi-selection
 				placeholder="Status"
 			/>
 		</div>
@@ -13,7 +13,7 @@
 			<WdsSelect
 				v-model="filters.triggers"
 				:options="TRIGGER_OPTIONS"
-				:enable-multi-selection="true"
+				enable-multi-selection
 				placeholder="Trigger"
 			/>
 		</div>
