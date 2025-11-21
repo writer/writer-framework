@@ -24,12 +24,12 @@ class ReturnValue(BlueprintBlock):
                 "outs": {
                     "success": {
                         "name": "Success",
-                        "description": "If the function doesn't raise an Exception.",
+                        "description": "The value was returned successfully.",
                         "style": "success",
                     },
                     "error": {
                         "name": "Error",
-                        "description": "If the function raises an Exception.",
+                        "description": "There was an error returning the value.",
                         "style": "error",
                     },
                 },

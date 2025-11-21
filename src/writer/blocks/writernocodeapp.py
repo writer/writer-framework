@@ -30,12 +30,12 @@ class WriterNoCodeApp(WriterBlock):
                     "outs": {
                         "success": {
                             "name": "Success",
-                            "description": "If the execution was successful.",
+                            "description": "The agent ran successfully.",
                             "style": "success",
                         },
                         "error": {
                             "name": "Error",
-                            "description": "If the function raises an Exception.",
+                            "description": "There was an error running the agent.",
                             "style": "error",
                         },
                     },

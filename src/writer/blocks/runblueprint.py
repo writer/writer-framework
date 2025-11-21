@@ -26,7 +26,7 @@ class RunBlueprint(BlueprintBlock):
                         },
                         "payload": {
                             "name": "Payload",
-                            "desc": "The value specified will be available using the template syntax i.e. @{payload}",
+                            "desc": "The value specified will be available using the template syntax, e.g. @{payload}.",
                             "default": "{}",
                             "type": "Text",
                             "control": "Textarea",

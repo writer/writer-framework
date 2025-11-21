@@ -63,7 +63,7 @@ class WriterAskGraphQuestion(WriterBlock):
                     },
                     "error": {
                         "name": "Error",
-                        "description": "If the function raises an Exception.",
+                        "description": "There was an error answering the question.",
                         "style": "error"
                     }
                 }

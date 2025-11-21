@@ -66,12 +66,12 @@ class WriterWebSearch(WriterBlock):
                     "outs": {
                         "success": {
                             "name": "Success",
-                            "description": "If the web search was successful.",
+                            "description": "The web search completed successfully.",
                             "style": "success",
                         },
                         "error": {
                             "name": "Error",
-                            "description": "If the function raises an Exception.",
+                            "description": "There was an error performing the search.",
                             "style": "error",
                         },
                     },

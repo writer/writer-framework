@@ -29,12 +29,12 @@ class AddToStateList(BlueprintBlock):
                 "outs": {
                     "success": {
                         "name": "Success",
-                        "description": "If the function doesn't raise an Exception.",
+                        "description": "The item was added to the list.",
                         "style": "success",
                     },
                     "error": {
                         "name": "Error",
-                        "description": "If the function raises an Exception.",
+                        "description": "There was an error adding the item to the list.",
                         "style": "error",
                     },
                 },

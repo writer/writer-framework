@@ -18,7 +18,7 @@ class ForEach(BlueprintBlock):
                     "fields": {
                         "items": {
                             "name": "Items",
-                            "desc": "The item value will be passed in the execution environment and will be available at @{item}, its id at @{itemId}. You can use either a list or a dictionary.",
+                            "desc": "The item value will be passed in the execution environment. It will be available at @{item}, and its ID at @{itemId}. You can use either a list or a dictionary.",
                             "default": "[]",
                             "init": '["France", "Poland"]',
                             "type": "Object",

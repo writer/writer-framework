@@ -19,7 +19,7 @@ class SetState(BlueprintBlock):
                         "element": {
                             "name": "Link Variable",
                             "type": "Binding",
-                            "desc": "Set the variable here and use it across your agent",
+                            "desc": "Set the variable here and use it across your agent.",
                         },
                         "valueType": {
                             "name": "Value type",
@@ -36,12 +36,12 @@ class SetState(BlueprintBlock):
                     "outs": {
                         "success": {
                             "name": "Success",
-                            "description": "If the function doesn't raise an Exception.",
+                            "description": "The state was updated successfully.",
                             "style": "success",
                         },
                         "error": {
                             "name": "Error",
-                            "description": "If the function raises an Exception.",
+                            "description": "There was an error updating the state.",
                             "style": "error",
                         },
                     },
