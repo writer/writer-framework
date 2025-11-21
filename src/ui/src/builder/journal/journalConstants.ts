@@ -1,3 +1,5 @@
+import { WdsTabOptions } from "@/wds/WdsTabs.vue";
+
 export const STATUS_OPTIONS = Object.freeze([
 	{ value: "success", label: "Success" },
 	{ value: "error", label: "Error" },
@@ -14,4 +16,12 @@ export const TRIGGER_OPTIONS = Object.freeze([
 export const INSTANCE_TYPE_OPTIONS = Object.freeze([
 	{ value: "editor", label: "Editor" },
 	{ value: "agent", label: "Agent" },
+] as const);
+
+export const JOURNAL_TABS = Object.freeze<
+	WdsTabOptions<"outputs" | "metadata" | "raw">[]
+>([
+	{ label: "Outputs", value: "outputs" },
+	{ label: "Metadata", value: "metadata" },
+	{ label: "Raw JSON", value: "raw" },
 ] as const);

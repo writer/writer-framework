@@ -15,44 +15,45 @@
 
 		<!-- Actions Bar -->
 		<div class="actions">
-			<WdsButton variant="neutral" size="small" @click="copyOutput">
-				<WdsIcon name="copy" />
-				Copy Output
-			</WdsButton>
-			<WdsButton variant="neutral" size="small" @click="reRunExecution">
+			<WdsButton
+				variant="neutral"
+				size="small"
+				type="button"
+				@click="reRunExecution"
+			>
 				<WdsIcon name="play" />
 				Re-run
 			</WdsButton>
-			<WdsButton variant="neutral" size="small" @click="goToTrigger">
+			<WdsButton
+				variant="neutral"
+				size="small"
+				type="button"
+				@click="goToTrigger"
+			>
 				<WdsIcon name="locate" />
 				Go to Trigger
 			</WdsButton>
-			<WdsButton variant="neutral" size="small" @click="downloadAsJson">
+			<WdsButton
+				variant="neutral"
+				size="small"
+				type="button"
+				@click="downloadAsJson"
+			>
 				<WdsIcon name="download" />
 				Download JSON
 			</WdsButton>
+			<SharedCopyClipboardButton
+				:value="outputsJson"
+				text="Copy Output"
+				variant="neutral"
+				size="small"
+				label="Copy output to clipboard"
+			/>
 		</div>
 
 		<!-- Tabs for different sections -->
-		<div class="tabs">
-			<button
-				:class="{ active: activeTab === 'outputs' }"
-				@click="activeTab = 'outputs'"
-			>
-				Outputs
-			</button>
-			<button
-				:class="{ active: activeTab === 'metadata' }"
-				@click="activeTab = 'metadata'"
-			>
-				Metadata
-			</button>
-			<button
-				:class="{ active: activeTab === 'raw' }"
-				@click="activeTab = 'raw'"
-			>
-				Raw JSON
-			</button>
+		<div class="tabs-wrapper">
+			<WdsTabs v-model="activeTab" :tabs="JOURNAL_TABS" variant="bar" />
 		</div>
 
 		<!-- Tab Content -->
@@ -70,9 +71,9 @@
 					</div>
 					<SharedJsonViewer
 						:data="output.result"
-						:is-root="true"
-						:is-root-open="true"
-						:enable-copy-to-json="true"
+						is-root
+						is-root-open
+						enable-copy-to-json
 					/>
 				</div>
 			</div>
@@ -122,7 +123,7 @@
 					:model-value="rawJson"
 					language="json"
 					variant="full"
-					:disabled="true"
+					disabled
 				/>
 			</div>
 		</div>
@@ -135,8 +136,11 @@ import { JournalEntry } from "../BuilderJournal.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsTag from "@/wds/WdsTag.vue";
+import WdsTabs from "@/wds/WdsTabs.vue";
+import { JOURNAL_TABS } from "./journalConstants";
+import SharedCopyClipboardButton from "@/components/shared/SharedCopyClipboardButton.vue";
 import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
-import { useClipboard } from "@vueuse/core";
+import { downloadJson } from "@/utils/blob";
 import { useToasts } from "../useToast";
 import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
@@ -155,9 +159,8 @@ const emit = defineEmits<{
 }>();
 
 const { pushToast } = useToasts();
-const { copy } = useClipboard();
 
-const activeTab = ref<"outputs" | "metadata" | "raw">("outputs");
+const activeTab = ref<(typeof JOURNAL_TABS)[number]["value"]>("outputs");
 
 const dateObj = computed(() => new Date(props.entry.timestamp));
 const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
@@ -185,15 +188,9 @@ const blockOutputsArray = computed(() =>
 
 const rawJson = computed(() => JSON.stringify(props.entry, null, 2));
 
-async function copyOutput() {
-	const outputsText = JSON.stringify(props.entry.blockOutputs, null, 2);
-	try {
-		await copy(outputsText);
-		pushToast({ type: "success", message: "Output copied to clipboard" });
-	} catch (error) {
-		pushToast({ type: "error", message: "Failed to copy to clipboard" });
-	}
-}
+const outputsJson = computed(() =>
+	JSON.stringify(props.entry.blockOutputs, null, 2),
+);
 
 function reRunExecution() {
 	emit("reRun", props.entry);
@@ -205,22 +202,14 @@ function goToTrigger() {
 }
 
 function downloadAsJson() {
-	const jsonString = JSON.stringify(props.entry, null, 2);
-	const blob = new Blob([jsonString], { type: "application/json" });
-	const url = URL.createObjectURL(blob);
-
 	try {
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `journal-entry-${props.entry.timestamp}.json`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
+		downloadJson(
+			props.entry,
+			`journal-entry-${props.entry.timestamp}.json`,
+		);
 		pushToast({ type: "success", message: "JSON file downloaded" });
-	} catch (error) {
+	} catch (_error) {
 		pushToast({ type: "error", message: "Failed to download file" });
-	} finally {
-		URL.revokeObjectURL(url);
 	}
 }
 </script>
@@ -267,35 +256,16 @@ function downloadAsJson() {
 	background: var(--wdsColorWhite);
 }
 
-.tabs {
-	display: flex;
-	gap: 4px;
-	border-bottom: 1px solid var(--wdsColorGray2);
-	padding: 0 20px;
+.tabs-wrapper {
+	padding: 0;
 	background: var(--wdsColorWhite);
 	position: sticky;
 	top: 0;
 	z-index: 1;
 }
 
-.tabs button {
-	padding: 8px 16px;
-	background: transparent;
-	border: none;
-	border-bottom: 2px solid transparent;
-	cursor: pointer;
-	font-size: 14px;
-	color: var(--wdsColorGray5);
-	transition: color 0.2s;
-}
-
-.tabs button:hover {
-	color: var(--wdsColorBlack);
-}
-
-.tabs button.active {
-	color: var(--wdsColorBlue5);
-	border-bottom-color: var(--wdsColorBlue5);
+.tabs-wrapper > .WdsTabs:first-child {
+	padding: 0 20px;
 }
 
 .content {

@@ -41,7 +41,7 @@ const props = defineProps({
 });
 
 defineEmits<{
-	click: [];
+	click: () => true;
 }>();
 
 const dateObj = computed(() => new Date(props.journalEntry.timestamp));

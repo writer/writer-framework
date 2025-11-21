@@ -1,7 +1,7 @@
 <template>
 	<Teleport to="#drawer">
 		<Transition name="drawer">
-			<div v-if="modelValue" class="WdsDrawer__overlay" @click="close">
+			<div v-if="isOpen" class="WdsDrawer__overlay" @click="close">
 				<div
 					class="WdsDrawer__container"
 					:class="`WdsDrawer__container--${size}`"
@@ -32,7 +32,6 @@ import WdsButton from "./WdsButton.vue";
 import WdsIcon from "./WdsIcon.vue";
 
 defineProps({
-	modelValue: { type: Boolean, required: true },
 	title: { type: String, default: "" },
 	size: {
 		type: String as PropType<"small" | "medium" | "large">,
@@ -40,12 +39,9 @@ defineProps({
 	},
 });
 
-const emit = defineEmits<{
-	"update:modelValue": [value: boolean];
-}>();
-
+const isOpen = defineModel<boolean>("modelValue", { required: true });
 function close() {
-	emit("update:modelValue", false);
+	isOpen.value = false;
 }
 </script>
 

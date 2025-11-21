@@ -1,8 +1,8 @@
 <template>
 	<div ref="trigger" class="SharedCopyClipboardButton">
 		<WdsButton
-			variant="tertiary"
-			size="smallIcon"
+			:variant="variant"
+			:size="size"
 			class="button"
 			:class="{
 				copied,
@@ -20,7 +20,8 @@
 			data-writer-unselectable="true"
 			@click="onCopyButtonClick"
 		>
-			<WdsIcon :name="copied ? 'check' : 'clipboard'" />
+			<WdsIcon :name="copied ? 'check' : iconName" />
+			<template v-if="text"> {{ !copied ? text : "Copied" }}</template>
 		</WdsButton>
 		<WdsDropdownMenu
 			v-if="!isSingleButtonMode && isMenuOpen"
@@ -50,10 +51,21 @@ import WdsDropdownMenu from "@/wds/WdsDropdownMenu.vue";
 import { computed, nextTick, PropType, ref, useTemplateRef, watch } from "vue";
 import { useFloating } from "@floating-ui/vue";
 import { useFocusWithin } from "@/composables/useFocusWithin";
+import type { WdsButtonVariant, WdsButtonSize } from "@/wds/WdsButton.vue";
 
 const props = defineProps({
 	label: { type: String, required: false, default: "" },
 	value: { type: String, required: false, default: "" },
+	text: { type: String, required: false, default: "" },
+	variant: {
+		type: String as PropType<WdsButtonVariant>,
+		default: "tertiary",
+	},
+	size: {
+		type: String as PropType<WdsButtonSize>,
+		default: "smallIcon",
+	},
+	iconName: { type: String, default: "clipboard" },
 	options: {
 		type: Array as PropType<SharedCopyClipboardButtonOption[]>,
 		required: false,

@@ -32,16 +32,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, onActivated, ref } from "vue";
+import { computed, inject, ref, shallowRef, onActivated, onMounted } from "vue";
 import BuilderJournalHeader from "./journal/BuilderJournalHeader.vue";
 import BuilderJournalEntry from "./journal/BuilderJournalEntry.vue";
 import BuilderJournalEntryDetails from "./journal/BuilderJournalEntryDetails.vue";
 import WdsDrawer from "@/wds/WdsDrawer.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
+import { downloadJson } from "@/utils/blob";
 import { useToasts } from "./useToast";
 import { Component, WriterComponentDefinition } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import type { JournalFilters } from "./journal/journalTypes";
+import { useComponentActions } from "./useComponentActions";
 
 defineOptions({
 	name: "BuilderJournal",
@@ -50,6 +52,11 @@ defineOptions({
 const { pushToast } = useToasts();
 const wf = inject(injectionKeys.core);
 const builderManager = inject(injectionKeys.builderManager);
+
+const { goToComponentParentPage, goToChild } = useComponentActions(
+	wf,
+	builderManager,
+);
 
 type ComponentInfo = {
 	type: "blueprint" | "block";
@@ -90,8 +97,13 @@ const filters = ref<JournalFilters>({
 	instanceTypes: [],
 });
 
-const isDrawerOpen = ref(false);
-const selectedEntry = ref<JournalEntry | null>(null);
+const selectedEntry = shallowRef<JournalEntry | null>(null);
+const isDrawerOpen = computed({
+	get: () => !!selectedEntry.value,
+	set: (value) => {
+		if (!value) selectedEntry.value = null;
+	},
+});
 
 const entries = computed<Record<string, JournalEntry>>(() => {
 	return Object.fromEntries(
@@ -206,20 +218,7 @@ const downloadAsJson = () => {
 			return [key, rawEntries.value[key]];
 		}),
 	);
-	const jsonString = JSON.stringify(rawFiltered, null, 2);
-	const blob = new Blob([jsonString], { type: "application/json" });
-
-	const url = URL.createObjectURL(blob);
-	try {
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = "agent-journal.json";
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-	} finally {
-		window.URL.revokeObjectURL(url);
-	}
+	downloadJson(rawFiltered, "agent-journal.json");
 };
 
 async function deleteEntries() {
@@ -262,7 +261,6 @@ async function deleteEntries() {
 
 function openEntryDetails(entry: JournalEntry) {
 	selectedEntry.value = entry;
-	isDrawerOpen.value = true;
 }
 
 function handleReRun(entry: JournalEntry) {
@@ -278,18 +276,11 @@ function handleReRun(entry: JournalEntry) {
 
 function handleGoToTrigger(entry: JournalEntry) {
 	// Close the drawer
-	isDrawerOpen.value = false;
+	selectedEntry.value = null;
 
-	// Switch to the appropriate mode based on trigger component type
-	if (entry.trigger.component.type === "blueprint") {
-		builderManager.mode.value = "blueprints";
-	} else {
-		builderManager.mode.value = "ui";
-	}
-
-	// Select the trigger component
-	builderManager.setSelection(entry.trigger.component.id);
-
+	// Go to the trigger component
+	goToComponentParentPage(entry.trigger.component.id);
+	goToChild(entry.trigger.component.id);
 	pushToast({
 		type: "success",
 		message: `Jumped to ${entry.title}`,
