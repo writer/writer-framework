@@ -338,7 +338,6 @@ function downloadAsJson() {
 	margin: 0;
 	font-size: 16px;
 	font-weight: 600;
-	cursor: pointer;
 	color: var(--wdsColorBlack);
 	display: inline-flex;
 	align-items: center;
@@ -358,7 +357,6 @@ function downloadAsJson() {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	cursor: pointer;
 	transition:
 		opacity 0.2s,
 		visibility 0.2s;
