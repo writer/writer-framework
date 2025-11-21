@@ -31,6 +31,7 @@
 				:entry="selectedEntry"
 				@re-run="handleReRun"
 				@go-to-trigger="handleGoToTrigger"
+				@go-to-block="handleGoToBlock"
 			/>
 		</WdsDrawer>
 	</div>
@@ -59,7 +60,7 @@ const { pushToast } = useToasts();
 const wf = inject(injectionKeys.core);
 const builderManager = inject(injectionKeys.builderManager);
 
-const { goToComponentParentPage, goToChild } = useComponentActions(
+const { goToComponentParentPage, selectChild } = useComponentActions(
 	wf,
 	builderManager,
 );
@@ -67,16 +68,19 @@ const { goToComponentParentPage, goToChild } = useComponentActions(
 type ComponentInfo = {
 	type: "blueprint" | "block";
 	id: string;
+	title: string;
 };
 type TriggerInfo = {
 	type: "On demand" | "UI" | "API" | "Cron";
 	event: string;
 	component: ComponentInfo;
+	payload: any;
 };
 
 type BlockOutput = {
 	result: any;
 	outcome: string;
+	component?: ComponentInfo | null;
 };
 
 export type RawJournalEntry = {
@@ -112,18 +116,17 @@ const isDrawerOpen = computed({
 	},
 });
 
-const entries = computed<Record<string, JournalEntry>>(() => {
+const entries = computed<Record<string, JournalEntry | null>>(() => {
 	return Object.fromEntries(
 		Object.entries(rawEntries.value).map(([key, entry]) => {
 			const component = wf.getComponentById(entry.trigger.component.id);
+			if (!component) return [key, null];
+
 			const componentDefinition = wf.getComponentDefinition(
-				component.type,
+				component?.type,
 			);
 
-			const title =
-				component.type === "blueprints_blueprint"
-					? component.content.key
-					: component.content.alias || componentDefinition.name;
+			const title = component.content.key || componentDefinition.name;
 
 			const instanceTypeLabel =
 				entry.instanceType.charAt(0).toUpperCase() +
@@ -143,10 +146,11 @@ const entries = computed<Record<string, JournalEntry>>(() => {
 	);
 });
 
-const filteredEntries = computed<Record<string, JournalEntry>>(() => {
+const filteredEntries = computed<Record<string, JournalEntry | null>>(() => {
 	const searchTextLower = searchText.value.toLowerCase();
 	return Object.fromEntries(
 		Object.entries(entries.value).filter(([_key, entry]) => {
+			if (!entry) return false;
 			const searchMatch =
 				searchText.value === "" ||
 				entry.title.toLowerCase().includes(searchTextLower);
@@ -166,11 +170,14 @@ const filteredEntries = computed<Record<string, JournalEntry>>(() => {
 	);
 });
 
-const sortedEntries = computed<Record<string, JournalEntry>>(() => {
-	const sortedArray = Object.entries(filteredEntries.value).sort(
-		([_, a], [__, b]) =>
-			new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-	);
+const sortedEntries = computed<Record<string, JournalEntry | null>>(() => {
+	const sortedArray = Object.entries(filteredEntries.value)
+		.filter(([_, entry]) => entry !== null)
+		.sort(
+			([_, a], [__, b]) =>
+				new Date(b.timestamp).getTime() -
+				new Date(a.timestamp).getTime(),
+		);
 
 	return Object.fromEntries(sortedArray);
 });
@@ -292,10 +299,23 @@ function handleGoToTrigger(entry: JournalEntry) {
 
 	// Go to the trigger component
 	goToComponentParentPage(entry.trigger.component.id);
-	goToChild(entry.trigger.component.id);
+	selectChild(entry.trigger.component.id);
 	pushToast({
 		type: "success",
 		message: `Jumped to ${entry.title}`,
+	});
+}
+
+function handleGoToBlock(blockId: string) {
+	// Close the drawer
+	selectedEntry.value = null;
+
+	// Go to the block component
+	goToComponentParentPage(blockId);
+	selectChild(blockId);
+	pushToast({
+		type: "success",
+		message: "Jumped to block",
 	});
 }
 

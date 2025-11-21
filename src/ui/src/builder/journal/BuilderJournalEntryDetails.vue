@@ -65,7 +65,33 @@
 					:key="blockId"
 					class="output-block"
 				>
-					<h4>Block {{ index + 1 }}</h4>
+					<div
+						class="output-block__header"
+						role="button"
+						tabindex="0"
+						@click="goToBlock(blockId)"
+						@keydown.enter="goToBlock(blockId)"
+					>
+						<div
+							v-if="blockId"
+							class="output-block__title-container"
+						>
+							<h4 class="output-block__title">
+								{{
+									output.component?.title ||
+									`Block ${index + 1}`
+								}}
+							</h4>
+							<div class="output-block__icon">
+								<WdsIcon name="locate" />
+							</div>
+						</div>
+						<h4 v-else>
+							{{
+								output.component?.title || `Block ${index + 1}`
+							}}
+						</h4>
+					</div>
 					<div class="output-block__status">
 						<span>Outcome: {{ output.outcome }}</span>
 					</div>
@@ -156,6 +182,7 @@ const props = defineProps({
 const emit = defineEmits<{
 	reRun: [entry: JournalEntry];
 	goToTrigger: [entry: JournalEntry];
+	goToBlock: [blockId: string];
 }>();
 
 const { pushToast } = useToasts();
@@ -199,6 +226,11 @@ function reRunExecution() {
 
 function goToTrigger() {
 	emit("goToTrigger", props.entry);
+}
+
+function goToBlock(blockId: string | null) {
+	if (!blockId) return;
+	emit("goToBlock", blockId);
 }
 
 function downloadAsJson() {
@@ -286,10 +318,65 @@ function downloadAsJson() {
 	padding: 16px;
 	margin-bottom: 16px;
 	background: var(--wdsColorGray1);
+	transition: border-color 0.2s;
+}
+.output-block__title-container {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.output-block:hover {
+	border-color: var(--wdsColorBlue3);
+}
+
+.output-block__header {
+	margin-bottom: 8px;
+	cursor: pointer;
+}
+
+.output-block__title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	color: var(--wdsColorBlack);
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	transition: color 0.2s;
+}
+
+.output-block:hover .output-block__title {
+	color: var(--wdsColorBlue5);
+}
+
+.output-block__icon {
+	opacity: 0;
+	visibility: hidden;
+	width: 16px;
+	height: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition:
+		opacity 0.2s,
+		visibility 0.2s;
+}
+
+.output-block__icon :deep(svg) {
+	width: 16px;
+	height: 16px;
+	stroke: var(--wdsColorBlue5);
+}
+
+.output-block:hover .output-block__icon {
+	opacity: 1;
+	visibility: visible;
 }
 
 .output-block h4 {
-	margin: 0 0 8px 0;
+	margin: 0;
 	font-size: 16px;
 	font-weight: 600;
 }

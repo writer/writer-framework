@@ -43,6 +43,7 @@ class JournalRecord:
         else:
             self.trigger["component"]["type"] = "block"
             component = graph.get_start_nodes()[0].component
+            self.trigger["component"]["id"] = component.id
             self.trigger["component"]["title"] = self._get_block_name(component)
 
         if "API" in title:
@@ -68,7 +69,10 @@ class JournalRecord:
     def to_dict(self) -> Dict[str, Any]:
         block_outputs = {}
         for graph_node in self.graph.nodes:
-            block_outputs[graph_node.id] = {"result": graph_node.result, "outcome": graph_node.outcome}
+            block_outputs[graph_node.id] = {"result": graph_node.result, "outcome": graph_node.outcome, "component": {
+                "type": graph_node.component.type,
+                "title": self._get_block_name(graph_node.component)
+            }}
         return {
             "timestamp": self.started_at.isoformat(),
             "instanceType": self.instance_type,
