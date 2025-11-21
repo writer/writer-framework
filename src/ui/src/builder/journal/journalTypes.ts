@@ -10,7 +10,6 @@ export type TriggerValue = (typeof TRIGGER_OPTIONS)[number]["value"];
 export type InstanceTypeValue = (typeof INSTANCE_TYPE_OPTIONS)[number]["value"];
 
 export interface JournalFilters {
-	search: string;
 	statuses: StatusValue[];
 	triggers: TriggerValue[];
 	instanceTypes: InstanceTypeValue[];

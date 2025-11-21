@@ -1,18 +1,23 @@
 <template>
 	<div class="BuilderJournal">
 		<BuilderJournalHeader
+			v-model:search="searchText"
 			v-model:filters="filters"
 			@refresh="loadEntries"
 			@clear="deleteEntries"
 			@download="downloadAsJson"
-		></BuilderJournalHeader>
-		<div class="BuilderJournal__entries">
+		/>
+		<div v-if="loading" class="BuilderJournal__loading">
+			<LoadingSymbol />
+			<p>Loading entries...</p>
+		</div>
+		<div v-else class="BuilderJournal__entries">
 			<BuilderJournalEntry
 				v-for="(entry, key) of sortedEntries"
 				:key="key"
 				:journal-entry="entry"
 				@click="openEntryDetails(entry)"
-			></BuilderJournalEntry>
+			/>
 		</div>
 
 		<!-- Drawer for entry details -->
@@ -37,6 +42,7 @@ import BuilderJournalHeader from "./journal/BuilderJournalHeader.vue";
 import BuilderJournalEntry from "./journal/BuilderJournalEntry.vue";
 import BuilderJournalEntryDetails from "./journal/BuilderJournalEntryDetails.vue";
 import WdsDrawer from "@/wds/WdsDrawer.vue";
+import LoadingSymbol from "@/renderer/LoadingSymbol.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { downloadJson } from "@/utils/blob";
 import { useToasts } from "./useToast";
@@ -89,9 +95,10 @@ export type JournalEntry = RawJournalEntry & {
 };
 
 const rawEntries = ref<Record<string, RawJournalEntry>>({});
+const loading = ref(false);
 
+const searchText = ref("");
 const filters = ref<JournalFilters>({
-	search: "",
 	statuses: [],
 	triggers: [],
 	instanceTypes: [],
@@ -137,11 +144,11 @@ const entries = computed<Record<string, JournalEntry>>(() => {
 });
 
 const filteredEntries = computed<Record<string, JournalEntry>>(() => {
-	const searchTextLower = filters.value.search.toLowerCase();
+	const searchTextLower = searchText.value.toLowerCase();
 	return Object.fromEntries(
 		Object.entries(entries.value).filter(([_key, entry]) => {
 			const searchMatch =
-				filters.value.search === "" ||
+				searchText.value === "" ||
 				entry.title.toLowerCase().includes(searchTextLower);
 			const statusMatch =
 				filters.value.statuses.length === 0 ||
@@ -169,6 +176,7 @@ const sortedEntries = computed<Record<string, JournalEntry>>(() => {
 });
 
 async function loadEntries() {
+	loading.value = true;
 	let response: Response;
 	try {
 		response = await fetch(
@@ -189,6 +197,7 @@ async function loadEntries() {
 			type: "error",
 			message: "Failed to fetch the execution history",
 		});
+		loading.value = false;
 		return;
 	}
 
@@ -197,6 +206,7 @@ async function loadEntries() {
 			type: "error",
 			message: "Failed to fetch the execution history",
 		});
+		loading.value = false;
 		return;
 	}
 
@@ -209,6 +219,8 @@ async function loadEntries() {
 			message: "Failed to fetch the execution history",
 		});
 		return;
+	} finally {
+		loading.value = false;
 	}
 }
 
@@ -303,6 +315,22 @@ onActivated(() => {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+}
+
+.BuilderJournal__loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	padding: 48px 20px;
+	color: var(--wdsColorGray5);
+	height: 100%;
+}
+
+.BuilderJournal__loading p {
+	margin: 0;
+	font-size: 14px;
 }
 
 .BuilderJournal__entries {

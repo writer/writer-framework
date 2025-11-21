@@ -1,7 +1,9 @@
 <template>
 	<div class="BuilderJournalHeader">
-		<BuilderJournalSearchbar v-model:filters="filters">
-		</BuilderJournalSearchbar>
+		<BuilderJournalSearchbar
+			v-model:search="search"
+			v-model:filters="filters"
+		/>
 		<div class="BuilderJournalHeader__actions">
 			<WdsButton
 				data-writer-tooltip="Refresh journal"
@@ -45,6 +47,8 @@ const emit = defineEmits({
 	clear: () => true,
 	download: () => true,
 });
+
+const search = defineModel<string>("search", { required: true });
 const filters = defineModel<JournalFilters>("filters", { required: true });
 </script>
 
@@ -57,10 +61,11 @@ const filters = defineModel<JournalFilters>("filters", { required: true });
 	flex-direction: row;
 	border-bottom: 1px solid var(--builderSeparatorColor);
 	background: var(--wdsColorGray1);
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
 .BuilderJournalHeader__actions {
-	height: 100%;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
