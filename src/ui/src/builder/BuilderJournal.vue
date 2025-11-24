@@ -66,7 +66,7 @@ const { goToComponentParentPage, selectChild } = useComponentActions(
 );
 
 type ComponentInfo = {
-	type: "blueprint" | "block";
+	type: string;
 	id: string;
 	title: string;
 };
@@ -81,6 +81,8 @@ type BlockOutput = {
 	result: any;
 	outcome: string;
 	component?: ComponentInfo | null;
+	startedAt?: number;
+	executionTimeInSeconds?: number;
 };
 
 export type RawJournalEntry = {
@@ -126,7 +128,10 @@ const entries = computed<Record<string, JournalEntry | null>>(() => {
 				component?.type,
 			);
 
-			const title = component.content.key || componentDefinition.name;
+			const title =
+				component.type === "blueprints_blueprint"
+					? component.content.key
+					: component.content.alias || componentDefinition.name;
 
 			const instanceTypeLabel =
 				entry.instanceType.charAt(0).toUpperCase() +

@@ -64,6 +64,7 @@
 					v-for="([blockId, output], index) in blockOutputsArray"
 					:key="blockId"
 					class="output-block"
+					:class="getOutcomeClass(output.outcome)"
 				>
 					<div
 						class="output-block__header"
@@ -91,9 +92,42 @@
 								output.component?.title || `Block ${index + 1}`
 							}}
 						</h4>
+						<SharedImgWithFallback
+							v-if="output.component?.type"
+							class="output-block__type-icon"
+							:alt="`${output.component.type} icon`"
+							:urls="getComponentIconUrls(output.component?.type)"
+							:loader-max-width-px="32"
+							:loader-max-height-px="32"
+						/>
 					</div>
-					<div class="output-block__status">
-						<span>Outcome: {{ output.outcome }}</span>
+					<div class="output-block__meta">
+						<div class="output-block__status">
+							<span>Outcome: {{ output.outcome }}</span>
+						</div>
+						<div
+							v-if="
+								output.startedAt !== undefined ||
+								output.executionTimeInSeconds !== undefined
+							"
+							class="output-block__timing"
+						>
+							<span v-if="output.startedAt !== undefined">
+								Started: {{ formatTimestamp(output.startedAt) }}
+							</span>
+							<span
+								v-if="
+									output.executionTimeInSeconds !== undefined
+								"
+							>
+								Duration:
+								{{
+									formatDuration(
+										output.executionTimeInSeconds,
+									)
+								}}
+							</span>
+						</div>
 					</div>
 					<SharedJsonViewer
 						:data="output.result"
@@ -165,8 +199,10 @@ import WdsTag from "@/wds/WdsTag.vue";
 import WdsTabs from "@/wds/WdsTabs.vue";
 import { JOURNAL_TABS } from "./journalConstants";
 import SharedCopyClipboardButton from "@/components/shared/SharedCopyClipboardButton.vue";
+import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
 import { downloadJson } from "@/utils/blob";
+import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useToasts } from "../useToast";
 import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
@@ -209,9 +245,15 @@ const statusVariant = computed(() => {
 	return variants[props.entry.result] || "neutral";
 });
 
-const blockOutputsArray = computed(() =>
-	Object.entries(props.entry.blockOutputs),
-);
+const blockOutputsArray = computed(() => {
+	const entries = Object.entries(props.entry.blockOutputs);
+	// Sort by startedAt timestamp (earliest first, missing timestamps go to bottom)
+	return entries.sort((a, b) => {
+		const timeA = a[1].startedAt ?? Infinity;
+		const timeB = b[1].startedAt ?? Infinity;
+		return timeA - timeB;
+	});
+});
 
 const rawJson = computed(() => JSON.stringify(props.entry, null, 2));
 
@@ -243,6 +285,41 @@ function downloadAsJson() {
 	} catch (_error) {
 		pushToast({ type: "error", message: "Failed to download file" });
 	}
+}
+
+function formatTimestamp(timestamp: number): string {
+	const date = new Date(timestamp * 1000);
+	return date.toLocaleTimeString("en-US", {
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hour12: true,
+	});
+}
+
+function formatDuration(seconds: number): string {
+	if (seconds < 1) {
+		return `${(seconds * 1000).toFixed(0)}ms`;
+	}
+	return `${seconds.toFixed(2)}s`;
+}
+
+function getOutcomeClass(outcome: string): string {
+	const outcomeMap: Record<string, string> = {
+		success: "output-block--success",
+		trigger: "output-block--trigger",
+		skipped: "output-block--skipped",
+		error: "output-block--error",
+	};
+	return outcomeMap[outcome] || "output-block--success";
+}
+
+function getComponentIconUrls(componentType: string | undefined): string[] {
+	if (!componentType) return [];
+	return [
+		`/components/${componentType}.svg`,
+		`/components/category_Blocks.svg`,
+	].map((p) => convertAbsolutePathtoFullURL(p));
 }
 </script>
 
@@ -325,13 +402,26 @@ function downloadAsJson() {
 	align-items: center;
 	gap: 8px;
 }
-.output-block:hover {
-	border-color: var(--wdsColorBlue3);
+
+.output-block__type-icon {
+	width: 32px;
+	height: 32px;
+	flex-shrink: 0;
+}
+
+.output-block__type-icon img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 
 .output-block__header {
 	margin-bottom: 8px;
 	cursor: pointer;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
 }
 
 .output-block__title {
@@ -343,10 +433,6 @@ function downloadAsJson() {
 	align-items: center;
 	gap: 8px;
 	transition: color 0.2s;
-}
-
-.output-block:hover .output-block__title {
-	color: var(--wdsColorBlue5);
 }
 
 .output-block__icon {
@@ -365,7 +451,7 @@ function downloadAsJson() {
 .output-block__icon :deep(svg) {
 	width: 16px;
 	height: 16px;
-	stroke: var(--wdsColorBlue5);
+	transition: stroke 0.2s;
 }
 
 .output-block:hover .output-block__icon {
@@ -379,10 +465,93 @@ function downloadAsJson() {
 	font-weight: 600;
 }
 
-.output-block__status {
+.output-block__meta {
 	margin: 8px 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 	font-size: 14px;
 	color: var(--wdsColorGray5);
+}
+
+.output-block__status {
+	display: flex;
+	align-items: center;
+}
+
+.output-block__timing {
+	display: flex;
+	gap: 16px;
+	font-size: 13px;
+}
+
+/* Outcome-based color variants */
+.output-block--success {
+	background: var(--wdsColorGreen1);
+	border-color: var(--wdsColorGreen5);
+}
+
+.output-block--success:hover {
+	border-color: var(--wdsColorGreen6);
+}
+
+.output-block--success:hover .output-block__title {
+	color: var(--wdsColorGreen6);
+}
+
+.output-block--success:hover .output-block__icon :deep(svg) {
+	stroke: var(--wdsColorGreen6);
+}
+
+.output-block--trigger {
+	background: var(--wdsColorBlue1);
+	border-color: var(--wdsColorBlue2);
+}
+
+.output-block--trigger:hover {
+	border-color: var(--wdsColorBlue5);
+}
+
+.output-block--trigger:hover .output-block__title {
+	color: var(--wdsColorBlue6);
+}
+
+.output-block--trigger:hover .output-block__icon :deep(svg) {
+	stroke: var(--wdsColorBlue6);
+}
+
+.output-block--error {
+	background: var(--wdsColorRed1);
+	border-color: var(--wdsColorRed2);
+}
+
+.output-block--error:hover {
+	border-color: var(--wdsColorRed5);
+}
+
+.output-block--error:hover .output-block__title {
+	color: var(--wdsColorRed6);
+}
+
+.output-block--error:hover .output-block__icon :deep(svg) {
+	stroke: var(--wdsColorRed6);
+}
+
+.output-block--skipped {
+	background: var(--wdsColorGray1);
+	border-color: var(--wdsColorGray2);
+}
+
+.output-block--skipped:hover {
+	border-color: var(--wdsColorGray4);
+}
+
+.output-block--skipped:hover .output-block__title {
+	color: var(--wdsColorGray6);
+}
+
+.output-block--skipped:hover .output-block__icon :deep(svg) {
+	stroke: var(--wdsColorGray6);
 }
 
 .metadata__section {
