@@ -132,7 +132,6 @@ class SentryAdapter(ObservabilityProvider):
             class SentryMiddleware(BaseHTTPMiddleware):
                 async def dispatch(self, request: Request, call_next):
                     with sentry_sdk.push_scope() as scope:
-                        # Set request-specific tags (override global if needed)
                         scope.set_tag("source", "fastapi_middleware")
                         scope.set_tag("http.method", request.method)
                         scope.set_tag("http.path", request.url.path)
