@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 export interface ObservabilityProvider {
 	initialize(app?: unknown, router?: unknown): boolean | Promise<boolean>;
 	captureException(
@@ -26,7 +27,6 @@ export class ObservabilityRegistry {
 
 	register(name: string, provider: ObservabilityProvider): void {
 		if (this.providers.has(name)) {
-			// eslint-disable-next-line no-console
 			console.warn(`Overwriting existing provider '${name}'`);
 		}
 
@@ -46,41 +46,42 @@ export class ObservabilityRegistry {
 		app?: unknown,
 		router?: unknown,
 	): boolean | Promise<boolean> {
-		if (name === null || name === undefined) {
+		let providerName: string | null | undefined = name;
+
+		if (providerName === null || providerName === undefined) {
 			const envProvider = import.meta.env.VITE_OBSERVABILITY_PROVIDER;
 			if (envProvider) {
-				name = envProvider;
+				providerName = envProvider;
 			} else {
 				for (const [
-					providerName,
+					enabledProviderName,
 					provider,
 				] of this.providers.entries()) {
 					if (provider.isEnabled()) {
-						name = providerName;
+						providerName = enabledProviderName;
 						break;
 					}
 				}
 			}
 		}
 
-		if (!name) {
-			// eslint-disable-next-line no-console
+		if (!providerName) {
 			console.info("No observability provider configured");
 			return false;
 		}
 
-		const provider = this.getProvider(name);
+		const provider = this.getProvider(providerName);
 		if (!provider) {
-			// eslint-disable-next-line no-console
 			console.warn(
-				`Observability provider '${name}' not found. Available: ${this.listProviders().join(", ")}`,
+				`Observability provider '${providerName}' not found. Available: ${this.listProviders().join(", ")}`,
 			);
 			return false;
 		}
 
 		if (!provider.isEnabled()) {
-			// eslint-disable-next-line no-console
-			console.info(`Observability provider '${name}' is disabled`);
+			console.info(
+				`Observability provider '${providerName}' is disabled`,
+			);
 			return false;
 		}
 
@@ -91,23 +92,20 @@ export class ObservabilityRegistry {
 					.then((success) => {
 						if (success) {
 							this.initializedProvider = provider;
-							// eslint-disable-next-line no-console
 							console.info(
-								`Initialized observability provider: ${name}`,
+								`Initialized observability provider: ${providerName}`,
 							);
 							return true;
 						} else {
-							// eslint-disable-next-line no-console
 							console.warn(
-								`Failed to initialize observability provider: ${name}`,
+								`Failed to initialize observability provider: ${providerName}`,
 							);
 							return false;
 						}
 					})
 					.catch((error) => {
-						// eslint-disable-next-line no-console
 						console.error(
-							`Error initializing observability provider '${name}':`,
+							`Error initializing observability provider '${providerName}':`,
 							error,
 						);
 						return false;
@@ -115,21 +113,20 @@ export class ObservabilityRegistry {
 			} else {
 				if (result) {
 					this.initializedProvider = provider;
-					// eslint-disable-next-line no-console
-					console.info(`Initialized observability provider: ${name}`);
+					console.info(
+						`Initialized observability provider: ${providerName}`,
+					);
 					return true;
 				} else {
-					// eslint-disable-next-line no-console
 					console.warn(
-						`Failed to initialize observability provider: ${name}`,
+						`Failed to initialize observability provider: ${providerName}`,
 					);
 					return false;
 				}
 			}
 		} catch (error) {
-			// eslint-disable-next-line no-console
 			console.error(
-				`Error initializing observability provider '${name}':`,
+				`Error initializing observability provider '${providerName}':`,
 				error,
 			);
 			return false;

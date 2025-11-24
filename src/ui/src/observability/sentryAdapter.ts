@@ -1,4 +1,8 @@
+/* eslint-disable no-console */
 import type { ObservabilityProvider } from "./base";
+import { trackRouteChange } from "./frontendMetrics";
+import { getParsedHash } from "@/core/navigation";
+import type * as SentryVue from "@sentry/vue";
 
 export const SENTRY_DSN_ENV = "VITE_SENTRY_DSN";
 export const SENTRY_ENABLED_ENV = "VITE_SENTRY_ENABLED";
@@ -7,55 +11,53 @@ export const SENTRY_TRACES_SAMPLE_RATE_ENV = "VITE_SENTRY_TRACES_SAMPLE_RATE";
 export const SENTRY_REPLAY_SAMPLE_RATE_ENV = "VITE_SENTRY_REPLAY_SAMPLE_RATE";
 
 interface SentryApi {
-	captureException: (
-		error: Error,
-		options?: {
-			extra?: Record<string, unknown>;
-			contexts?: Record<string, unknown>;
-		},
-	) => void;
-	captureMessage: (
-		message: string,
-		options?: {
-			level?: string;
-			extra?: Record<string, unknown>;
-			contexts?: Record<string, unknown>;
-		},
-	) => void;
-	setUser: (user: {
-		id?: string;
-		email?: string;
-		username?: string;
-		[key: string]: unknown;
-	}) => void;
-	setContext: (key: string, value: unknown) => void;
+	captureException: typeof SentryVue.captureException;
+	captureMessage: typeof SentryVue.captureMessage;
+	setUser: typeof SentryVue.setUser;
+	setContext: typeof SentryVue.setContext;
+}
+
+interface SentryMetricData {
+	attributes?: Record<string, string>;
+	unit?: string;
+}
+
+interface BrowserTracingOptions {
+	router?: unknown;
+	tracingOrigins?: (string | RegExp)[];
+	routeLabel?: "name" | "path";
+}
+
+interface AppMetadata {
+	agent_id?: string;
+	organization_id?: string;
+	mode?: string;
+	[key: string]: unknown;
+}
+
+interface SentryMetricOptions {
+	tags?: Record<string, string>;
+	unit?: string;
+}
+
+interface SentryIncrementMetricOptions extends SentryMetricOptions {
+	value?: number;
+}
+
+interface RuntimeContext {
+	url: string;
+	userAgent: string;
+	[key: string]: unknown;
 }
 
 interface SentryMetrics {
-	count: (
-		name: string,
-		value?: number,
-		data?: {
-			attributes?: Record<string, string>;
-			unit?: string;
-		},
-	) => void;
+	count: (name: string, value?: number, data?: SentryMetricData) => void;
 	distribution: (
 		name: string,
 		value: number,
-		data?: {
-			attributes?: Record<string, string>;
-			unit?: string;
-		},
+		data?: SentryMetricData,
 	) => void;
-	gauge: (
-		name: string,
-		value: number,
-		data?: {
-			attributes?: Record<string, string>;
-			unit?: string;
-		},
-	) => void;
+	gauge: (name: string, value: number, data?: SentryMetricData) => void;
 }
 
 interface SentryModule {
@@ -67,23 +69,15 @@ interface SentryModule {
 	setTag?: (key: string, value: string) => void;
 	metrics?: SentryMetrics;
 	vueIntegration?: (options?: { app?: unknown }) => unknown;
-	browserTracingIntegration?: (options?: {
-		router?: unknown;
-		tracingOrigins?: (string | RegExp)[];
-		routeLabel?: "name" | "path";
-	}) => unknown;
-	BrowserTracing?: new (options?: {
-		router?: unknown;
-		tracingOrigins?: (string | RegExp)[];
-		routeLabel?: "name" | "path";
-	}) => unknown;
+	browserTracingIntegration?: (options?: BrowserTracingOptions) => unknown;
+	BrowserTracing?: new (options?: BrowserTracingOptions) => unknown;
 }
 
 interface SentryInitConfig {
 	dsn: string;
 	environment: string;
 	tracesSampleRate: number;
-	replay: {
+	replay?: {
 		sampleRate: number;
 	};
 	enableMetrics?: boolean;
@@ -91,16 +85,8 @@ interface SentryInitConfig {
 	integrations?: unknown[];
 }
 
-type BrowserTracingFunction = (options?: {
-	router?: unknown;
-	tracingOrigins?: (string | RegExp)[];
-	routeLabel?: "name" | "path";
-}) => unknown;
-type BrowserTracingClass = new (options?: {
-	router?: unknown;
-	tracingOrigins?: (string | RegExp)[];
-	routeLabel?: "name" | "path";
-}) => unknown;
+type BrowserTracingFunction = (options?: BrowserTracingOptions) => unknown;
+type BrowserTracingClass = new (options?: BrowserTracingOptions) => unknown;
 type BrowserTracingIntegration = BrowserTracingFunction | BrowserTracingClass;
 
 export class SentryAdapter implements ObservabilityProvider {
@@ -131,7 +117,6 @@ export class SentryAdapter implements ObservabilityProvider {
 		try {
 			const dsn = import.meta.env[SENTRY_DSN_ENV];
 			if (!dsn) {
-				// eslint-disable-next-line no-console
 				console.info(
 					"Sentry DSN not provided, skipping Sentry initialization",
 				);
@@ -145,7 +130,6 @@ export class SentryAdapter implements ObservabilityProvider {
 				);
 				SentryModule = sentryImport as unknown as SentryModule;
 			} catch (importError) {
-				// eslint-disable-next-line no-console
 				console.warn(
 					"Failed to import @sentry/vue package. Make sure it's installed: npm install @sentry/vue",
 					importError,
@@ -190,7 +174,6 @@ export class SentryAdapter implements ObservabilityProvider {
 							browserModule.browserTracingIntegration;
 					}
 				} catch {
-					// eslint-disable-next-line no-console
 					console.warn(
 						"BrowserTracing not available. Performance monitoring will be limited.",
 					);
@@ -224,11 +207,7 @@ export class SentryAdapter implements ObservabilityProvider {
 			}
 
 			if (browserTracingIntegration) {
-				const tracingOptions: {
-					router?: unknown;
-					tracingOrigins?: (string | RegExp)[];
-					routeLabel?: "name" | "path";
-				} = {
+				const tracingOptions: BrowserTracingOptions = {
 					tracingOrigins: ["localhost", /^\//],
 				};
 
@@ -268,10 +247,8 @@ export class SentryAdapter implements ObservabilityProvider {
 			this.metrics = this._getMetrics(SentryModule);
 
 			if (this.metrics) {
-				// eslint-disable-next-line no-console
 				console.debug("Sentry metrics API initialized");
 			} else {
-				// eslint-disable-next-line no-console
 				console.warn(
 					"Sentry metrics API not available (requires SDK 10.25.0+)",
 				);
@@ -282,11 +259,9 @@ export class SentryAdapter implements ObservabilityProvider {
 			this._setInitialMetadata(SentryModule);
 			this._setupRouteTracking();
 
-			// eslint-disable-next-line no-console
 			console.info(`Sentry initialized (environment: ${environment})`);
 			return true;
 		} catch (error) {
-			// eslint-disable-next-line no-console
 			console.warn(
 				"Failed to load or initialize @sentry/vue package:",
 				error,
@@ -304,7 +279,7 @@ export class SentryAdapter implements ObservabilityProvider {
 		}
 
 		try {
-			const runtimeContext = {
+			const runtimeContext: RuntimeContext = {
 				url: window.location.href,
 				userAgent: navigator.userAgent,
 			};
@@ -312,33 +287,32 @@ export class SentryAdapter implements ObservabilityProvider {
 			if (error instanceof Error) {
 				this.sentry.captureException(error, {
 					extra: {
-						...context,
+						...(context as Record<string, unknown>),
 						url: window.location.href,
 						timestamp: new Date().toISOString(),
 					},
 					contexts: {
 						runtime: runtimeContext,
 						...((context?.contexts as Record<string, unknown>) ||
-							{}),
+							({} as Record<string, unknown>)),
 					},
-				});
+				} as Parameters<typeof this.sentry.captureException>[1]);
 			} else {
 				this.sentry.captureMessage(error, {
 					level: "error",
 					extra: {
-						...context,
+						...(context as Record<string, unknown>),
 						url: window.location.href,
 						timestamp: new Date().toISOString(),
 					},
 					contexts: {
 						runtime: runtimeContext,
 						...((context?.contexts as Record<string, unknown>) ||
-							{}),
+							({} as Record<string, unknown>)),
 					},
-				});
+				} as Parameters<typeof this.sentry.captureMessage>[1]);
 			}
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn("Failed to capture exception:", e);
 		}
 	}
@@ -356,7 +330,7 @@ export class SentryAdapter implements ObservabilityProvider {
 			this.sentry.captureMessage(message, {
 				level,
 				extra: {
-					...context,
+					...(context as Record<string, unknown>),
 					url: window.location.href,
 					timestamp: new Date().toISOString(),
 				},
@@ -364,12 +338,12 @@ export class SentryAdapter implements ObservabilityProvider {
 					runtime: {
 						url: window.location.href,
 						userAgent: navigator.userAgent,
-					},
-					...((context?.contexts as Record<string, unknown>) || {}),
+					} as RuntimeContext,
+					...((context?.contexts as Record<string, unknown>) ||
+						({} as Record<string, unknown>)),
 				},
-			});
+			} as Parameters<typeof this.sentry.captureMessage>[1]);
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn("Failed to capture message:", e);
 		}
 	}
@@ -388,7 +362,6 @@ export class SentryAdapter implements ObservabilityProvider {
 			const { setUser } = this.sentry;
 			setUser(user);
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn("Failed to set user in Sentry:", e);
 		}
 	}
@@ -400,9 +373,18 @@ export class SentryAdapter implements ObservabilityProvider {
 
 		try {
 			const { setContext } = this.sentry;
-			setContext(key, value);
+			// Sentry's setContext expects an object with string keys
+			if (
+				value !== null &&
+				typeof value === "object" &&
+				!Array.isArray(value)
+			) {
+				setContext(key, value as Record<string, unknown>);
+			} else {
+				// If value is not an object, wrap it in an object
+				setContext(key, { value });
+			}
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn("Failed to set context in Sentry:", e);
 		}
 	}
@@ -442,7 +424,6 @@ export class SentryAdapter implements ObservabilityProvider {
 				});
 			}
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn("Failed to set initial Sentry metadata:", e);
 		}
 	}
@@ -480,29 +461,35 @@ export class SentryAdapter implements ObservabilityProvider {
 
 			if (typeof router.afterEach === "function") {
 				router.afterEach((to) => {
-					const route = to.name || to.path || "unknown";
-					this.incrementMetric("frontend_route_changes_total", {
-						tags: { route },
-						unit: "none",
-					});
+					let normalizedRoute: string;
+					if (to.name) {
+						normalizedRoute = to.name;
+					} else if (to.path) {
+						try {
+							const parsedHash = getParsedHash(
+								typeof window !== "undefined"
+									? window.location.hash
+									: "",
+							);
+							normalizedRoute =
+								parsedHash.pageKey || to.path || "unknown";
+						} catch {
+							normalizedRoute = to.path;
+						}
+					} else {
+						normalizedRoute = "unknown";
+					}
+
+					trackRouteChange(normalizedRoute);
 				});
 			}
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn("Failed to set up Vue Router tracking:", e);
 		}
 	}
 
-	private _getAppMetadata(): {
-		agent_id?: string;
-		organization_id?: string;
-		mode?: string;
-	} {
-		const metadata: {
-			agent_id?: string;
-			organization_id?: string;
-			mode?: string;
-		} = {};
+	private _getAppMetadata(): AppMetadata {
+		const metadata: AppMetadata = {};
 
 		try {
 			if (
@@ -549,7 +536,6 @@ export class SentryAdapter implements ObservabilityProvider {
 				}
 			}
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.debug("Failed to get app metadata:", e);
 		}
 
@@ -582,11 +568,7 @@ export class SentryAdapter implements ObservabilityProvider {
 
 	incrementMetric(
 		name: string,
-		options?: {
-			tags?: Record<string, string>;
-			unit?: string;
-			value?: number;
-		},
+		options?: SentryIncrementMetricOptions,
 	): void {
 		if (!this.initialized) {
 			return;
@@ -603,7 +585,6 @@ export class SentryAdapter implements ObservabilityProvider {
 				unit: options?.unit,
 			});
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn(`Failed to send metric ${name}:`, e);
 		}
 	}
@@ -611,10 +592,7 @@ export class SentryAdapter implements ObservabilityProvider {
 	recordDistribution(
 		name: string,
 		value: number,
-		options?: {
-			tags?: Record<string, string>;
-			unit?: string;
-		},
+		options?: SentryMetricOptions,
 	): void {
 		if (!this.initialized) {
 			return;
@@ -631,19 +609,11 @@ export class SentryAdapter implements ObservabilityProvider {
 				unit: options?.unit,
 			});
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn(`Failed to send distribution ${name}:`, e);
 		}
 	}
 
-	setGauge(
-		name: string,
-		value: number,
-		options?: {
-			tags?: Record<string, string>;
-			unit?: string;
-		},
-	): void {
+	setGauge(name: string, value: number, options?: SentryMetricOptions): void {
 		if (!this.initialized) {
 			return;
 		}
@@ -659,7 +629,6 @@ export class SentryAdapter implements ObservabilityProvider {
 				unit: options?.unit,
 			});
 		} catch (e) {
-			// eslint-disable-next-line no-console
 			console.warn(`Failed to send gauge ${name}:`, e);
 		}
 	}

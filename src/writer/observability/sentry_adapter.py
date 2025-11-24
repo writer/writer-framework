@@ -136,7 +136,6 @@ class SentryAdapter(ObservabilityProvider):
                         scope.set_tag("http.method", request.method)
                         scope.set_tag("http.path", request.url.path)
                         
-                        # Prefer header values over env vars for request context
                         agent_id = request.headers.get("x-agent-id") or metadata.get("agent_id")
                         org_id = request.headers.get("x-organization-id") or metadata.get("organization_id")
                         

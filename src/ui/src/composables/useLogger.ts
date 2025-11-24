@@ -8,9 +8,8 @@ export function useLogger(): ILogger {
 	const provider = observabilityRegistry.getInitializedProvider();
 
 	return {
-		log: (...args: any[]) => {
-			console.log(...args);
-		},
+		log: console.log,
+		info: console.info,
 		warn: (...args: any[]) => {
 			console.warn(...args);
 			if (provider && args.length > 0) {
@@ -22,9 +21,6 @@ export function useLogger(): ILogger {
 					args: args.slice(1),
 				});
 			}
-		},
-		info: (...args: any[]) => {
-			console.info(...args);
 		},
 		error: (...args: any[]) => {
 			console.error(...args);

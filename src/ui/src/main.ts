@@ -13,7 +13,8 @@ import { CollaborationManager } from "./writerTypes.js";
 import { useSecretsManager } from "./core/useSecretsManager.js";
 import { RECONNECT_DELAY_MS, MAX_RETRIES } from "@/constants/retry";
 import { observabilityRegistry } from "./observability";
-import { trackPageLoadTime, trackError } from "./observability/frontendMetrics";
+import { trackPageLoadTime } from "./observability/frontendMetrics";
+import { setupGlobalErrorHandling } from "./composables/useGlobalErrorHandling";
 
 const wf = generateCore();
 
@@ -25,6 +26,8 @@ globalThis.injectionKeys = injectionKeys;
 globalThis.core = wf;
 
 const logger = useLogger();
+
+setupGlobalErrorHandling();
 
 async function load() {
 	await wf.init();
@@ -70,26 +73,6 @@ async function load() {
 	app.mount("#app");
 
 	trackPageLoadTime();
-
-	if (typeof window !== "undefined") {
-		window.addEventListener("error", (event) => {
-			const error =
-				event.error || new Error(event.message || "Unknown error");
-			trackError(error, error.name || "window_error");
-		});
-
-		window.addEventListener("unhandledrejection", (event) => {
-			const error =
-				event.reason instanceof Error
-					? event.reason
-					: new Error(
-							String(
-								event.reason || "Unhandled promise rejection",
-							),
-						);
-			trackError(error, "unhandled_promise_rejection");
-		});
-	}
 
 	if (wf.isWriterCloudApp.value && collaborationManager) {
 		await enableCollaboration(collaborationManager).catch(logger.error);

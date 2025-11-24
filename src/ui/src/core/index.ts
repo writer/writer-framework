@@ -33,10 +33,12 @@ import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
 import { RECONNECT_DELAY_MS } from "@/constants/retry";
-import { observabilityRegistry } from "@/observability";
+import { MetricName, MetricUnit } from "@/observability/frontendMetrics";
 import {
 	trackWebSocketLatency,
 	trackInteractionDuration,
+	incrementMetricSafely,
+	recordDistributionSafely,
 } from "@/observability/frontendMetrics";
 import {
 	createFileToSourceFiles,
@@ -786,124 +788,67 @@ export function generateCore() {
 			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
 
 			const messageDuration = performance.now() - messageStartTime;
-			const provider = observabilityRegistry.getInitializedProvider();
-			if (provider && "recordDistribution" in provider) {
-				try {
-					(
-						provider as {
-							recordDistribution: (
-								name: string,
-								value: number,
-								options?: {
-									tags?: Record<string, string>;
-									unit?: string;
-								},
-							) => void;
-						}
-					).recordDistribution(
-						"websocket.message_duration",
-						messageDuration,
-						{
-							tags: {
-								message_type: type,
-							},
-							unit: "millisecond",
-						},
-					);
-				} catch (_e) {
-					// Ignore metric errors
-				}
-			}
+			recordDistributionSafely(
+				MetricName.WebSocketMessageDuration,
+				messageDuration,
+				{
+					tags: {
+						message_type: type,
+					},
+					unit: MetricUnit.Millisecond,
+				},
+				logger,
+			);
 		} catch (error) {
 			logger.error("sendFrontendMessage error", error);
 			callback?.({ ok: false });
 
-			const provider = observabilityRegistry.getInitializedProvider();
-			if (provider && "incrementMetric" in provider) {
-				try {
-					(
-						provider as {
-							incrementMetric: (
-								name: string,
-								options?: {
-									tags?: Record<string, string>;
-									unit?: string;
-									value?: number;
-								},
-							) => void;
-						}
-					).incrementMetric("websocket.message_error", {
-						tags: {
-							message_type: type,
-						},
-						unit: "none",
-					});
-				} catch (_e) {
-					// Ignore metric errors
-				}
-			}
+			incrementMetricSafely(
+				MetricName.WebSocketMessageError,
+				{
+					tags: {
+						message_type: type,
+					},
+					unit: MetricUnit.None,
+				},
+				logger,
+			);
 		}
 	}
 
 	function deleteComponent(componentId: Component["id"]) {
+		const logger = useLogger();
 		const component = components.value[componentId];
 		delete components.value[componentId];
 
 		if (component) {
-			const provider = observabilityRegistry.getInitializedProvider();
-			if (provider && "incrementMetric" in provider) {
-				try {
-					(
-						provider as {
-							incrementMetric: (
-								name: string,
-								options?: {
-									tags?: Record<string, string>;
-									unit?: string;
-									value?: number;
-								},
-							) => void;
-						}
-					).incrementMetric("component.deleted", {
-						tags: {
-							component_type: component.type,
-						},
-						unit: "none",
-					});
-				} catch (_e) {
-					// Ignore metric errors
-				}
-			}
+			incrementMetricSafely(
+				MetricName.ComponentDeleted,
+				{
+					tags: {
+						component_type: component.type,
+					},
+					unit: MetricUnit.None,
+				},
+				logger,
+			);
 		}
 	}
 
 	function addComponent(component: Component) {
+		const logger = useLogger();
 		components.value[component.id] = component;
 
-		const provider = observabilityRegistry.getInitializedProvider();
-		if (provider && "incrementMetric" in provider) {
-			try {
-				(
-					provider as {
-						incrementMetric: (
-							name: string,
-							options?: {
-								tags?: Record<string, string>;
-								unit?: string;
-								value?: number;
-							},
-						) => void;
-					}
-				).incrementMetric("component.added", {
-					tags: {
-						component_type: component.type,
-					},
-					unit: "none",
-				});
-			} catch (_e) {
-				// Ignore metric errors
-			}
-		}
+		incrementMetricSafely(
+			MetricName.ComponentAdded,
+			{
+				tags: {
+					component_type: component.type,
+				},
+				unit: MetricUnit.None,
+			},
+			logger,
+		);
 	}
 
 	/**
