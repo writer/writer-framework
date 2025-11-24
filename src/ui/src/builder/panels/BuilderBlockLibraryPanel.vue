@@ -15,23 +15,6 @@
 						left-icon="search"
 					/>
 				</div>
-				<div class="BuilderBlockLibraryPanel__filters">
-					<WdsDropdownInput
-						v-model="selectedCategory"
-						placeholder="All categories"
-					>
-						<option value="">All categories</option>
-						<option value="Logic">Logic</option>
-						<option value="File Processing">File Processing</option>
-						<option value="Data Transformation">
-							Data Transformation
-						</option>
-						<option value="API Integration">API Integration</option>
-						<option value="Text Processing">Text Processing</option>
-						<option value="Utilities">Utilities</option>
-						<option value="Other">Other</option>
-					</WdsDropdownInput>
-				</div>
 				<WdsButton
 					variant="primary"
 					size="small"
@@ -53,10 +36,10 @@
 				>
 					<p>No blocks found</p>
 					<p
-						v-if="searchQuery || selectedCategory"
+						v-if="searchQuery"
 						class="BuilderBlockLibraryPanel__empty__hint"
 					>
-						Try adjusting your search or filters
+						Try adjusting your search
 					</p>
 				</div>
 
@@ -85,7 +68,6 @@ import WdsModal from "@/wds/WdsModal.vue";
 import BuilderBlockLibraryItem from "./BuilderBlockLibraryItem.vue";
 import BuilderSettingsBlockLibrary from "../settings/BuilderSettingsBlockLibrary.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import injectionKeys from "@/injectionKeys";
@@ -115,7 +97,6 @@ const isCustomBlocksEnabled = computed(
 );
 
 const searchQuery = ref("");
-const selectedCategory = ref("");
 const blocks = ref<
 	Array<{
 		id: string;
@@ -136,9 +117,6 @@ async function loadBlocks() {
 		const params = new URLSearchParams();
 		if (searchQuery.value) {
 			params.append("search", searchQuery.value);
-		}
-		if (selectedCategory.value) {
-			params.append("category", selectedCategory.value);
 		}
 
 		const response = await fetch(
@@ -182,8 +160,8 @@ function handleBlockInstalled() {
 // Debounced load function
 const debouncedLoadBlocks = useDebouncer(loadBlocks, 300);
 
-// Load blocks on mount and when filters change
-watch([searchQuery, selectedCategory], () => {
+// Load blocks on mount and when search query changes
+watch([searchQuery], () => {
 	debouncedLoadBlocks();
 });
 
@@ -218,10 +196,6 @@ watch(isOpen, (newValue) => {
 
 .BuilderBlockLibraryPanel__search {
 	flex: 1;
-}
-
-.BuilderBlockLibraryPanel__filters {
-	min-width: 200px;
 }
 
 .BuilderBlockLibraryPanel__content {
