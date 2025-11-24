@@ -58,10 +58,16 @@ def sanitize_block_name(name: str) -> str:
     Convert block name to valid type identifier.
 
     Example: "Extract File Text" -> "custom_extract_file_text"
+    
+    If the input contains no valid characters, returns "custom_block" as a safe default
+    to prevent empty slugs and root-directory collisions.
     """
     sanitized = re.sub(r"[^a-z0-9_]", "_", name.lower())
     sanitized = re.sub(r"_+", "_", sanitized)
     sanitized = sanitized.strip("_")
+    # Ensure we never have an empty slug to prevent root-directory collisions
+    if not sanitized:
+        sanitized = "block"
     return f"custom_{sanitized}"
 
 

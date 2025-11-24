@@ -30,6 +30,10 @@ def test_sanitize_block_name():
     assert sanitize_block_name("My Block!") == "custom_my_block_"
     assert sanitize_block_name("test-block_123") == "custom_test_block_123"
     assert sanitize_block_name("  Spaces  ") == "custom_spaces"
+    # Test empty slug case - should default to "block" to prevent root-directory collisions
+    assert sanitize_block_name("!!!") == "custom_block"
+    assert sanitize_block_name("   ") == "custom_block"
+    assert sanitize_block_name("---") == "custom_block"
 
 
 def test_load_block_from_directory():
