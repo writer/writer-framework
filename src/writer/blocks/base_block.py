@@ -46,6 +46,7 @@ class BlueprintBlock:
         self.component = component
         self.runner = runner
         self.execution_time_in_seconds = -1.0
+        self.started_at = -1.0
         self.execution_environment = execution_environment
         # A stable snapshot of the execution environment taken after the block
         # has finished running. Used when generating logs to avoid concurrent

@@ -69,10 +69,25 @@ class JournalRecord:
     def to_dict(self) -> Dict[str, Any]:
         block_outputs = {}
         for graph_node in self.graph.nodes:
-            block_outputs[graph_node.id] = {"result": graph_node.result, "outcome": graph_node.outcome, "component": {
-                "type": graph_node.component.type,
-                "title": self._get_block_name(graph_node.component)
-            }}
+            block_data: Dict[str, Any] = {
+                "result": graph_node.result,
+                "outcome": graph_node.outcome,
+                "component": {
+                    "type": graph_node.component.type,
+                    "id": graph_node.component.id,
+                    "title": self._get_block_name(graph_node.component)
+                }
+            }
+            
+            # Add timing information if available
+            if graph_node.tool:
+                if hasattr(graph_node.tool, 'started_at') and graph_node.tool.started_at >= 0:
+                    block_data["startedAt"] = graph_node.tool.started_at
+                if hasattr(graph_node.tool, 'execution_time_in_seconds') and graph_node.tool.execution_time_in_seconds >= 0:
+                    block_data["executionTimeInSeconds"] = graph_node.tool.execution_time_in_seconds
+            
+            block_outputs[graph_node.id] = block_data
+        
         return {
             "timestamp": self.started_at.isoformat(),
             "instanceType": self.instance_type,

@@ -352,6 +352,7 @@ class GraphNode:
 
     def run_tool(self, tool: writer.blocks.base_block.BlueprintBlock) -> "GraphNode":
         start_time = time.time()
+        tool.started_at = start_time
 
         call_stack = tool.execution_environment.get("call_stack", []) + [self.id]
         call_depth = call_stack.count(tool.component.id)
