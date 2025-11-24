@@ -58,6 +58,8 @@ import WdsIcon from "@/wds/WdsIcon.vue";
 import { validatorArrayOfString } from "@/constants/validators";
 import type { PDFSrc } from "@tato30/vue-pdf";
 import { dataURLToArrayBuffer } from "@/utils/base64";
+import type { EncodedFile } from "@/composables/useFilesEncoder/useFilesEncoder";
+import { isPlainObject } from "@/utils/object";
 
 const description = "A component to embed PDF documents.";
 
@@ -133,10 +135,47 @@ const loading = ref(false);
 const pagesLoaded = ref(0);
 const highlightsList = ref([]);
 
+function isEncodedFile(input: unknown): input is EncodedFile {
+	return (
+		isPlainObject(input) &&
+		"name" in input &&
+		"type" in input &&
+		"data" in input &&
+		typeof input.data === "string" &&
+		input.data.startsWith("data:")
+	);
+}
+
+function extractDataURLFromSource(source: unknown): string | undefined {
+	if (typeof source !== "string" || !source.trim()) {
+		return undefined;
+	}
+
+	// Try to parse as JSON array (file upload format)
+	try {
+		const parsed = JSON.parse(source);
+		if (Array.isArray(parsed) && parsed.length > 0) {
+			const firstFile = parsed[0];
+			if (isEncodedFile(firstFile)) {
+				return firstFile.data;
+			}
+		}
+	} catch {
+		// Not valid JSON or not in expected format, continue to use source directly
+	}
+
+	// Return source as-is (could be a direct URL or data URL)
+	return source;
+}
+
 const pdfData = computed(() => {
 	if (!fields.source?.value) return undefined;
+
+	const dataURL = extractDataURLFromSource(fields.source.value);
+	if (!dataURL) return undefined;
+
 	try {
-		return dataURLToArrayBuffer(fields.source.value);
+		return dataURLToArrayBuffer(dataURL);
 	} catch {
 		return undefined;
 	}
