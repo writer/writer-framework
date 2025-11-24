@@ -160,12 +160,12 @@ class WriterChatReplyWithToolConfig(WriterBlock):
                         },
                         "success": {
                             "name": "Success",
-                            "description": "If the function doesn't raise an Exception.",
+                            "description": "The reply was generated successfully.",
                             "style": "success",
                         },
                         "error": {
                             "name": "Error",
-                            "description": "If the function raises an Exception.",
+                            "description": "There was an error generating the reply.",
                             "style": "error",
                         },
                     },

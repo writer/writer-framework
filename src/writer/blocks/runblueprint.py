@@ -26,7 +26,7 @@ class RunBlueprint(BlueprintBlock):
                         },
                         "payload": {
                             "name": "Payload",
-                            "desc": "The value specified will be available using the template syntax i.e. @{payload}",
+                            "desc": "The value specified will be available using the template syntax, e.g. @{payload}.",
                             "default": "{}",
                             "type": "Text",
                             "control": "Textarea",
@@ -40,7 +40,7 @@ class RunBlueprint(BlueprintBlock):
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The blueprint was executed successfully.",
+                            "description": "The blueprint execution failed.",
                             "style": "error",
                         },
                     },

@@ -51,12 +51,12 @@ class CodeBlock(BlueprintBlock):
                     "outs": {
                         "success": {
                             "name": "Success",
-                            "description": "The event handler execution was successful.",
+                            "description": "The code executed successfully.",
                             "style": "success",
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The event handler execution wasn't successful.",
+                            "description": "There was an error executing the code.",
                             "style": "error",
                         },
                     },

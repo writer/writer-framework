@@ -52,12 +52,12 @@ class WriterAddToKG(WriterBlock):
                 "outs": {
                     "success": {
                         "name": "Success",
-                        "description": "If the execution was successful.",
+                        "description": "Content was added to the knowledge graph.",
                         "style": "success",
                     },
                     "error": {
                         "name": "Error",
-                        "description": "If the function raises an Exception.",
+                        "description": "There was an error adding content to the knowledge graph.",
                         "style": "error",
                     },
                 },

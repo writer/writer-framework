@@ -35,7 +35,7 @@ class WriterUploadFile(WriterBlock):
                     },
                     "error": {
                         "name": "Error",
-                        "description": "If the function raises an Exception.",
+                        "description": "There was an error uploading the files.",
                         "style": "error"
                     }
                 }

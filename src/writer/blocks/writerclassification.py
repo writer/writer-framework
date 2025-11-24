@@ -28,7 +28,7 @@ class WriterClassification(WriterBlock):
                             "name": "Categories",
                             "type": "Key-Value",
                             "default": "{}",
-                            "desc": "The keys should be the categories you want to classify the text in, for example 'valid' and 'invalid', and the values the criteria for each category. Category names should contain only letters of the English alphabet, digits, underscores and spaces.",
+                            "desc": "The keys should be the categories you want to classify the text into, for example 'valid' and 'invalid', and the values are the criteria for each category. Category names should contain only letters of the English alphabet, digits, underscores, and spaces.",
                         },
                         "additionalContext": {
                             "name": "Additional context",
@@ -41,7 +41,7 @@ class WriterClassification(WriterBlock):
                         "category": {"field": "categories", "style": "dynamic"},
                         "error": {
                             "name": "Error",
-                            "description": "If the function raises an Exception.",
+                            "description": "There was an error classifying the text.",
                             "style": "error",
                         },
                     },

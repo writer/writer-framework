@@ -16,7 +16,7 @@ class WriterKeyValueStorage(WriterBlock):
                 baseType="blueprints_node",
                 writer={
                     "name": "Key-Value Storage",
-                    "description": "Allows to store data between sessions. Uses unique keys (names) to identify the data. Keys can only contain alphanumeric characters, underscores and hyphens",
+                    "description": "Stores data between sessions. Uses unique keys (names) to identify the data. Keys can only contain alphanumeric characters, underscores, and hyphens.",
                     "category": "Writer",
                     "fields": {
                         "action": {
