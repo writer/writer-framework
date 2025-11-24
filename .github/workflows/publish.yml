@@ -145,7 +145,7 @@ jobs:
                 echo "Version $VERSION is now available"
 
     trigger-agent-manager:
-        needs: wait-for-pypi
+        needs: [build, wait-for-pypi]
         if: github.ref_name == 'dev'
         uses: ./.github/workflows/trigger-workflow.yml
         with:
