@@ -132,7 +132,8 @@ jobs:
                 SLEEP_SECONDS=15
                 COUNT=0
 
-                until pip install --no-deps "writer==$VERSION"; do
+                # check inside docker to avoid hitting the same mirror
+                until docker run --rm python:3.11 pip install --no-deps "writer==$VERSION"; do
                     COUNT=$((COUNT + 1))
                     if [ $COUNT -ge $MAX_RETRIES ]; then
                         echo "Timeout waiting for PyPI propagation. Version $VERSION still not available."
