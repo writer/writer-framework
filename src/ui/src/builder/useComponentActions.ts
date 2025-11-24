@@ -510,7 +510,6 @@ export function useComponentActions(
 	 * Go to (select) a target component's parent.
 	 *
 	 * @param targetId Id of the target component
-	 * @param targetInstancePath Flattened instance path of a specific component instance
 	 */
 	function goToChild(targetId: Component["id"]) {
 		const child = wf
@@ -518,6 +517,17 @@ export function useComponentActions(
 			.sort((a, b) => a.position - b.position)
 			.at(0);
 		if (child) ssbm.setSelection(child.id);
+	}
+
+	/**
+	 * Select a target component's child.
+	 *
+	 * @param childId Id of the child component
+	 */
+	function selectChild(childId: Component["id"]): void {
+		const child = wf.getComponentById(childId);
+		if (!child) return;
+		ssbm.setSelection(child.id);
 	}
 
 	function findSibling(targetId: Component["id"], direction: -1 | 1) {
@@ -1161,5 +1171,6 @@ export function useComponentActions(
 		goToComponentParentPage,
 		moveComponentInsideNextSibling,
 		moveComponentToParent,
+		selectChild,
 	};
 }

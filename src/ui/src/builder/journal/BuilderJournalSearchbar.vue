@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderJournalSearchbar">
-		<WdsTextInput v-model="filters.search" left-icon="search" />
+		<WdsTextInput v-model="search" left-icon="search" />
 		<div class="BuilderJournalSearchbar__dropdown">
 			<WdsSelect
 				v-model="filters.statuses"
@@ -49,20 +49,27 @@ import {
 } from "./journalConstants";
 import type { JournalFilters } from "./journalTypes";
 
-const filters = defineModel("filters", {
+// Separate models for search and filters
+const search = defineModel<string>("search", {
+	type: String,
+	required: true,
+});
+const filters = defineModel<JournalFilters>("filters", {
 	type: Object as PropType<JournalFilters>,
 	required: true,
 });
 
-const hasActiveFilters = computed(() =>
-	Object.values(filters.value).some((value) =>
-		Array.isArray(value) ? value.length > 0 : Boolean(value),
-	),
+const hasActiveFilters = computed(
+	() =>
+		Boolean(search.value) ||
+		filters.value.statuses.length > 0 ||
+		filters.value.triggers.length > 0 ||
+		filters.value.instanceTypes.length > 0,
 );
 
 function clearAllFilters() {
+	search.value = "";
 	filters.value = {
-		search: "",
 		statuses: [],
 		triggers: [],
 		instanceTypes: [],
@@ -75,6 +82,7 @@ function clearAllFilters() {
 	width: fit-content;
 	display: flex;
 	flex-direction: row;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
 }
@@ -83,7 +91,8 @@ function clearAllFilters() {
 	/* align with the height of the dropdown */
 	max-height: 43px;
 	height: 43px;
-	max-width: 250px;
+
+	width: 200px;
 }
 .BuilderJournalSearchbar__dropdown {
 	min-width: 200px;

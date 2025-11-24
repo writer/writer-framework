@@ -1,18 +1,23 @@
 <template>
 	<div class="BuilderJournal">
 		<BuilderJournalHeader
+			v-model:search="searchText"
 			v-model:filters="filters"
 			@refresh="loadEntries"
 			@clear="deleteEntries"
 			@download="downloadAsJson"
-		></BuilderJournalHeader>
-		<div class="BuilderJournal__entries">
+		/>
+		<div v-if="loading" class="BuilderJournal__loading">
+			<LoadingSymbol />
+			<p>Loading entries...</p>
+		</div>
+		<div v-else class="BuilderJournal__entries">
 			<BuilderJournalEntry
 				v-for="(entry, key) of sortedEntries"
 				:key="key"
 				:journal-entry="entry"
 				@click="openEntryDetails(entry)"
-			></BuilderJournalEntry>
+			/>
 		</div>
 
 		<!-- Drawer for entry details -->
@@ -26,6 +31,7 @@
 				:entry="selectedEntry"
 				@re-run="handleReRun"
 				@go-to-trigger="handleGoToTrigger"
+				@go-to-block="handleGoToBlock"
 			/>
 		</WdsDrawer>
 	</div>
@@ -37,6 +43,7 @@ import BuilderJournalHeader from "./journal/BuilderJournalHeader.vue";
 import BuilderJournalEntry from "./journal/BuilderJournalEntry.vue";
 import BuilderJournalEntryDetails from "./journal/BuilderJournalEntryDetails.vue";
 import WdsDrawer from "@/wds/WdsDrawer.vue";
+import LoadingSymbol from "@/renderer/LoadingSymbol.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { downloadJson } from "@/utils/blob";
 import { useToasts } from "./useToast";
@@ -53,7 +60,7 @@ const { pushToast } = useToasts();
 const wf = inject(injectionKeys.core);
 const builderManager = inject(injectionKeys.builderManager);
 
-const { goToComponentParentPage, goToChild } = useComponentActions(
+const { goToComponentParentPage, selectChild } = useComponentActions(
 	wf,
 	builderManager,
 );
@@ -61,16 +68,19 @@ const { goToComponentParentPage, goToChild } = useComponentActions(
 type ComponentInfo = {
 	type: "blueprint" | "block";
 	id: string;
+	title: string;
 };
 type TriggerInfo = {
 	type: "On demand" | "UI" | "API" | "Cron";
 	event: string;
 	component: ComponentInfo;
+	payload: any;
 };
 
 type BlockOutput = {
 	result: any;
 	outcome: string;
+	component?: ComponentInfo | null;
 };
 
 export type RawJournalEntry = {
@@ -89,9 +99,10 @@ export type JournalEntry = RawJournalEntry & {
 };
 
 const rawEntries = ref<Record<string, RawJournalEntry>>({});
+const loading = ref(false);
 
+const searchText = ref("");
 const filters = ref<JournalFilters>({
-	search: "",
 	statuses: [],
 	triggers: [],
 	instanceTypes: [],
@@ -105,18 +116,17 @@ const isDrawerOpen = computed({
 	},
 });
 
-const entries = computed<Record<string, JournalEntry>>(() => {
+const entries = computed<Record<string, JournalEntry | null>>(() => {
 	return Object.fromEntries(
 		Object.entries(rawEntries.value).map(([key, entry]) => {
 			const component = wf.getComponentById(entry.trigger.component.id);
+			if (!component) return [key, null];
+
 			const componentDefinition = wf.getComponentDefinition(
-				component.type,
+				component?.type,
 			);
 
-			const title =
-				component.type === "blueprints_blueprint"
-					? component.content.key
-					: component.content.alias || componentDefinition.name;
+			const title = component.content.key || componentDefinition.name;
 
 			const instanceTypeLabel =
 				entry.instanceType.charAt(0).toUpperCase() +
@@ -136,12 +146,13 @@ const entries = computed<Record<string, JournalEntry>>(() => {
 	);
 });
 
-const filteredEntries = computed<Record<string, JournalEntry>>(() => {
-	const searchTextLower = filters.value.search.toLowerCase();
+const filteredEntries = computed<Record<string, JournalEntry | null>>(() => {
+	const searchTextLower = searchText.value.toLowerCase();
 	return Object.fromEntries(
 		Object.entries(entries.value).filter(([_key, entry]) => {
+			if (!entry) return false;
 			const searchMatch =
-				filters.value.search === "" ||
+				searchText.value === "" ||
 				entry.title.toLowerCase().includes(searchTextLower);
 			const statusMatch =
 				filters.value.statuses.length === 0 ||
@@ -159,16 +170,20 @@ const filteredEntries = computed<Record<string, JournalEntry>>(() => {
 	);
 });
 
-const sortedEntries = computed<Record<string, JournalEntry>>(() => {
-	const sortedArray = Object.entries(filteredEntries.value).sort(
-		([_, a], [__, b]) =>
-			new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-	);
+const sortedEntries = computed<Record<string, JournalEntry | null>>(() => {
+	const sortedArray = Object.entries(filteredEntries.value)
+		.filter(([_, entry]) => entry !== null)
+		.sort(
+			([_, a], [__, b]) =>
+				new Date(b.timestamp).getTime() -
+				new Date(a.timestamp).getTime(),
+		);
 
 	return Object.fromEntries(sortedArray);
 });
 
 async function loadEntries() {
+	loading.value = true;
 	let response: Response;
 	try {
 		response = await fetch(
@@ -189,6 +204,7 @@ async function loadEntries() {
 			type: "error",
 			message: "Failed to fetch the execution history",
 		});
+		loading.value = false;
 		return;
 	}
 
@@ -197,6 +213,7 @@ async function loadEntries() {
 			type: "error",
 			message: "Failed to fetch the execution history",
 		});
+		loading.value = false;
 		return;
 	}
 
@@ -209,6 +226,8 @@ async function loadEntries() {
 			message: "Failed to fetch the execution history",
 		});
 		return;
+	} finally {
+		loading.value = false;
 	}
 }
 
@@ -280,10 +299,23 @@ function handleGoToTrigger(entry: JournalEntry) {
 
 	// Go to the trigger component
 	goToComponentParentPage(entry.trigger.component.id);
-	goToChild(entry.trigger.component.id);
+	selectChild(entry.trigger.component.id);
 	pushToast({
 		type: "success",
 		message: `Jumped to ${entry.title}`,
+	});
+}
+
+function handleGoToBlock(blockId: string) {
+	// Close the drawer
+	selectedEntry.value = null;
+
+	// Go to the block component
+	goToComponentParentPage(blockId);
+	selectChild(blockId);
+	pushToast({
+		type: "success",
+		message: "Jumped to block",
 	});
 }
 
@@ -303,6 +335,22 @@ onActivated(() => {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+}
+
+.BuilderJournal__loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	padding: 48px 20px;
+	color: var(--wdsColorGray5);
+	height: 100%;
+}
+
+.BuilderJournal__loading p {
+	margin: 0;
+	font-size: 14px;
 }
 
 .BuilderJournal__entries {
