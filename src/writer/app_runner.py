@@ -556,6 +556,10 @@ class AppProcess(multiprocessing.Process):
 
         import writer
 
+        # Load custom blocks from .wf/blocks/ directory
+        from writer.blocks.custom_block_registry import load_custom_blocks_from_project
+        load_custom_blocks_from_project(self.app_path)
+
         terminate_early = False
 
         try:
@@ -887,7 +891,7 @@ class AppRunner:
 
         self._start_app_process()
 
-        # We have to create new processes as wf_projet_process before subscribing to signal.
+        # We have to create new processes as wf_project_process before subscribing to signal.
         # When a new process is create, the parent process is fork. The child would also subscribe to signal.
         #
         # When signal happen, both process will answer and one of them raise error due to mismatch between

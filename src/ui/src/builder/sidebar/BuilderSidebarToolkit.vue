@@ -13,9 +13,27 @@
 			<div class="header">{{ categoryId }}</div>
 			<div class="tools">
 				<div
+					v-if="categoryId === 'Custom Blocks' && rootComponentId == 'blueprints_root' && isCustomBlocksEnabled"
+					class="tool tool--create"
+					@click="showCreateCustomBlock"
+				>
+					<WdsIcon name="plus" />
+					<div class="name">Create Custom Block</div>
+				</div>
+				<!-- Block Library button for Custom Blocks category -->
+				<div
+					v-if="categoryId === 'Custom Blocks' && rootComponentId == 'blueprints_root' && isCustomBlocksEnabled"
+					class="tool tool--create"
+					@click="showBlockLibrary"
+				>
+					<WdsIcon name="folder" />
+					<div class="name">Block Library</div>
+				</div>
+				<div
 					v-for="tool in tools"
 					:key="tool.type"
 					class="tool"
+					:class="{ 'tool--custom': categoryId === 'Custom Blocks' && isCustomBlocksEnabled }"
 					:data-writer-tooltip="tool.description"
 					data-writer-tooltip-placement="right"
 					data-writer-tooltip-gap="8"
@@ -32,12 +50,21 @@
 						:loader-max-height-px="18"
 					/>
 					<div class="name">{{ tool.name }}</div>
+					<button
+						v-if="categoryId === 'Custom Blocks' && isCustomBlocksEnabled"
+						class="tool__delete"
+						@click.stop="handleDeleteBlock(tool.type, tool.name)"
+						:data-writer-tooltip="`Delete ${tool.name}`"
+						data-writer-tooltip-placement="right"
+					>
+						<WdsIcon name="trash" />
+					</button>
 				</div>
 			</div>
 		</div>
 
 		<template v-if="rootComponentId == 'blueprints_root'" #footer>
-			<div class="BuilderSidebarPanel__footer__autogen">
+			<div class="BuilderSidebarPanel__footer__actions">
 				<WdsButton
 					variant="special"
 					size="small"
@@ -50,6 +77,14 @@
 			</div>
 		</template>
 	</BuilderSidebarPanel>
+	<BuilderSettingsCustomBlock
+		v-if="isCreateCustomBlockModalShown && isCustomBlocksEnabled"
+		v-model="isCreateCustomBlockModalShown"
+	/>
+	<BuilderBlockLibraryPanel
+		v-if="isCustomBlocksEnabled"
+		v-model="isBlockLibraryModalShown"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -66,6 +101,15 @@ import { useDragDropComponent } from "../useDragDropComponent";
 import { Component } from "@/writerTypes";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
+import BuilderSettingsCustomBlock from "../settings/BuilderSettingsCustomBlock.vue";
+import { useToasts } from "../useToast";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+
+const BuilderBlockLibraryPanel = defineAsyncComponentWithLoader({
+	loader: () => import("../panels/BuilderBlockLibraryPanel.vue"),
+});
+
+const { pushToast } = useToasts();
 
 const isAutogenModalShown = inject(
 	injectionKeys.isAutogenModalShown,
@@ -75,10 +119,22 @@ function showAutogen() {
 	isAutogenModalShown.value = true;
 }
 
+const isCreateCustomBlockModalShown = ref(false);
+function showCreateCustomBlock() {
+	isCreateCustomBlockModalShown.value = true;
+}
+
+const isBlockLibraryModalShown = ref(false);
+function showBlockLibrary() {
+	isBlockLibraryModalShown.value = true;
+}
+
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
 const query = ref("");
+
+const isCustomBlocksEnabled = computed(() => Array.isArray(wf.featureFlags.value) && wf.featureFlags.value.includes("custom_blocks"));
 
 const rootComponentId = wfbm.activeRootId;
 
@@ -91,6 +147,7 @@ const displayedCategories = [
 	"Logic",
 	"Triggers",
 	"Other",
+	"Custom Blocks",
 ];
 
 const activeToolkit = computed(() => {
@@ -103,12 +160,23 @@ const activeToolkit = computed(() => {
 const categories = computed<
 	Record<string, ReturnType<typeof getRelevantToolsInCategory>>
 >(() => {
+	// Access sessionTimestamp to make this computed reactive to init() calls
+	// This ensures the list refreshes when wf.init() is called after creating a block
+	void wf.sessionTimestamp?.value;
+	
 	const categoriesWithTools = displayedCategories
 		.map((categoryId) => [
 			categoryId,
 			getRelevantToolsInCategory(categoryId),
 		])
-		.filter(([_categoryId, tools]) => tools.length > 0);
+		// Show Custom Blocks category if in blueprints mode and feature flag enabled, even if empty (to show create button)
+		.filter(
+			([categoryId, tools]) =>
+				tools.length > 0 ||
+				(categoryId === "Custom Blocks" &&
+					rootComponentId.value == "blueprints_root" &&
+					isCustomBlocksEnabled.value),
+		);
 
 	return Object.fromEntries(categoriesWithTools);
 });
@@ -128,8 +196,40 @@ const placeholder = computed(() => {
 });
 
 function getRelevantToolsInCategory(categoryId: string) {
+	// Handle Custom Blocks category separately
+	if (categoryId === "Custom Blocks") {
+		// Only show custom blocks if feature flag is enabled
+		if (!isCustomBlocksEnabled.value) {
+			return [];
+		}
+		const typeList = getSupportedComponentTypes().filter((type) => {
+			// Custom blocks start with "custom_"
+			if (!type.startsWith("custom_")) return false;
+			const def = getComponentDefinition(type);
+			if (!def.toolkit && activeToolkit.value !== "core") return false;
+			if (def.toolkit && def.toolkit !== activeToolkit.value) return false;
+			if (def.deprecated) return false;
+			return true;
+		});
+		const enriched = typeList.map((type) => {
+			const { name, description, category } = getComponentDefinition(type);
+			return { type, name, description, category: "Custom Blocks" };
+		});
+		const q = query.value.toLocaleLowerCase();
+		const queryApplied = enriched
+			.filter((tool) => !q || tool.name.toLocaleLowerCase().includes(q))
+			.sort((a, b) =>
+				a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+			);
+
+		return queryApplied;
+	}
+
+	// Handle regular categories
 	const typeList = getSupportedComponentTypes().filter((type) => {
 		const def = getComponentDefinition(type);
+		// Skip custom blocks in regular categories
+		if (type.startsWith("custom_")) return false;
 		if (def.category != categoryId) return false;
 		if (!def.toolkit && activeToolkit.value !== "core") return false;
 		if (def.toolkit && def.toolkit !== activeToolkit.value) return false;
@@ -166,6 +266,31 @@ function getToolIcons(tool: ReturnType<typeof getRelevantToolsInCategory>[0]) {
 	].map((p) => convertAbsolutePathtoFullURL(p));
 }
 
+async function handleDeleteBlock(blockType: string, blockName: string) {
+	if (!confirm(`Are you sure you want to delete the custom block "${blockName}"?`)) {
+		return;
+	}
+
+	try {
+		const response = await fetch(`/api/custom-blocks/${blockType}`, {
+			method: "DELETE",
+		});
+
+		if (!response.ok) {
+			const error = await response.json().catch(() => ({ detail: "Failed to delete block" }));
+			throw new Error(error.detail || "Failed to delete block");
+		}
+
+		pushToast({ type: "success", message: `Custom block '${blockName}' deleted.` });
+		await wf.init();
+	} catch (error) {
+		pushToast({
+			type: "error",
+			message: `Failed to delete block: ${error instanceof Error ? error.message : String(error)}`,
+		});
+	}
+}
+
 watch(activeToolkit, () => {
 	query.value = "";
 });
@@ -190,12 +315,17 @@ watch(activeToolkit, () => {
 
 .tool {
 	display: grid;
-	grid-template-columns: 18px 1fr;
+	grid-template-columns: 18px 1fr auto;
 	grid-template-rows: 1fr;
 	column-gap: 8px;
 	padding: 8px;
 	border-radius: 4px;
 	cursor: grab;
+	position: relative;
+}
+
+.tool--custom {
+	grid-template-columns: 18px 1fr auto;
 }
 
 .tool img {
@@ -208,15 +338,58 @@ watch(activeToolkit, () => {
 	background: var(--builderSubtleSeparatorColor);
 }
 
-.BuilderSidebarPanel__footer__autogen {
+.tool--create {
+	cursor: pointer;
+	opacity: 0.8;
+}
+
+.tool--create:hover {
+	opacity: 1;
+	background: var(--builderSubtleSeparatorColor);
+}
+
+.tool__delete {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	color: var(--builderSecondaryTextColor);
+	border-radius: 4px;
+	opacity: 0.6;
+	transition: opacity 0.2s, background 0.2s;
+}
+
+.tool--custom:hover .tool__delete {
+	display: flex;
+}
+
+.tool__delete:hover {
+	opacity: 1;
+	background: var(--builderSubtleSeparatorColor);
+	color: var(--builderErrorColor);
+}
+
+.tool__delete:active {
+	opacity: 0.8;
+}
+
+.BuilderSidebarPanel__footer__actions {
 	flex: 0 0 var(--builderPanelSwitcherHeight);
 	bottom: 0;
 	height: var(--builderPanelSwitcherHeight);
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 8px;
 	border-top: 1px solid var(--builderSeparatorColor);
 	background: var(--builderBackgroundColor);
+	padding: 8px;
 }
 
 .BuilderSidebarPanel__footer__btn {

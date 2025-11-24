@@ -14,6 +14,13 @@ import writer.blocks
 import writer.blocks.base_block
 import writer.core
 import writer.core_ui
+from writer.blocks.custom_block_registry import (
+    load_custom_blocks_from_project,
+    get_registered_custom_blocks,
+    sanitize_block_name,
+    make_blocks_dir,
+)
+from writer.core import get_app_process
 from writer.journal import JournalRecord
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
@@ -308,9 +315,32 @@ class GraphNode:
         self.inputs = []
         self.outputs = []
         if not tool_class:
-            raise WriterConfigurationError(
-                f"Component type '{component.type}' is not registered as a block."
-            )
+            if component.type.startswith("custom_"):
+                try:
+                    app_process = get_app_process()
+                    app_path = app_process.app_path
+                    logging.info(
+                        f"Attempting to load custom blocks for missing type '{component.type}' "
+                        f"from {app_path}"
+                    )
+                    
+                    load_custom_blocks_from_project(app_path)
+                    tool_class = writer.blocks.base_block.block_map.get(component.type)
+                    
+                except RuntimeError as e:
+                    # get_app_process() might fail in some contexts (e.g. tests)
+                    logging.warning(
+                        f"Could not get app process to load custom blocks: {e}"
+                    )
+                except Exception as e:
+                    logging.error(
+                        f"Failed to load custom block '{component.type}': {e}",
+                        exc_info=True
+                    )
+            if not tool_class:
+                raise WriterConfigurationError(
+                    f"Component type '{component.type}' is not registered as a block."
+                )
         self.tool_class = tool_class
 
 

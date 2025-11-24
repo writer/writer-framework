@@ -9,6 +9,7 @@ import mimetypes
 import os
 import os.path
 import pathlib
+import shutil
 import socket
 import tempfile
 import textwrap
@@ -43,6 +44,22 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from writer import VERSION, abstract
 from writer.ai import Graph
 from writer.app_runner import AppRunner
+from writer.blocks.block_library_db import (
+    create_snippet,
+    create_snippet_version,
+    get_all_versions,
+    get_latest_version,
+    get_snippet,
+    list_snippets,
+)
+from writer.blocks.custom_block_registry import (
+    CustomBlockMetadata,
+    load_block_from_directory,
+    make_blocks_dir,
+    register_custom_block,
+    sanitize_block_name,
+    unregister_custom_block,
+)
 from writer.ss_types import (
     AppProcessServerResponse,
     AutogenRequestBody,
@@ -282,6 +299,286 @@ def get_asgi_app(
             os.remove(tmp_path)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid upload.")
+
+    def _create_and_register_block(
+        block_name: str, metadata_dict: dict, code: str
+    ) -> str:
+        """
+        Create a block directory, write files, and register the block.
+
+        Args:
+            block_name: Name of the block
+            metadata_dict: Block metadata dictionary
+            code: Block Python code
+
+        Returns:
+            block_type: The registered block type identifier
+        """
+        sanitized_name = sanitize_block_name(block_name).replace("custom_", "")
+        blocks_dir = make_blocks_dir(app_runner.app_path)
+        block_dir = blocks_dir / sanitized_name
+        block_dir.mkdir(parents=True, exist_ok=True)
+
+        json_path = block_dir / "block.json"
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(metadata_dict, f, indent=2, ensure_ascii=False)
+
+        py_path = block_dir / "block.py"
+        with open(py_path, "w", encoding="utf-8") as f:
+            f.write(code)
+
+        block_type = sanitize_block_name(block_name)
+        metadata = CustomBlockMetadata(**metadata_dict)
+        register_custom_block(block_type, metadata, code)
+
+        return block_type
+
+    @app.post("/api/custom-blocks")
+    async def create_custom_block(request: Request):
+        """Create a new custom block."""
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+
+        data = await _get_payload_as_json(request)
+
+        block_name = data["name"]
+        metadata_dict = {
+            "name": data["name"],
+            "description": data["description"],
+            "version": data.get("version", "1.0.0"),
+            "author": data.get("author", ""),
+            "state_inputs": data.get("state_inputs", []),
+            "state_outputs": data.get("state_outputs", []),
+            "dependencies": data.get("dependencies", []),
+            "vault_keys": data.get("vault_keys", []),
+        }
+
+        block_type = _create_and_register_block(block_name, metadata_dict, data["code"])
+
+        return {"status": "success", "block_type": block_type}
+
+    @app.delete("/api/custom-blocks/{block_type}")
+    async def delete_custom_block(block_type: str):
+        """Delete a custom block."""
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+
+        if not block_type.startswith("custom_"):
+            raise HTTPException(status_code=400, detail="Invalid block type.")
+
+        blocks_dir = make_blocks_dir(app_runner.app_path)
+        block_dir = None
+
+        if not blocks_dir.exists():
+            raise HTTPException(status_code=404, detail="Custom blocks directory not found.")
+
+        sanitized_name = block_type.replace("custom_", "")
+        potential_dir = blocks_dir / sanitized_name
+        if potential_dir.exists() and potential_dir.is_dir():
+            block_dir = potential_dir
+        else:
+            block_dir = None
+            for candidate_dir in blocks_dir.iterdir():
+                if not candidate_dir.is_dir():
+                    continue
+                try:
+                    metadata, _ = load_block_from_directory(candidate_dir)
+                    if sanitize_block_name(metadata.name) == block_type:
+                        block_dir = candidate_dir
+                        break
+                except Exception:
+                    continue
+
+        if block_dir is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Block '{block_type}' not found."
+            )
+
+        try:
+            unregister_custom_block(block_type)
+        except KeyError:
+            pass
+
+        try:
+            shutil.rmtree(block_dir)
+        except Exception:
+            raise HTTPException(status_code=500, detail="Failed to delete block directory.")
+
+        return {"status": "success", "message": f"Block '{block_type}' deleted successfully."}
+
+    @app.post("/api/block-library/blocks")
+    async def create_block_in_library(request: Request):
+        """Create a new block in the library."""
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+
+        data = await _get_payload_as_json(request)
+
+        required_fields = ["name", "description", "code"]
+        for field in required_fields:
+            if field not in data:
+                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+
+        title = data["name"]
+        snippet_id = create_snippet(title=title, visibility="GLOBAL")
+
+        metadata = {
+            "name": data["name"],
+            "description": data["description"],
+            "version": data.get("version", "1.0.0"),
+            "author": data.get("author", ""),
+            "state_inputs": data.get("state_inputs", []),
+            "state_outputs": data.get("state_outputs", []),
+            "dependencies": data.get("dependencies", []),
+            "vault_keys": data.get("vault_keys", []),
+        }
+
+        version_number = create_snippet_version(
+            snippet_id=snippet_id,
+            code=data["code"],
+            description=data["description"],
+            metadata=metadata,
+        )
+
+        return {"snippet_id": snippet_id, "version_number": version_number}
+
+    @app.get("/api/block-library/blocks")
+    async def list_blocks_in_library(request: Request):
+        """List blocks in the library with optional search filter."""
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+
+        search_query = request.query_params.get("search")
+
+        snippets = list_snippets(
+            search_query=search_query if search_query else None,
+        )
+
+        results = []
+        for snippet in snippets:
+            latest_version = get_latest_version(snippet.id)
+            if not latest_version:
+                continue
+
+            results.append(
+                {
+                    "id": snippet.id,
+                    "title": snippet.title,
+                    "description": latest_version.description,
+                    "version_number": latest_version.version_number,
+                    "created_at": snippet.created_at.isoformat(),
+                    "metadata": latest_version.metadata,
+                }
+            )
+
+        return results
+
+    @app.get("/api/block-library/blocks/{snippet_id}")
+    async def get_block_details(snippet_id: str):
+        """Get block details with latest version."""
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+
+        snippet = get_snippet(snippet_id)
+        if not snippet:
+            raise HTTPException(status_code=404, detail="Block not found.")
+
+        latest_version = get_latest_version(snippet_id)
+        if not latest_version:
+            raise HTTPException(status_code=404, detail="Block has no versions.")
+
+        return {
+            "id": snippet.id,
+            "title": snippet.title,
+            "visibility": snippet.visibility,
+            "latest_version": {
+                "version_number": latest_version.version_number,
+                "code": latest_version.code,
+                "description": latest_version.description,
+                "metadata": latest_version.metadata,
+                "created_at": latest_version.created_at.isoformat(),
+            },
+        }
+
+    @app.get("/api/block-library/blocks/{snippet_id}/versions")
+    async def get_block_versions(snippet_id: str):
+        """Get all versions of a block."""
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+
+        snippet = get_snippet(snippet_id)
+        if not snippet:
+            raise HTTPException(status_code=404, detail="Block not found.")
+
+        versions = get_all_versions(snippet_id)
+        return [
+            {
+                "version_number": v.version_number,
+                "description": v.description,
+                "created_at": v.created_at.isoformat(),
+                "metadata": v.metadata,
+            }
+            for v in versions
+        ]
+
+    @app.post("/api/block-library/blocks/{snippet_id}/install")
+    async def install_block_from_library(snippet_id: str):
+        """Install a block from the library to the local project."""
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+
+        snippet = get_snippet(snippet_id)
+        if not snippet:
+            raise HTTPException(status_code=404, detail="Block not found.")
+
+        latest_version = get_latest_version(snippet_id)
+        if not latest_version:
+            raise HTTPException(status_code=404, detail="Block has no versions.")
+
+        metadata_dict = latest_version.metadata
+        block_name = metadata_dict.get("name", snippet.title)
+
+        block_type = _create_and_register_block(
+            block_name, metadata_dict, latest_version.code
+        )
+
+        return {"status": "success", "block_type": block_type}
+
+    @app.post("/api/block-library/blocks/{snippet_id}/versions")
+    async def create_block_version(snippet_id: str, request: Request):
+        """Create a new version of an existing block."""
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="Invalid mode.")
+
+        data = await _get_payload_as_json(request)
+
+        from writer.blocks.block_library_db import (
+            create_snippet_version,
+            get_latest_version,
+            get_snippet,
+        )
+
+        snippet = get_snippet(snippet_id)
+        if not snippet:
+            raise HTTPException(status_code=404, detail="Block not found")
+
+        latest_version = get_latest_version(snippet_id)
+        if latest_version:
+            metadata = latest_version.metadata.copy()
+            if "metadata" in data:
+                metadata.update(data["metadata"])
+        else:
+            metadata = data.get("metadata", {})
+
+        version_number = create_snippet_version(
+            snippet_id=snippet_id,
+            code=data.get("code", latest_version.code if latest_version else ""),
+            description=data.get("description", latest_version.description if latest_version else ""),
+            metadata=metadata,
+        )
+
+        return {"version_number": version_number}
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):
