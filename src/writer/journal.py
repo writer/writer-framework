@@ -69,7 +69,7 @@ class JournalRecord:
     def to_dict(self) -> Dict[str, Any]:
         block_outputs = {}
         for graph_node in self.graph.nodes:
-            block_data = {
+            block_data: Dict[str, Any] = {
                 "result": graph_node.result,
                 "outcome": graph_node.outcome,
                 "component": {
