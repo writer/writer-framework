@@ -1,27 +1,12 @@
-from typing import Any
+import sys
+import traceback
 
 from writer.abstract import register_abstract_template
-from writer.blocks import CodeBlock
+from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
-INIT_CODE = """import random
-# Pass a boolean value to `set_outcome` to trigger the "True" or "False" branch
-set_outcome(random.random() > 0.5)
 
-# State is accessible as a global variable. For example:
-# state["counter"] = 10
-
-# Other variables from the execution environment are also available. For example:
-# result # Result from the execution of the last block
-# results # Dictionary with the execution results of each block, with the block id as key
-# payload # When executing via API or via an UI event with a payload
-# logger # logging.Logger object for capturing logs
-
-# To set the output of this block, which will be available via result to the next block:
-"""
-
-
-class IfElseBlock(CodeBlock):
+class IfElseBlock(BlueprintBlock):
     @classmethod
     def register(cls, type: str):
         super(IfElseBlock, cls).register(type)
@@ -31,15 +16,14 @@ class IfElseBlock(CodeBlock):
                 baseType="blueprints_node",
                 writer={
                     "name": "If-Else",
-                    "description": "Evaluate custom Python code and redict to 'true' or 'false' branch. Useful for conditionnal logic.",
+                    "description": "Evaluate custom Python code and redirect to 'true' or 'false' branch. Useful for conditional logic.",
                     "category": "Logic",
                     "fields": {
-                        "code": {
-                            "name": "Code",
-                            "type": "Code",
-                            "control": "Textarea",
-                            "desc": "The code to be executed.",
-                            "init": INIT_CODE,
+                        "expression": {
+                            "name": "Expression",
+                            "type": "Eval",
+                            "desc": "The expression to be evaluated. Must be a single expression (no statements).",
+                            "init": 'state["counter"] > 10',
                         },
                     },
                     "outs": {
@@ -55,7 +39,7 @@ class IfElseBlock(CodeBlock):
                         },
                         "error": {
                             "name": "Error",
-                            "description": "The event handler execution wasn't successful.",
+                            "description": "The expression evaluation failed.",
                             "style": "error",
                         },
                     },
@@ -63,18 +47,25 @@ class IfElseBlock(CodeBlock):
             ),
         )
 
-    def set_outcome(self, output: Any):
-        if bool(output):
-            self.if_outcome = "true"
-        else:
-            self.if_outcome = "false"
-
-    def _get_block_global_functions(self):
-        funcs = super()._get_block_global_functions()
-        funcs["set_outcome"] = self.set_outcome
-        return funcs
-
     def run(self):
-        super().run()
-        if self.outcome != "error":
-            self.outcome = self.if_outcome
+        expression = self._get_field("expression")
+
+        try:
+            writeruserapp = sys.modules.get("writeruserapp")
+            block_globals = {
+                "state": self.runner.session.session_state,
+                **self.execution_environment,
+                **(writeruserapp.__dict__ if writeruserapp else {}),
+            }
+            # Evaluate the expression and set the result
+            compiled_expr = compile(expression, "<expression>", mode="eval")
+            self.result = eval(compiled_expr, block_globals)
+
+            if self.result:
+                self.outcome = "true"
+            else:
+                self.outcome = "false"
+        except BaseException:
+            self.outcome = "error"
+            self.message = f"<pre>{traceback.format_exc()}</pre>"
+            raise

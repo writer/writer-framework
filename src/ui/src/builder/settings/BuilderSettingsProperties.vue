@@ -214,11 +214,15 @@
 					/>
 
 					<BuilderFieldsCode
-						v-if="fieldValue.type == FieldType.Code"
+						v-if="
+							fieldValue.type == FieldType.Code ||
+							fieldValue.type == FieldType.Eval
+						"
 						:field-key="fieldKey"
 						:component-id="selectedComponent.id"
 						:is-expanded="expandedFields.has(fieldKey)"
 						:input-language="'python'"
+						:single-line="fieldValue.type == FieldType.Eval"
 					/>
 
 					<BuilderFieldsComponentId

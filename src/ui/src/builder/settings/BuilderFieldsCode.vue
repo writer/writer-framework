@@ -2,14 +2,14 @@
 	<BuilderEmbeddedCodeEditor
 		v-model="fieldViewModel"
 		:language="inputLanguage"
-		:variant="isExpanded ? 'half-screen' : 'minimal'"
+		:variant
 		class="BuilderFieldsCode"
 	>
 	</BuilderEmbeddedCodeEditor>
 </template>
 
 <script setup lang="ts">
-import { PropType, toRef } from "vue";
+import { PropType, computed, toRef } from "vue";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import { Component } from "@/writerTypes";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
@@ -27,11 +27,17 @@ const props = defineProps({
 		type: String as PropType<"python" | "json">,
 		required: true,
 	},
+	singleLine: { type: Boolean, required: false },
 });
 
 const fieldViewModel = useComponentFieldViewModel({
 	componentId: toRef(props, "componentId"),
 	fieldKey: toRef(props, "fieldKey"),
+});
+
+const variant = computed(() => {
+	if (props.singleLine) return "single-line";
+	return props.isExpanded ? "half-screen" : "minimal";
 });
 </script>
 
