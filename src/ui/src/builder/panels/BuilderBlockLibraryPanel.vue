@@ -16,18 +16,27 @@
 					/>
 				</div>
 				<div class="BuilderBlockLibraryPanel__filters">
-					<WdsDropdownInput v-model="selectedCategory" placeholder="All categories">
+					<WdsDropdownInput
+						v-model="selectedCategory"
+						placeholder="All categories"
+					>
 						<option value="">All categories</option>
 						<option value="Logic">Logic</option>
 						<option value="File Processing">File Processing</option>
-						<option value="Data Transformation">Data Transformation</option>
+						<option value="Data Transformation">
+							Data Transformation
+						</option>
 						<option value="API Integration">API Integration</option>
 						<option value="Text Processing">Text Processing</option>
 						<option value="Utilities">Utilities</option>
 						<option value="Other">Other</option>
 					</WdsDropdownInput>
 				</div>
-				<WdsButton variant="primary" size="small" @click.stop="showCreateModal">
+				<WdsButton
+					variant="primary"
+					size="small"
+					@click.stop="showCreateModal"
+				>
 					<WdsIcon name="plus" />
 					Create Block
 				</WdsButton>
@@ -38,9 +47,15 @@
 					<p>Loading blocks...</p>
 				</div>
 
-				<div v-else-if="blocks.length === 0" class="BuilderBlockLibraryPanel__empty">
+				<div
+					v-else-if="blocks.length === 0"
+					class="BuilderBlockLibraryPanel__empty"
+				>
 					<p>No blocks found</p>
-					<p v-if="searchQuery || selectedCategory" class="BuilderBlockLibraryPanel__empty__hint">
+					<p
+						v-if="searchQuery || selectedCategory"
+						class="BuilderBlockLibraryPanel__empty__hint"
+					>
 						Try adjusting your search or filters
 					</p>
 				</div>
@@ -93,7 +108,11 @@ const isOpen = computed({
 	set: (value) => emit("update:modelValue", value),
 });
 
-const isCustomBlocksEnabled = computed(() => Array.isArray(wf.featureFlags.value) && wf.featureFlags.value.includes("custom_blocks"));
+const isCustomBlocksEnabled = computed(
+	() =>
+		Array.isArray(wf.featureFlags.value) &&
+		wf.featureFlags.value.includes("custom_blocks"),
+);
 
 const searchQuery = ref("");
 const selectedCategory = ref("");
@@ -122,7 +141,9 @@ async function loadBlocks() {
 			params.append("category", selectedCategory.value);
 		}
 
-		const response = await fetch(`/api/block-library/blocks?${params.toString()}`);
+		const response = await fetch(
+			`/api/block-library/blocks?${params.toString()}`,
+		);
 		if (!response.ok) {
 			throw new Error("Failed to load blocks");
 		}
@@ -232,4 +253,3 @@ watch(isOpen, (newValue) => {
 	margin-top: 8px;
 }
 </style>
-

@@ -2,11 +2,17 @@
 	<div class="BuilderBlockLibraryItem">
 		<div class="BuilderBlockLibraryItem__header">
 			<h3 class="BuilderBlockLibraryItem__title">{{ block.title }}</h3>
-			<span class="BuilderBlockLibraryItem__version">v{{ block.version_number }}</span>
+			<span class="BuilderBlockLibraryItem__version"
+				>v{{ block.version_number }}</span
+			>
 		</div>
-		<p class="BuilderBlockLibraryItem__description">{{ block.description }}</p>
+		<p class="BuilderBlockLibraryItem__description">
+			{{ block.description }}
+		</p>
 		<div class="BuilderBlockLibraryItem__meta">
-			<span class="BuilderBlockLibraryItem__category">{{ block.category }}</span>
+			<span class="BuilderBlockLibraryItem__category">{{
+				block.category
+			}}</span>
 		</div>
 		<div class="BuilderBlockLibraryItem__actions">
 			<WdsButton
@@ -50,12 +56,15 @@ const isInstalling = ref(false);
 async function handleInstall() {
 	isInstalling.value = true;
 	try {
-		const response = await fetch(`/api/block-library/blocks/${props.block.id}/install`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
+		const response = await fetch(
+			`/api/block-library/blocks/${props.block.id}/install`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
 			},
-		});
+		);
 
 		if (!response.ok) {
 			const error = await response.json();
@@ -75,7 +84,8 @@ async function handleInstall() {
 		} catch (error) {
 			pushToast({
 				type: "error",
-				message: "Block installed but failed to reload. Please refresh the page.",
+				message:
+					"Block installed but failed to reload. Please refresh the page.",
 			});
 		}
 	} catch (error) {
@@ -156,4 +166,3 @@ async function handleInstall() {
 	margin-top: auto;
 }
 </style>
-

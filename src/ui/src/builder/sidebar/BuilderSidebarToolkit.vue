@@ -13,7 +13,11 @@
 			<div class="header">{{ categoryId }}</div>
 			<div class="tools">
 				<div
-					v-if="categoryId === 'Custom Blocks' && rootComponentId == 'blueprints_root' && isCustomBlocksEnabled"
+					v-if="
+						categoryId === 'Custom Blocks' &&
+						rootComponentId == 'blueprints_root' &&
+						isCustomBlocksEnabled
+					"
 					class="tool tool--create"
 					@click="showCreateCustomBlock"
 				>
@@ -22,7 +26,11 @@
 				</div>
 				<!-- Block Library button for Custom Blocks category -->
 				<div
-					v-if="categoryId === 'Custom Blocks' && rootComponentId == 'blueprints_root' && isCustomBlocksEnabled"
+					v-if="
+						categoryId === 'Custom Blocks' &&
+						rootComponentId == 'blueprints_root' &&
+						isCustomBlocksEnabled
+					"
 					class="tool tool--create"
 					@click="showBlockLibrary"
 				>
@@ -33,7 +41,11 @@
 					v-for="tool in tools"
 					:key="tool.type"
 					class="tool"
-					:class="{ 'tool--custom': categoryId === 'Custom Blocks' && isCustomBlocksEnabled }"
+					:class="{
+						'tool--custom':
+							categoryId === 'Custom Blocks' &&
+							isCustomBlocksEnabled,
+					}"
 					:data-writer-tooltip="tool.description"
 					data-writer-tooltip-placement="right"
 					data-writer-tooltip-gap="8"
@@ -51,11 +63,14 @@
 					/>
 					<div class="name">{{ tool.name }}</div>
 					<button
-						v-if="categoryId === 'Custom Blocks' && isCustomBlocksEnabled"
+						v-if="
+							categoryId === 'Custom Blocks' &&
+							isCustomBlocksEnabled
+						"
 						class="tool__delete"
-						@click.stop="handleDeleteBlock(tool.type, tool.name)"
 						:data-writer-tooltip="`Delete ${tool.name}`"
 						data-writer-tooltip-placement="right"
+						@click.stop="handleDeleteBlock(tool.type, tool.name)"
 					>
 						<WdsIcon name="trash" />
 					</button>
@@ -134,7 +149,11 @@ const wfbm = inject(injectionKeys.builderManager);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
 const query = ref("");
 
-const isCustomBlocksEnabled = computed(() => Array.isArray(wf.featureFlags.value) && wf.featureFlags.value.includes("custom_blocks"));
+const isCustomBlocksEnabled = computed(
+	() =>
+		Array.isArray(wf.featureFlags.value) &&
+		wf.featureFlags.value.includes("custom_blocks"),
+);
 
 const rootComponentId = wfbm.activeRootId;
 
@@ -160,16 +179,11 @@ const activeToolkit = computed(() => {
 const categories = computed<
 	Record<string, ReturnType<typeof getRelevantToolsInCategory>>
 >(() => {
-	// Access sessionTimestamp to make this computed reactive to init() calls
-	// This ensures the list refreshes when wf.init() is called after creating a block
-	void wf.sessionTimestamp?.value;
-	
 	const categoriesWithTools = displayedCategories
 		.map((categoryId) => [
 			categoryId,
 			getRelevantToolsInCategory(categoryId),
 		])
-		// Show Custom Blocks category if in blueprints mode and feature flag enabled, even if empty (to show create button)
 		.filter(
 			([categoryId, tools]) =>
 				tools.length > 0 ||
@@ -196,39 +210,37 @@ const placeholder = computed(() => {
 });
 
 function getRelevantToolsInCategory(categoryId: string) {
-	// Handle Custom Blocks category separately
 	if (categoryId === "Custom Blocks") {
-		// Only show custom blocks if feature flag is enabled
 		if (!isCustomBlocksEnabled.value) {
 			return [];
 		}
 		const typeList = getSupportedComponentTypes().filter((type) => {
-			// Custom blocks start with "custom_"
 			if (!type.startsWith("custom_")) return false;
 			const def = getComponentDefinition(type);
 			if (!def.toolkit && activeToolkit.value !== "core") return false;
-			if (def.toolkit && def.toolkit !== activeToolkit.value) return false;
+			if (def.toolkit && def.toolkit !== activeToolkit.value)
+				return false;
 			if (def.deprecated) return false;
 			return true;
 		});
 		const enriched = typeList.map((type) => {
-			const { name, description, category } = getComponentDefinition(type);
+			const { name, description } = getComponentDefinition(type);
 			return { type, name, description, category: "Custom Blocks" };
 		});
 		const q = query.value.toLocaleLowerCase();
 		const queryApplied = enriched
 			.filter((tool) => !q || tool.name.toLocaleLowerCase().includes(q))
 			.sort((a, b) =>
-				a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+				a.name.localeCompare(b.name, undefined, {
+					sensitivity: "base",
+				}),
 			);
 
 		return queryApplied;
 	}
 
-	// Handle regular categories
 	const typeList = getSupportedComponentTypes().filter((type) => {
 		const def = getComponentDefinition(type);
-		// Skip custom blocks in regular categories
 		if (type.startsWith("custom_")) return false;
 		if (def.category != categoryId) return false;
 		if (!def.toolkit && activeToolkit.value !== "core") return false;
@@ -267,7 +279,11 @@ function getToolIcons(tool: ReturnType<typeof getRelevantToolsInCategory>[0]) {
 }
 
 async function handleDeleteBlock(blockType: string, blockName: string) {
-	if (!confirm(`Are you sure you want to delete the custom block "${blockName}"?`)) {
+	if (
+		!confirm(
+			`Are you sure you want to delete the custom block "${blockName}"?`,
+		)
+	) {
 		return;
 	}
 
@@ -277,11 +293,16 @@ async function handleDeleteBlock(blockType: string, blockName: string) {
 		});
 
 		if (!response.ok) {
-			const error = await response.json().catch(() => ({ detail: "Failed to delete block" }));
+			const error = await response
+				.json()
+				.catch(() => ({ detail: "Failed to delete block" }));
 			throw new Error(error.detail || "Failed to delete block");
 		}
 
-		pushToast({ type: "success", message: `Custom block '${blockName}' deleted.` });
+		pushToast({
+			type: "success",
+			message: `Custom block '${blockName}' deleted.`,
+		});
 		await wf.init();
 	} catch (error) {
 		pushToast({
@@ -361,7 +382,9 @@ watch(activeToolkit, () => {
 	color: var(--builderSecondaryTextColor);
 	border-radius: 4px;
 	opacity: 0.6;
-	transition: opacity 0.2s, background 0.2s;
+	transition:
+		opacity 0.2s,
+		background 0.2s;
 }
 
 .tool--custom:hover .tool__delete {

@@ -22,16 +22,24 @@
 						v-model="form.description"
 						placeholder="Describe what this block does"
 						class="BuilderSettingsBlockLibrary__textarea"
-						:class="{ 'BuilderSettingsBlockLibrary__textarea--error': errors.description }"
+						:class="{
+							'BuilderSettingsBlockLibrary__textarea--error':
+								errors.description,
+						}"
 					/>
 				</WdsFieldWrapper>
 
 				<WdsFieldWrapper label="Category" required>
-					<WdsDropdownInput v-model="form.category" :error="errors.category">
+					<WdsDropdownInput
+						v-model="form.category"
+						:error="errors.category"
+					>
 						<option value="">Select a category</option>
 						<option value="Logic">Logic</option>
 						<option value="File Processing">File Processing</option>
-						<option value="Data Transformation">Data Transformation</option>
+						<option value="Data Transformation">
+							Data Transformation
+						</option>
 						<option value="API Integration">API Integration</option>
 						<option value="Text Processing">Text Processing</option>
 						<option value="Utilities">Utilities</option>
@@ -61,7 +69,12 @@
 			</div>
 
 			<div class="BuilderSettingsBlockLibrary__right">
-				<WdsFieldWrapper label="Code" required :frame-slot="true" class="BuilderSettingsBlockLibrary__codeWrapper">
+				<WdsFieldWrapper
+					label="Code"
+					required
+					:frame-slot="true"
+					class="BuilderSettingsBlockLibrary__codeWrapper"
+				>
 					<BuilderEmbeddedCodeEditor
 						:key="`editor-${isOpen}`"
 						v-model="form.code"
@@ -93,7 +106,11 @@ const BuilderEmbeddedCodeEditor = defineAsyncComponentWithLoader({
 const wf = inject(injectionKeys.core);
 const { pushToast } = useToasts();
 
-const isCustomBlocksEnabled = computed(() => Array.isArray(wf.featureFlags.value) && wf.featureFlags.value.includes("custom_blocks"));
+const isCustomBlocksEnabled = computed(
+	() =>
+		Array.isArray(wf.featureFlags.value) &&
+		wf.featureFlags.value.includes("custom_blocks"),
+);
 
 const INIT_CODE = `# State is accessible as a global variable. For example:
 state["counter"] = 10
@@ -186,7 +203,9 @@ async function handleSave() {
 
 		if (!response.ok) {
 			const error = await response.json();
-			throw new Error(error.detail || "Failed to create block in library");
+			throw new Error(
+				error.detail || "Failed to create block in library",
+			);
 		}
 
 		pushToast({
@@ -338,7 +357,8 @@ watch(isOpen, async (newValue) => {
 	flex-direction: column;
 }
 
-.BuilderSettingsBlockLibrary__codeEditor :deep(.BuilderEmbeddedCodeEditor--minimal) {
+.BuilderSettingsBlockLibrary__codeEditor
+	:deep(.BuilderEmbeddedCodeEditor--minimal) {
 	min-height: 400px !important;
 }
 
@@ -350,7 +370,8 @@ watch(isOpen, async (newValue) => {
 }
 
 .BuilderSettingsBlockLibrary__codeEditor :deep(.monaco-editor),
-.BuilderSettingsBlockLibrary__codeEditor :deep(.monaco-editor .monaco-editor-background),
+.BuilderSettingsBlockLibrary__codeEditor
+	:deep(.monaco-editor .monaco-editor-background),
 .BuilderSettingsBlockLibrary__codeEditor :deep(.monaco-editor .overflow-guard) {
 	height: 100% !important;
 	min-height: 400px !important;
@@ -376,4 +397,3 @@ watch(isOpen, async (newValue) => {
 	border-color: var(--builderErrorColor);
 }
 </style>
-

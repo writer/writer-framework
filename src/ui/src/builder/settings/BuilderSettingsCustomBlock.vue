@@ -22,7 +22,10 @@
 						v-model="form.description"
 						placeholder="Describe what this block does"
 						class="BuilderSettingsCustomBlock__textarea"
-						:class="{ 'BuilderSettingsCustomBlock__textarea--error': errors.description }"
+						:class="{
+							'BuilderSettingsCustomBlock__textarea--error':
+								errors.description,
+						}"
 					/>
 				</WdsFieldWrapper>
 
@@ -48,7 +51,12 @@
 			</div>
 
 			<div class="BuilderSettingsCustomBlock__right">
-				<WdsFieldWrapper label="Code" required :frame-slot="true" class="BuilderSettingsCustomBlock__codeWrapper">
+				<WdsFieldWrapper
+					label="Code"
+					required
+					:frame-slot="true"
+					class="BuilderSettingsCustomBlock__codeWrapper"
+				>
 					<BuilderEmbeddedCodeEditor
 						:key="`editor-${isOpen}`"
 						v-model="form.code"
@@ -79,7 +87,11 @@ const BuilderEmbeddedCodeEditor = defineAsyncComponentWithLoader({
 const wf = inject(injectionKeys.core);
 const { pushToast } = useToasts();
 
-const isCustomBlocksEnabled = computed(() => Array.isArray(wf.featureFlags.value) && wf.featureFlags.value.includes("custom_blocks"));
+const isCustomBlocksEnabled = computed(
+	() =>
+		Array.isArray(wf.featureFlags.value) &&
+		wf.featureFlags.value.includes("custom_blocks"),
+);
 
 const INIT_CODE = `# State is accessible as a global variable. For example:
 state["counter"] = 10
@@ -186,7 +198,8 @@ async function handleSave() {
 		} catch (error) {
 			pushToast({
 				type: "error",
-				message: "Block created but failed to reload. Please refresh the page.",
+				message:
+					"Block created but failed to reload. Please refresh the page.",
 			});
 		}
 	} catch (error) {
@@ -328,7 +341,8 @@ watch(isOpen, async (newValue) => {
 	flex-direction: column;
 }
 
-.BuilderSettingsCustomBlock__codeEditor :deep(.BuilderEmbeddedCodeEditor--minimal) {
+.BuilderSettingsCustomBlock__codeEditor
+	:deep(.BuilderEmbeddedCodeEditor--minimal) {
 	min-height: 400px !important;
 }
 
@@ -340,7 +354,8 @@ watch(isOpen, async (newValue) => {
 }
 
 .BuilderSettingsCustomBlock__codeEditor :deep(.monaco-editor),
-.BuilderSettingsCustomBlock__codeEditor :deep(.monaco-editor .monaco-editor-background),
+.BuilderSettingsCustomBlock__codeEditor
+	:deep(.monaco-editor .monaco-editor-background),
 .BuilderSettingsCustomBlock__codeEditor :deep(.monaco-editor .overflow-guard) {
 	height: 100% !important;
 	min-height: 400px !important;
@@ -366,4 +381,3 @@ watch(isOpen, async (newValue) => {
 	border-color: var(--builderErrorColor);
 }
 </style>
-
