@@ -68,7 +68,6 @@ import { ref, computed, watch, nextTick, inject } from "vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "../useToast";

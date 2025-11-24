@@ -553,12 +553,6 @@ def get_asgi_app(
 
         data = await _get_payload_as_json(request)
 
-        from writer.blocks.block_library_db import (
-            create_snippet_version,
-            get_latest_version,
-            get_snippet,
-        )
-
         snippet = get_snippet(snippet_id)
         if not snippet:
             raise HTTPException(status_code=404, detail="Block not found")
