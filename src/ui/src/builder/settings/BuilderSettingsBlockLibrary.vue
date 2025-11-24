@@ -29,24 +29,6 @@
 					/>
 				</WdsFieldWrapper>
 
-				<WdsFieldWrapper label="Category" required>
-					<WdsDropdownInput
-						v-model="form.category"
-						:error="errors.category"
-					>
-						<option value="">Select a category</option>
-						<option value="Logic">Logic</option>
-						<option value="File Processing">File Processing</option>
-						<option value="Data Transformation">
-							Data Transformation
-						</option>
-						<option value="API Integration">API Integration</option>
-						<option value="Text Processing">Text Processing</option>
-						<option value="Utilities">Utilities</option>
-						<option value="Other">Other</option>
-					</WdsDropdownInput>
-				</WdsFieldWrapper>
-
 				<WdsFieldWrapper
 					label="State Inputs (optional)"
 					hint="Comma-separated list of state variables this block reads from"
@@ -94,7 +76,6 @@ import { ref, computed, watch, nextTick, inject } from "vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import WdsDropdownInput from "@/wds/WdsDropdownInput.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "../useToast";
@@ -142,7 +123,6 @@ const isOpen = computed({
 const form = ref({
 	name: "",
 	description: "",
-	category: "",
 	code: INIT_CODE,
 	stateInputs: "",
 	stateOutputs: "",
@@ -159,9 +139,6 @@ function validateForm(): boolean {
 	}
 	if (!form.value.description.trim()) {
 		errors.value.description = "Description is required";
-	}
-	if (!form.value.category) {
-		errors.value.category = "Category is required";
 	}
 	if (!form.value.code.trim()) {
 		errors.value.code = "Code is required";
@@ -194,7 +171,6 @@ async function handleSave() {
 			body: JSON.stringify({
 				name: form.value.name.trim(),
 				description: form.value.description.trim(),
-				category: form.value.category,
 				code: form.value.code,
 				state_inputs: stateInputs,
 				state_outputs: stateOutputs,
@@ -238,7 +214,6 @@ function resetForm() {
 	form.value = {
 		name: "",
 		description: "",
-		category: "",
 		code: INIT_CODE,
 		stateInputs: "",
 		stateOutputs: "",

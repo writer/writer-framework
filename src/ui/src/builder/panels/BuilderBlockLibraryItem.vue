@@ -9,11 +9,6 @@
 		<p class="BuilderBlockLibraryItem__description">
 			{{ block.description }}
 		</p>
-		<div class="BuilderBlockLibraryItem__meta">
-			<span class="BuilderBlockLibraryItem__category">{{
-				block.category
-			}}</span>
-		</div>
 		<div class="BuilderBlockLibraryItem__actions">
 			<WdsButton
 				variant="primary"
@@ -40,7 +35,6 @@ const props = defineProps<{
 		id: string;
 		title: string;
 		description: string;
-		category: string;
 		version_number: number;
 	};
 }>();
@@ -144,20 +138,6 @@ async function handleInstall() {
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
-}
-
-.BuilderBlockLibraryItem__meta {
-	display: flex;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-
-.BuilderBlockLibraryItem__category {
-	font-size: 12px;
-	padding: 4px 8px;
-	background: var(--builderSubtleSeparatorColor);
-	border-radius: 4px;
-	color: var(--builderSecondaryTextColor);
 }
 
 .BuilderBlockLibraryItem__actions {
