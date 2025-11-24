@@ -1,3 +1,5 @@
+import { trackRouteChange as trackRouteChangeMetric } from "@/observability/frontendMetrics";
+
 export type ParsedHash = {
 	pageKey?: string;
 	routeVars: Map<string, string>; // Stored as Map to avoid injection e.g. prototype pollution
@@ -74,6 +76,7 @@ export function changePageInHash(targetPageKey: string) {
 	const parsedHash = getParsedHash();
 	parsedHash.pageKey = targetPageKey;
 	setHash(parsedHash);
+	trackRouteChange();
 }
 
 export function changeRouteVarsInHash(targetRouteVars: Record<string, string>) {
@@ -83,4 +86,25 @@ export function changeRouteVarsInHash(targetRouteVars: Record<string, string>) {
 		Object.entries({ ...routeVars, ...targetRouteVars }),
 	);
 	setHash(parsedHash);
+	trackRouteChange();
+}
+
+function trackRouteChange(): void {
+	if (typeof window === "undefined") {
+		return;
+	}
+
+	try {
+		const parsedHash = getParsedHash();
+		const route = parsedHash.pageKey || "root";
+		trackRouteChangeMetric(route);
+	} catch (_e) {
+		// Ignore if metrics not available
+	}
+}
+
+if (typeof window !== "undefined") {
+	window.addEventListener("hashchange", () => {
+		trackRouteChange();
+	});
 }

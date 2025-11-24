@@ -33,6 +33,11 @@ import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
 import { RECONNECT_DELAY_MS } from "@/constants/retry";
+import { observabilityRegistry } from "@/observability";
+import {
+	trackWebSocketLatency,
+	trackInteractionDuration,
+} from "@/observability/frontendMetrics";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -185,7 +190,14 @@ export function generateCore() {
 
 	function sendKeepAliveMessage() {
 		setTimeout(() => {
-			sendFrontendMessage("keepAlive", {}, sendKeepAliveMessage);
+			const pingStartTime = performance.now();
+			sendFrontendMessage("keepAlive", {}, (response) => {
+				if (response?.ok) {
+					const latency = performance.now() - pingStartTime;
+					trackWebSocketLatency(latency);
+				}
+				sendKeepAliveMessage();
+			});
 		}, KEEP_ALIVE_DELAY_MS);
 	}
 
@@ -731,11 +743,25 @@ export function generateCore() {
 		}
 		const logger = useLogger();
 		const trackingId = frontendMessageCounter++;
+		const messageStartTime = performance.now();
+		const interactionStartTime = performance.now();
+
+		const wrappedCallback = callback
+			? (response: { ok: boolean; payload?: unknown }) => {
+					if (response?.ok && type !== "keepAlive") {
+						const duration =
+							performance.now() - interactionStartTime;
+						trackInteractionDuration(type, duration);
+					}
+					callback(response);
+				}
+			: undefined;
+
 		try {
-			if (callback || track) {
+			if (wrappedCallback || track) {
 				frontendMessageMap.value.set(trackingId, {
 					type,
-					callback,
+					callback: wrappedCallback,
 				});
 			}
 			if (track) {
@@ -758,18 +784,126 @@ export function generateCore() {
 				throw "Connection lost.";
 			}
 			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
+
+			const messageDuration = performance.now() - messageStartTime;
+			const provider = observabilityRegistry.getInitializedProvider();
+			if (provider && "recordDistribution" in provider) {
+				try {
+					(
+						provider as {
+							recordDistribution: (
+								name: string,
+								value: number,
+								options?: {
+									tags?: Record<string, string>;
+									unit?: string;
+								},
+							) => void;
+						}
+					).recordDistribution(
+						"websocket.message_duration",
+						messageDuration,
+						{
+							tags: {
+								message_type: type,
+							},
+							unit: "millisecond",
+						},
+					);
+				} catch (_e) {
+					// Ignore metric errors
+				}
+			}
 		} catch (error) {
 			logger.error("sendFrontendMessage error", error);
 			callback?.({ ok: false });
+
+			const provider = observabilityRegistry.getInitializedProvider();
+			if (provider && "incrementMetric" in provider) {
+				try {
+					(
+						provider as {
+							incrementMetric: (
+								name: string,
+								options?: {
+									tags?: Record<string, string>;
+									unit?: string;
+									value?: number;
+								},
+							) => void;
+						}
+					).incrementMetric("websocket.message_error", {
+						tags: {
+							message_type: type,
+						},
+						unit: "none",
+					});
+				} catch (_e) {
+					// Ignore metric errors
+				}
+			}
 		}
 	}
 
 	function deleteComponent(componentId: Component["id"]) {
+		const component = components.value[componentId];
 		delete components.value[componentId];
+
+		if (component) {
+			const provider = observabilityRegistry.getInitializedProvider();
+			if (provider && "incrementMetric" in provider) {
+				try {
+					(
+						provider as {
+							incrementMetric: (
+								name: string,
+								options?: {
+									tags?: Record<string, string>;
+									unit?: string;
+									value?: number;
+								},
+							) => void;
+						}
+					).incrementMetric("component.deleted", {
+						tags: {
+							component_type: component.type,
+						},
+						unit: "none",
+					});
+				} catch (_e) {
+					// Ignore metric errors
+				}
+			}
+		}
 	}
 
 	function addComponent(component: Component) {
 		components.value[component.id] = component;
+
+		const provider = observabilityRegistry.getInitializedProvider();
+		if (provider && "incrementMetric" in provider) {
+			try {
+				(
+					provider as {
+						incrementMetric: (
+							name: string,
+							options?: {
+								tags?: Record<string, string>;
+								unit?: string;
+								value?: number;
+							},
+						) => void;
+					}
+				).incrementMetric("component.added", {
+					tags: {
+						component_type: component.type,
+					},
+					unit: "none",
+				});
+			} catch (_e) {
+				// Ignore metric errors
+			}
+		}
 	}
 
 	/**

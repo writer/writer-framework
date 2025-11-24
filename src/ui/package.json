@@ -47,7 +47,8 @@
 		"vega-embed": "^6.22.1",
 		"vega-lite": "^5.7.1",
 		"vue": "^3.5.0",
-		"vue-dompurify-html": "^5.0.1"
+		"vue-dompurify-html": "^5.0.1",
+		"@sentry/vue": "^10.25.0"
 	},
 	"devDependencies": {
 		"@types/google.maps": "3.55.5",

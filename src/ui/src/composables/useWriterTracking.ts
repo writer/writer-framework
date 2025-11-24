@@ -2,6 +2,7 @@ import type { generateCore } from "@/core";
 import { useWriterApi } from "./useWriterApi";
 import { watch } from "vue";
 import { useLogger } from "./useLogger";
+import { observabilityRegistry } from "@/observability";
 
 let isIdentified = false;
 
@@ -184,6 +185,31 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		const propertiesExpanded =
 			expandEventPropertiesWithResources(properties);
 		logger.log("[tracking]", eventNameFormated, propertiesExpanded);
+
+		const provider = observabilityRegistry.getInitializedProvider();
+		if (provider && "incrementMetric" in provider) {
+			try {
+				(
+					provider as {
+						incrementMetric: (
+							name: string,
+							options?: {
+								tags?: Record<string, string>;
+								unit?: string;
+								value?: number;
+							},
+						) => void;
+					}
+				).incrementMetric(`user_action.${eventName}`, {
+					tags: {
+						event_type: eventName,
+					},
+					unit: "none",
+				});
+			} catch (e) {
+				logger.warn("Failed to track metric:", e);
+			}
+		}
 
 		return await Promise.all([
 			trackWithApi(eventNameFormated, propertiesExpanded),

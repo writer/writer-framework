@@ -12,6 +12,8 @@ import { useNotesManager } from "./core/useNotesManager.js";
 import { CollaborationManager } from "./writerTypes.js";
 import { useSecretsManager } from "./core/useSecretsManager.js";
 import { RECONNECT_DELAY_MS, MAX_RETRIES } from "@/constants/retry";
+import { observabilityRegistry } from "./observability";
+import { trackPageLoadTime, trackError } from "./observability/frontendMetrics";
 
 const wf = generateCore();
 
@@ -59,7 +61,35 @@ async function load() {
 	app.provide(injectionKeys.collaborationManager, collaborationManager);
 	app.provide(injectionKeys.secretsManager, secretsManager);
 
+	try {
+		await observabilityRegistry.initializeProvider(null, app);
+	} catch (error) {
+		logger.warn("Failed to initialize observability provider:", error);
+	}
+
 	app.mount("#app");
+
+	trackPageLoadTime();
+
+	if (typeof window !== "undefined") {
+		window.addEventListener("error", (event) => {
+			const error =
+				event.error || new Error(event.message || "Unknown error");
+			trackError(error, error.name || "window_error");
+		});
+
+		window.addEventListener("unhandledrejection", (event) => {
+			const error =
+				event.reason instanceof Error
+					? event.reason
+					: new Error(
+							String(
+								event.reason || "Unhandled promise rejection",
+							),
+						);
+			trackError(error, "unhandled_promise_rejection");
+		});
+	}
 
 	if (wf.isWriterCloudApp.value && collaborationManager) {
 		await enableCollaboration(collaborationManager).catch(logger.error);
@@ -73,7 +103,7 @@ async function enableCollaboration(collaborationManager: CollaborationManager) {
 	const { writerApi } = useWriterApi();
 	const writerProfile = await writerApi.fetchUserProfile();
 	collaborationManager.updateOutgoingPing({
-		userId: writerProfile.id.toString(),
+		userId: writerProfile.id,
 		action: "join",
 	});
 	collaborationManager.sendCollaborationPing();
@@ -130,6 +160,15 @@ initialise()
 	})
 	.catch((reason) => {
 		logger.error("Core initialisation failed.", reason);
+
+		observabilityRegistry.captureException(
+			reason instanceof Error ? reason : new Error(String(reason)),
+			{
+				source: "core_initialization",
+				component: "main",
+				stage: "initialization",
+			},
+		);
 
 		const errorDiv = document.createElement("div");
 		errorDiv.className = "error-message";
