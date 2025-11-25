@@ -1,0 +1,2 @@
+{"id": "n5tm1c8il2kpzttw", "type": "blueprints_blueprint", "content": {"key": "THROW ERROR"}, "handlers": {}, "isCodeManaged": false, "parentId": "blueprints_root", "position": 4}
+{"id": "nrdwc9v2jn1tvu84", "type": "blueprints_code", "content": {"code": "raise ValueError(\"expected\")"}, "handlers": {}, "isCodeManaged": false, "parentId": "n5tm1c8il2kpzttw", "position": 0, "x": 171, "y": 312}

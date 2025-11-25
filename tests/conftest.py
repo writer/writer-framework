@@ -1,7 +1,9 @@
 import contextlib
-from typing import Literal
+from multiprocessing import Manager
+from typing import Any, Dict, List, Literal
 
 import pytest
+from writer import journal
 from writer.app_runner import AppRunner
 
 
@@ -63,3 +65,35 @@ def build_app_provisionning():
         shutil.rmtree(os.path.join(root_dir, 'src/writer/app_templates'))
 
     shutil.copytree( os.path.join(root_dir, 'apps'), os.path.join(root_dir, 'src/writer/app_templates'))
+
+
+class MockKeyValueStorage:
+    def __init__(self) -> None:
+        mgr = Manager()
+        self._data_storage = mgr.dict()
+        mgr = Manager()
+        self._secret_storage = mgr.dict()
+
+    def get(self, key: str, type_: Literal["data", "secret"]) -> Dict[str, Any]:
+        storage = self._data_storage if type_ == "data" else self._secret_storage
+        return storage[key]
+
+    def get_data_keys(self) -> List[str]:
+        return list(self._data_storage.keys())
+
+    def save(self, key: str, data: Any) -> Dict[str, Any]:
+        self._data_storage[key] = data
+        return {"data": data}
+
+    def delete(self, key: str) -> Dict[str, str]:
+        del self._data_storage[key]
+        return {"key": key}
+
+    def is_accessible(self) -> bool:
+        return True
+
+@pytest.fixture(autouse=True)
+def mock_kv_storage(monkeypatch):
+    storage = MockKeyValueStorage()
+    monkeypatch.setattr(journal, "writer_kv_storage", storage)
+    return storage

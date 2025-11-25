@@ -421,12 +421,14 @@ def get_asgi_app(
         """
         if not app_runner.bmc_components:
             return JSONResponse(content=[], status_code=200)
+        
+        definition = abstract.templates["blueprints_crontrigger"].writer
 
         cron_triggers = [
             {
                 "id": comp.get("id"),
                 "blueprint_id": comp.get("parentId"),
-                "name": comp.get("name") or comp.get("content", {}).get("name"),
+                "name": comp.get("content", {}).get("alias") or definition["name"],
                 "cron_expression": comp.get("content", {}).get("cronExpression", ""),
                 "timezone": comp.get("content", {}).get("timezone", "UTC"),
             }
