@@ -83,8 +83,14 @@ class CodeBlock(BlueprintBlock):
             )
 
             with (
-                use_stdout_redirect(lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured stdout", entry)),
-                use_logging_redirect(lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured logs", entry)),
+                use_stdout_redirect([
+                    lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured stdout", entry),
+                    lambda entry: setattr(self, 'captured_stdout', entry)
+                ]),
+                use_logging_redirect([
+                    lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured logs", entry),
+                    lambda entry: setattr(self, 'captured_logs', entry)
+                ]),
             ):
                 exec(code, block_globals | {"logger": exec_logger})
 

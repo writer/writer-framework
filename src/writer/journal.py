@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("journal")
 
 JOURNAL_KEY_PREFIX = "wf-journal-"
-
+INIT_LOGS_KEY_PREFIX = "wf-init-logs-"
 
 class JournalRecord:
     def __init__(
@@ -87,6 +87,16 @@ class JournalRecord:
                     block_data["startedAt"] = graph_node.tool.started_at
                 if hasattr(graph_node.tool, 'execution_time_in_seconds') and graph_node.tool.execution_time_in_seconds >= 0:
                     block_data["executionTimeInSeconds"] = graph_node.tool.execution_time_in_seconds
+                
+                # Add captured logs if available
+                if hasattr(graph_node.tool, 'captured_stdout') and graph_node.tool.captured_stdout:
+                    block_data["stdout"] = graph_node.tool.captured_stdout
+                if hasattr(graph_node.tool, 'captured_logs') and graph_node.tool.captured_logs:
+                    block_data["logs"] = graph_node.tool.captured_logs
+                
+                # Add error message if available (contains the traceback for errors)
+                if hasattr(graph_node.tool, 'message') and graph_node.tool.message:
+                    block_data["message"] = graph_node.tool.message
             
             block_outputs[graph_node.id] = block_data
         

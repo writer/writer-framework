@@ -467,16 +467,67 @@ class AppProcess(multiprocessing.Process):
             raise ValueError("Couldn't find app module (writeruserapp).")
 
         code_path = os.path.join(self.app_path, "main.py")
+        
+        # Containers to capture logs for KV storage
+        init_stdout_container = ['']
+        init_logs_container = ['']
+        
         with (
-            use_stdout_redirect(lambda entry: writer.core.initial_state.add_log_entry("info", "Stdout message during initialization", entry)),
-            use_logging_redirect(lambda entry: writer.core.initial_state.add_log_entry("info", "Logs during initialization", entry)),
+            use_stdout_redirect([
+                lambda entry: writer.core.initial_state.add_log_entry("info", "Stdout message during initialization", entry),
+                lambda entry: init_stdout_container.__setitem__(0, entry)
+            ]),
+            use_logging_redirect([
+                lambda entry: writer.core.initial_state.add_log_entry("info", "Logs during initialization", entry),
+                lambda entry: init_logs_container.__setitem__(0, entry)
+            ]),
         ):
             writeruserapp.__dict__["logger"] = user_code_logger
             code = compile(self.run_code, code_path, "exec")
             exec(code, writeruserapp.__dict__)
 
+        # Save initialization logs to KV storage
+        self._save_initialization_logs(init_stdout_container[0], init_logs_container[0])
+
         # Register non-private functions as handlers
         self.handler_registry.register_module(writeruserapp)
+
+    def _save_initialization_logs(self, stdout: str, logs: str) -> None:
+        """Save main.py initialization logs to KV storage."""
+        if not stdout and not logs:
+            return
+        
+        from datetime import datetime, timezone
+        from writer.keyvalue_storage import writer_kv_storage
+        from writer.journal import INIT_LOGS_KEY_PREFIX
+        from writer.core import Config
+        
+        if "journal" not in Config.feature_flags or not writer_kv_storage.is_accessible():
+            return
+        
+        timestamp = datetime.now(timezone.utc)
+        # Match JournalRecord.instance_type logic: 'e' for editor, 'a' for agent
+        instance_type = "editor" if Config.mode == "edit" else "agent"
+        instance_type_letter = instance_type[0]  # 'e' or 'a'
+        mode_letter = self.mode[0]  # 'e' for edit, 'r' for run
+        
+        # Pattern: wf-init-logs-{e|a}-{timestamp}-{e|r}
+        # First letter (e|a) matches journal's instance_type
+        # Last letter (e|r) indicates the actual mode (edit or run)
+        key = f"{INIT_LOGS_KEY_PREFIX}{instance_type_letter}-{int(timestamp.timestamp() * 1000)}-{mode_letter}"
+        data = {
+            "timestamp": timestamp.isoformat(),
+            "instanceType": instance_type,
+            "mode": self.mode,
+            "stdout": stdout,
+            "logs": logs
+        }
+        try:
+            writer_kv_storage.save(key, data)
+        except Exception as e:
+            # Don't fail initialization if log saving fails
+            app_logger = logging.getLogger("app_runner")
+            app_logger.warning(f"Failed to save initialization logs to KV storage: {e}")
 
     def _apply_configuration(self) -> None:
         import writer

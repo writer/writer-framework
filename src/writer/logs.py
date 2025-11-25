@@ -5,7 +5,7 @@ import logging.config
 import os
 from contextlib import contextmanager, redirect_stdout
 from time import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 WRITER_LOG_LEVEL = os.getenv("WRITER_LOG_LEVEL", "INFO")
 WRITER_LOG_FORMAT = os.getenv("WRITER_LOG_FORMAT", "text")  # 'text' or 'json'
@@ -113,10 +113,13 @@ class RoutingHandler(logging.StreamHandler):
 
 
 @contextmanager
-def use_stdout_redirect(add_log_entry_func: Callable[[str], None]):
+def use_stdout_redirect(add_log_entry_func: Union[Callable[[str], None], List[Callable[[str], None]]]):
     """
     Context manager that redirects stdout to a context-specific buffer.
+    Supports single callback or list of callbacks for multiple output destinations.
     """
+    # Normalize to list of callbacks
+    callbacks = [add_log_entry_func] if callable(add_log_entry_func) else add_log_entry_func
 
     key = get_routing_key(prefix="stdout")
     buffer = routing_map.add_buffer(key)
@@ -127,14 +130,18 @@ def use_stdout_redirect(add_log_entry_func: Callable[[str], None]):
         routing_map.remove_buffer(key)
         stdout = buffer.getvalue()
         if stdout:
-            add_log_entry_func(stdout)
+            for callback in callbacks:
+                callback(stdout)
 
 
 @contextmanager
-def use_logging_redirect(add_log_entry_func: Callable[[str], None]):
+def use_logging_redirect(add_log_entry_func: Union[Callable[[str], None], List[Callable[[str], None]]]):
     """
     Context manager that redirects logging to a context-specific buffer.
+    Supports single callback or list of callbacks for multiple output destinations.
     """
+    # Normalize to list of callbacks
+    callbacks = [add_log_entry_func] if callable(add_log_entry_func) else add_log_entry_func
 
     key = get_routing_key(prefix="logging")
     buffer = routing_map.add_buffer(key)
@@ -144,7 +151,8 @@ def use_logging_redirect(add_log_entry_func: Callable[[str], None]):
         routing_map.remove_buffer(key)
         logs = buffer.getvalue()
         if logs:
-            add_log_entry_func(logs)
+            for callback in callbacks:
+                callback(logs)
 
 
 class JSONFormatter(logging.Formatter):
