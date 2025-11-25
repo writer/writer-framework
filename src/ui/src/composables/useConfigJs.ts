@@ -6,7 +6,7 @@ export function useConfigJs(wf: Core) {
 	const logger = useLogger();
 
 	async function loadConfigJs(): Promise<void> {
-		if (wf.isWriterCloudApp.value) {
+		if (!wf.isWriterCloudApp.value) {
 			logger.log("Skipping config.js load - not a Writer Cloud App");
 			return;
 		}
