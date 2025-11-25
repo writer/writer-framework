@@ -12,6 +12,7 @@ import { useNotesManager } from "./core/useNotesManager.js";
 import { CollaborationManager } from "./writerTypes.js";
 import { useSecretsManager } from "./core/useSecretsManager.js";
 import { RECONNECT_DELAY_MS, MAX_RETRIES } from "@/constants/retry";
+import { useConfigJs } from "./composables/useConfigJs.js";
 
 const wf = generateCore();
 
@@ -61,6 +62,9 @@ async function load() {
 
 	app.mount("#app");
 
+	const { loadConfigJs } = useConfigJs(wf);
+	loadConfigJs().catch(logger.error);
+
 	if (wf.isWriterCloudApp.value && collaborationManager) {
 		await enableCollaboration(collaborationManager).catch(logger.error);
 	}
@@ -73,7 +77,7 @@ async function enableCollaboration(collaborationManager: CollaborationManager) {
 	const { writerApi } = useWriterApi();
 	const writerProfile = await writerApi.fetchUserProfile();
 	collaborationManager.updateOutgoingPing({
-		userId: writerProfile.id.toString(),
+		userId: writerProfile.id,
 		action: "join",
 	});
 	collaborationManager.sendCollaborationPing();

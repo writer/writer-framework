@@ -374,6 +374,23 @@ export class WriterApi {
 
 		return allTools;
 	}
+
+	async fetchConfigJs(): Promise<string> {
+		const url = new URL(`/env/config.js`, this.#baseUrl);
+		const res = await fetch(url, {
+			signal: this.#signal,
+			credentials: "include",
+			headers: {
+				"X-Client": "Framework",
+			},
+			...this.#requestInitBase,
+		});
+		if (!res.ok) {
+			const errorText = await res.text();
+			throw Error(errorText);
+		}
+		return res.text();
+	}
 }
 
 export type WriterApiUser = Pick<
