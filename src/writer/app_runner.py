@@ -498,9 +498,10 @@ class AppProcess(multiprocessing.Process):
             return
         
         from datetime import datetime, timezone
-        from writer.keyvalue_storage import writer_kv_storage
-        from writer.journal import INIT_LOGS_KEY_PREFIX
+
         from writer.core import Config
+        from writer.journal import INIT_LOGS_KEY_PREFIX
+        from writer.keyvalue_storage import writer_kv_storage
         
         if "journal" not in Config.feature_flags or not writer_kv_storage.is_accessible():
             return
