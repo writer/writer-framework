@@ -383,6 +383,7 @@ export class WriterApi {
 			headers: {
 				"X-Client": "Framework",
 			},
+			...this.#requestInitBase,
 		});
 		if (!res.ok) {
 			const errorText = await res.text();
