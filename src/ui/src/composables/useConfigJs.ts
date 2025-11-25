@@ -26,8 +26,8 @@ export function useConfigJs(wf: Core) {
 			const script = document.createElement("script");
 			script.textContent = configJsContent;
 			document.head.appendChild(script);
-		} catch (error) {
-			logger.warn("Failed to load config.js via WriterApi ", error);
+		} catch (err) {
+			logger.warn("Failed to load config.js via WriterApi ", err);
 		}
 	}
 

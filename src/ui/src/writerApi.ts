@@ -376,8 +376,7 @@ export class WriterApi {
 	}
 
 	async fetchConfigJs(): Promise<string> {
-		const url = new URL(`/env/config.js`, "https://app.qordobadev.com");
-		debugger;
+		const url = new URL(`/env/config.js`, this.#baseUrl);
 		const res = await fetch(url, {
 			signal: this.#signal,
 			credentials: "include",
