@@ -524,10 +524,11 @@ export function useComponentActions(
 	 *
 	 * @param childId Id of the child component
 	 */
-	function selectChild(childId: Component["id"]): void {
+	function selectChild(childId: Component["id"]): boolean {
 		const child = wf.getComponentById(childId);
-		if (!child) return;
+		if (!child) return false;
 		ssbm.setSelection(child.id);
+		return true;
 	}
 
 	function findSibling(targetId: Component["id"], direction: -1 | 1) {

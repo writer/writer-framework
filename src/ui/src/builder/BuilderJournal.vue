@@ -83,6 +83,9 @@ type BlockOutput = {
 	component?: ComponentInfo | null;
 	startedAt?: number;
 	executionTimeInSeconds?: number;
+	stdout?: string;
+	logs?: string;
+	message?: string;
 };
 
 export type RawJournalEntry = {
@@ -99,9 +102,27 @@ export type JournalEntry = RawJournalEntry & {
 	instanceTypeLabel: string;
 	component: Component;
 	componentDefinition: WriterComponentDefinition;
+	entryType: "execution";
 };
 
+export type RawInitLogEntry = {
+	timestamp: string;
+	instanceType: "editor" | "agent";
+	mode: string;
+	stdout?: string;
+	logs?: string;
+};
+
+export type InitLogEntry = RawInitLogEntry & {
+	title: string;
+	instanceTypeLabel: string;
+	entryType: "init";
+};
+
+export type UnifiedEntry = JournalEntry | InitLogEntry;
+
 const rawEntries = ref<Record<string, RawJournalEntry>>({});
+const rawInitLogs = ref<Record<string, RawInitLogEntry>>({});
 const loading = ref(false);
 
 const searchText = ref("");
@@ -109,9 +130,10 @@ const filters = ref<JournalFilters>({
 	statuses: [],
 	triggers: [],
 	instanceTypes: [],
+	entryTypes: [],
 });
 
-const selectedEntry = shallowRef<JournalEntry | null>(null);
+const selectedEntry = shallowRef<UnifiedEntry | null>(null);
 const isDrawerOpen = computed({
 	get: () => !!selectedEntry.value,
 	set: (value) => {
@@ -146,37 +168,101 @@ const entries = computed<Record<string, JournalEntry | null>>(() => {
 					instanceTypeLabel,
 					component,
 					componentDefinition,
+					entryType: "execution" as const,
 				},
 			];
 		}),
 	);
 });
 
-const filteredEntries = computed<Record<string, JournalEntry | null>>(() => {
-	const searchTextLower = searchText.value.toLowerCase();
+const initLogs = computed<Record<string, InitLogEntry>>(() => {
 	return Object.fromEntries(
-		Object.entries(entries.value).filter(([_key, entry]) => {
-			if (!entry) return false;
-			const searchMatch =
-				searchText.value === "" ||
-				entry.title.toLowerCase().includes(searchTextLower);
-			const statusMatch =
-				filters.value.statuses.length === 0 ||
-				filters.value.statuses.includes(entry.result);
-			const triggerMatch =
-				filters.value.triggers.length === 0 ||
-				filters.value.triggers.includes(entry.trigger.type);
-			const instanceTypeMatch =
-				filters.value.instanceTypes.length === 0 ||
-				filters.value.instanceTypes.includes(entry.instanceType);
-			return (
-				searchMatch && statusMatch && triggerMatch && instanceTypeMatch
-			);
+		Object.entries(rawInitLogs.value).map(([key, entry]) => {
+			const instanceTypeLabel =
+				entry.instanceType.charAt(0).toUpperCase() +
+				entry.instanceType.slice(1);
+
+			const modeLabel =
+				entry.mode.charAt(0).toUpperCase() + entry.mode.slice(1);
+
+			return [
+				key,
+				{
+					...entry,
+					title: `Initialization - ${modeLabel}`,
+					instanceTypeLabel,
+					entryType: "init" as const,
+				},
+			];
 		}),
 	);
 });
 
-const sortedEntries = computed<Record<string, JournalEntry | null>>(() => {
+const allEntries = computed<Record<string, UnifiedEntry | null>>(() => {
+	return {
+		...entries.value,
+		...initLogs.value,
+	};
+});
+
+const filteredEntries = computed<Record<string, UnifiedEntry | null>>(() => {
+	const searchTextLower = searchText.value.toLowerCase();
+	return Object.fromEntries(
+		Object.entries(allEntries.value).filter(([_key, entry]) => {
+			if (!entry) return false;
+
+			// Entry type filter
+			const entryTypeMatch =
+				filters.value.entryTypes.length === 0 ||
+				filters.value.entryTypes.includes(entry.entryType);
+
+			// Search match
+			let searchMatch = searchText.value === "";
+			if (!searchMatch) {
+				if (entry.entryType === "execution") {
+					searchMatch = entry.title
+						.toLowerCase()
+						.includes(searchTextLower);
+				} else {
+					// For init logs, search in stdout and logs
+					searchMatch =
+						entry.title.toLowerCase().includes(searchTextLower) ||
+						entry.stdout
+							?.toLowerCase()
+							?.includes(searchTextLower) ||
+						entry.logs?.toLowerCase()?.includes(searchTextLower);
+				}
+			}
+
+			// Instance type filter
+			const instanceTypeMatch =
+				filters.value.instanceTypes.length === 0 ||
+				filters.value.instanceTypes.includes(entry.instanceType);
+
+			// For execution entries, apply status and trigger filters
+			if (entry.entryType === "execution") {
+				const statusMatch =
+					filters.value.statuses.length === 0 ||
+					filters.value.statuses.includes(entry.result);
+				const triggerMatch =
+					filters.value.triggers.length === 0 ||
+					filters.value.triggers.includes(entry.trigger.type);
+				return (
+					searchMatch &&
+					statusMatch &&
+					triggerMatch &&
+					instanceTypeMatch &&
+					entryTypeMatch
+				);
+			}
+
+			// For init logs, only apply search, instance type, and entry type filters
+			return searchMatch && instanceTypeMatch && entryTypeMatch;
+		}),
+	);
+});
+
+const sortedEntries = computed<Record<string, UnifiedEntry | null>>(() => {
 	const sortedArray = Object.entries(filteredEntries.value)
 		.filter(([_, entry]) => entry !== null)
 		.sort(
@@ -190,11 +276,11 @@ const sortedEntries = computed<Record<string, JournalEntry | null>>(() => {
 
 async function loadEntries() {
 	loading.value = true;
-	let response: Response;
+
 	try {
-		response = await fetch(
-			convertAbsolutePathtoFullURL("/api/data/retrieve"),
-			{
+		// Fetch both journal entries and init logs in parallel
+		const [journalResponse, initLogsResponse] = await Promise.all([
+			fetch(convertAbsolutePathtoFullURL("/api/data/retrieve"), {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -203,35 +289,40 @@ async function loadEntries() {
 					key_contains: "wf-journal-",
 					skip_keys: Object.keys(rawEntries.value),
 				}),
-			},
-		);
+			}),
+			fetch(convertAbsolutePathtoFullURL("/api/data/retrieve"), {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					key_contains: "wf-init-logs-",
+					skip_keys: Object.keys(rawInitLogs.value),
+				}),
+			}),
+		]);
+
+		if (!journalResponse.ok || !initLogsResponse.ok) {
+			pushToast({
+				type: "error",
+				message: "Failed to fetch the execution history",
+			});
+			loading.value = false;
+			return;
+		}
+
+		const [journalData, initLogsData] = await Promise.all([
+			journalResponse.json(),
+			initLogsResponse.json(),
+		]);
+
+		rawEntries.value = { ...rawEntries.value, ...journalData.result };
+		rawInitLogs.value = { ...rawInitLogs.value, ...initLogsData.result };
 	} catch {
 		pushToast({
 			type: "error",
 			message: "Failed to fetch the execution history",
 		});
-		loading.value = false;
-		return;
-	}
-
-	if (!response.ok) {
-		pushToast({
-			type: "error",
-			message: "Failed to fetch the execution history",
-		});
-		loading.value = false;
-		return;
-	}
-
-	try {
-		const data = await response.json();
-		rawEntries.value = { ...rawEntries.value, ...data.result };
-	} catch {
-		pushToast({
-			type: "error",
-			message: "Failed to fetch the execution history",
-		});
-		return;
 	} finally {
 		loading.value = false;
 	}
@@ -240,7 +331,7 @@ async function loadEntries() {
 const downloadAsJson = () => {
 	const rawFiltered = Object.fromEntries(
 		Object.keys(filteredEntries.value).map((key) => {
-			return [key, rawEntries.value[key]];
+			return [key, rawEntries.value[key] || rawInitLogs.value[key]];
 		}),
 	);
 	downloadJson(rawFiltered, "agent-journal.json");
@@ -278,17 +369,22 @@ async function deleteEntries() {
 	}
 
 	const newRawEntries = { ...rawEntries.value };
+	const newRawInitLogs = { ...rawInitLogs.value };
 	for (const key of Object.keys(filteredEntries.value)) {
 		delete newRawEntries[key];
+		delete newRawInitLogs[key];
 	}
 	rawEntries.value = newRawEntries;
+	rawInitLogs.value = newRawInitLogs;
 }
 
-function openEntryDetails(entry: JournalEntry) {
+function openEntryDetails(entry: UnifiedEntry) {
 	selectedEntry.value = entry;
 }
 
-function handleReRun(entry: JournalEntry) {
+function handleReRun(entry: UnifiedEntry) {
+	if (entry.entryType !== "execution") return;
+
 	// TODO: Implement re-run logic
 	// This would trigger the same blueprint/workflow with the same inputs
 	pushToast({
@@ -299,30 +395,42 @@ function handleReRun(entry: JournalEntry) {
 	// Will trigger the blueprint/workflow execution with entry data
 }
 
-function handleGoToTrigger(entry: JournalEntry) {
-	// Close the drawer
-	selectedEntry.value = null;
+function handleGoToTrigger(entry: UnifiedEntry) {
+	if (entry.entryType !== "execution") return;
 
 	// Go to the trigger component
 	goToComponentParentPage(entry.trigger.component.id);
-	selectChild(entry.trigger.component.id);
-	pushToast({
-		type: "success",
-		message: `Jumped to ${entry.title}`,
-	});
+	if (selectChild(entry.trigger.component.id)) {
+		pushToast({
+			type: "success",
+			message: `Jumped to ${entry.title}`,
+		});
+		// Close the drawer if we successfully jumped to the trigger
+		selectedEntry.value = null;
+	} else {
+		pushToast({
+			type: "error",
+			message: "Trigger not found! It might have been deleted.",
+		});
+	}
 }
 
 function handleGoToBlock(blockId: string) {
-	// Close the drawer
-	selectedEntry.value = null;
-
 	// Go to the block component
 	goToComponentParentPage(blockId);
-	selectChild(blockId);
-	pushToast({
-		type: "success",
-		message: "Jumped to block",
-	});
+	if (selectChild(blockId)) {
+		pushToast({
+			type: "success",
+			message: "Jumped to block",
+		});
+		// Close the drawer if we successfully jumped to the block
+		selectedEntry.value = null;
+	} else {
+		pushToast({
+			type: "error",
+			message: "Block not found! It might have been deleted.",
+		});
+	}
 }
 
 onMounted(() => {

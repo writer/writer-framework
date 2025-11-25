@@ -18,6 +18,11 @@ export const INSTANCE_TYPE_OPTIONS = Object.freeze([
 	{ value: "agent", label: "Agent" },
 ] as const);
 
+export const ENTRY_TYPE_OPTIONS = Object.freeze([
+	{ value: "execution", label: "Executions" },
+	{ value: "init", label: "Initialization" },
+] as const);
+
 export const JOURNAL_TABS = Object.freeze<
 	WdsTabOptions<"outputs" | "metadata" | "raw">[]
 >([

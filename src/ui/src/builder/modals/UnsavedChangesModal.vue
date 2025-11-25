@@ -66,7 +66,7 @@ const modalActions = computed<ModalAction[]>(() => [
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--wdsColorOrange6);
+	color: var(--wdsColorOrange5);
 	font-size: 24px;
 }
 

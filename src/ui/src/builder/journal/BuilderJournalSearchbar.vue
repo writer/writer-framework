@@ -25,6 +25,14 @@
 				placeholder="Instance Type"
 			/>
 		</div>
+		<div class="BuilderJournalSearchbar__dropdown">
+			<WdsSelect
+				v-model="filters.entryTypes"
+				:options="ENTRY_TYPE_OPTIONS"
+				enable-multi-selection
+				placeholder="Entry Type"
+			/>
+		</div>
 		<WdsButton
 			v-if="hasActiveFilters"
 			data-writer-tooltip="Clear filters"
@@ -43,9 +51,10 @@ import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import { computed, PropType } from "vue";
 import {
+	ENTRY_TYPE_OPTIONS,
+	INSTANCE_TYPE_OPTIONS,
 	STATUS_OPTIONS,
 	TRIGGER_OPTIONS,
-	INSTANCE_TYPE_OPTIONS,
 } from "./journalConstants";
 import type { JournalFilters } from "./journalTypes";
 
@@ -64,7 +73,8 @@ const hasActiveFilters = computed(
 		Boolean(search.value) ||
 		filters.value.statuses.length > 0 ||
 		filters.value.triggers.length > 0 ||
-		filters.value.instanceTypes.length > 0,
+		filters.value.instanceTypes.length > 0 ||
+		filters.value.entryTypes.length > 0,
 );
 
 function clearAllFilters() {
@@ -73,6 +83,7 @@ function clearAllFilters() {
 		statuses: [],
 		triggers: [],
 		instanceTypes: [],
+		entryTypes: [],
 	};
 }
 </script>
