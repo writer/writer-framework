@@ -472,22 +472,22 @@ class AppProcess(multiprocessing.Process):
         init_stdout_container = ['']
         init_logs_container = ['']
         
-        with (
-            use_stdout_redirect([
-                lambda entry: writer.core.initial_state.add_log_entry("info", "Stdout message during initialization", entry),
-                lambda entry: init_stdout_container.__setitem__(0, entry)
-            ]),
-            use_logging_redirect([
-                lambda entry: writer.core.initial_state.add_log_entry("info", "Logs during initialization", entry),
-                lambda entry: init_logs_container.__setitem__(0, entry)
-            ]),
-        ):
-            writeruserapp.__dict__["logger"] = user_code_logger
-            code = compile(self.run_code, code_path, "exec")
-            exec(code, writeruserapp.__dict__)
-
-        # Save initialization logs to KV storage
-        self._save_initialization_logs(init_stdout_container[0], init_logs_container[0])
+        try:
+            with (
+                use_stdout_redirect([
+                    lambda entry: writer.core.initial_state.add_log_entry("info", "Stdout message during initialization", entry),
+                    lambda entry: init_stdout_container.__setitem__(0, entry)
+                ]),
+                use_logging_redirect([
+                    lambda entry: writer.core.initial_state.add_log_entry("info", "Logs during initialization", entry),
+                    lambda entry: init_logs_container.__setitem__(0, entry)
+                ]),
+            ):
+                writeruserapp.__dict__["logger"] = user_code_logger
+                code = compile(self.run_code, code_path, "exec")
+                exec(code, writeruserapp.__dict__)
+        finally:
+            self._save_initialization_logs(init_stdout_container[0], init_logs_container[0])
 
         # Register non-private functions as handlers
         self.handler_registry.register_module(writeruserapp)
@@ -508,14 +508,10 @@ class AppProcess(multiprocessing.Process):
         
         timestamp = datetime.now(timezone.utc)
         # Match JournalRecord.instance_type logic: 'e' for editor, 'a' for agent
-        instance_type = "editor" if Config.mode == "edit" else "agent"
+        instance_type = "editor" if self.mode == "edit" else "agent"
         instance_type_letter = instance_type[0]  # 'e' or 'a'
-        mode_letter = self.mode[0]  # 'e' for edit, 'r' for run
         
-        # Pattern: wf-init-logs-{e|a}-{timestamp}-{e|r}
-        # First letter (e|a) matches journal's instance_type
-        # Last letter (e|r) indicates the actual mode (edit or run)
-        key = f"{INIT_LOGS_KEY_PREFIX}{instance_type_letter}-{int(timestamp.timestamp() * 1000)}-{mode_letter}"
+        key = f"{INIT_LOGS_KEY_PREFIX}{instance_type_letter}-{int(timestamp.timestamp() * 1000)}"
         data = {
             "timestamp": timestamp.isoformat(),
             "instanceType": instance_type,
