@@ -155,7 +155,11 @@ const blockTabs = computed(() => {
 watch(
 	blockTabs,
 	(tabs) => {
-		if (!activeTab.value && tabs.length > 0) {
+		if (!tabs.length) {
+			activeTab.value = "";
+			return;
+		}
+		if (!tabs.some((tab) => tab.value === activeTab.value)) {
 			activeTab.value = tabs[0].value;
 		}
 	},
