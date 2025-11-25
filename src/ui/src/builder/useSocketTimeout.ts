@@ -78,6 +78,8 @@ export function useSocketTimeout(wf: Core, timeoutMin: number) {
 
 	// cancel closing socket timer
 	watch(canCloseSocket, () => {
+		wf.skipKeepAliveSocketMsg.value = canCloseSocket.value;
+
 		if (!canCloseSocket.value) {
 			clearSchedule();
 		} else if (document.visibilityState === "hidden") {
