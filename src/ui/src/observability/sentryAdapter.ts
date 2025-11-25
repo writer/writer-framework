@@ -5,10 +5,6 @@ import { getParsedHash } from "@/core/navigation";
 import type * as SentryVue from "@sentry/vue";
 
 export const SENTRY_DSN_ENV = "VITE_SENTRY_DSN";
-export const SENTRY_ENABLED_ENV = "VITE_SENTRY_ENABLED";
-export const SENTRY_ENVIRONMENT_ENV = "VITE_SENTRY_ENVIRONMENT";
-export const SENTRY_TRACES_SAMPLE_RATE_ENV = "VITE_SENTRY_TRACES_SAMPLE_RATE";
-export const SENTRY_REPLAY_SAMPLE_RATE_ENV = "VITE_SENTRY_REPLAY_SAMPLE_RATE";
 
 interface SentryApi {
 	captureException: typeof SentryVue.captureException;
@@ -98,7 +94,7 @@ export class SentryAdapter implements ObservabilityProvider {
 	private router: unknown = null;
 
 	isEnabled(): boolean {
-		return import.meta.env[SENTRY_ENABLED_ENV] !== "false";
+		return !!import.meta.env[SENTRY_DSN_ENV];
 	}
 
 	getName(): string {
@@ -180,20 +176,19 @@ export class SentryAdapter implements ObservabilityProvider {
 				}
 			}
 
-			const environment =
-				import.meta.env[SENTRY_ENVIRONMENT_ENV] ||
-				import.meta.env.MODE ||
-				"production";
+			const apiBaseUrl =
+				import.meta.env.VITE_WRITER_BASE_URL ?? window.location.origin;
+
 			const tracesSampleRate = parseFloat(
-				import.meta.env[SENTRY_TRACES_SAMPLE_RATE_ENV] || "1.0",
+				import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || "0.1",
 			);
 			const replaySampleRate = parseFloat(
-				import.meta.env[SENTRY_REPLAY_SAMPLE_RATE_ENV] || "0.1",
+				import.meta.env.VITE_SENTRY_REPLAY_SAMPLE_RATE || "0.1",
 			);
 
 			const initConfig: SentryInitConfig = {
 				dsn,
-				environment,
+				environment: apiBaseUrl,
 				tracesSampleRate,
 				replay: {
 					sampleRate: replaySampleRate,
@@ -259,7 +254,7 @@ export class SentryAdapter implements ObservabilityProvider {
 			this._setInitialMetadata(SentryModule);
 			this._setupRouteTracking();
 
-			console.info(`Sentry initialized (environment: ${environment})`);
+			console.info(`Sentry initialized (environment: ${apiBaseUrl})`);
 			return true;
 		} catch (error) {
 			console.warn(
