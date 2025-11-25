@@ -374,6 +374,23 @@ export class WriterApi {
 
 		return allTools;
 	}
+
+	async fetchConfigJs(): Promise<string> {
+		const url = new URL(`/env/config.js`, "https://app.qordobadev.com");
+		debugger;
+		const res = await fetch(url, {
+			signal: this.#signal,
+			credentials: "include",
+			headers: {
+				"X-Client": "Framework",
+			},
+		});
+		if (!res.ok) {
+			const errorText = await res.text();
+			throw Error(errorText);
+		}
+		return res.text();
+	}
 }
 
 export type WriterApiUser = Pick<
