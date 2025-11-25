@@ -169,6 +169,7 @@ export const enum FieldType {
 	Tools = "Tools",
 	ComponentPicker = "Component",
 	Code = "Code",
+	Eval = "Eval",
 	BlueprintKey = "Blueprint Key",
 	BlueprintId = "Blueprint Id",
 	Handler = "Handler",

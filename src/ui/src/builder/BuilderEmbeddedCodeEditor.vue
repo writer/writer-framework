@@ -5,6 +5,7 @@
 		:class="{
 			'BuilderEmbeddedCodeEditor--full': variant === 'full',
 			'BuilderEmbeddedCodeEditor--halfScreen': variant === 'half-screen',
+			'BuilderEmbeddedCodeEditor--singleLine': variant === 'single-line',
 		}"
 	>
 		<div ref="editorContainerEl" class="editorContainer"></div>
@@ -28,10 +29,12 @@ const editorContainerEl = useTemplateRef("editorContainerEl");
 const resizeObserver = new ResizeObserver(updateDimensions);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 
+type EditorVariant = "full" | "minimal" | "half-screen" | "single-line";
+
 const props = defineProps({
 	language: { type: String, required: false, default: "" },
 	variant: {
-		type: String as PropType<"full" | "minimal" | "half-screen">,
+		type: String as PropType<EditorVariant>,
 		required: true,
 	},
 	modelValue: { type: String, required: false, default: "" },
@@ -41,9 +44,11 @@ const props = defineProps({
 const { modelValue, disabled, language } = toRefs(props);
 const emit = defineEmits(["update:modelValue"]);
 
-const VARIANTS_SETTINGS: Record<
-	string,
-	Partial<monaco.editor.IStandaloneEditorConstructionOptions>
+const VARIANTS_SETTINGS: Partial<
+	Record<
+		EditorVariant,
+		Partial<monaco.editor.IStandaloneEditorConstructionOptions>
+	>
 > = {
 	full: {
 		minimap: {
@@ -56,6 +61,27 @@ const VARIANTS_SETTINGS: Record<
 		},
 		lineNumbers: "off",
 		folding: false,
+	},
+	"single-line": {
+		minimap: {
+			enabled: false,
+		},
+		wordWrap: "off",
+		lineNumbers: "off",
+		lineNumbersMinChars: 0,
+		overviewRulerLanes: 0,
+		overviewRulerBorder: false,
+		lineDecorationsWidth: 0,
+		hideCursorInOverviewRuler: true,
+		glyphMargin: false,
+		folding: false,
+		scrollBeyondLastColumn: 0,
+		scrollbar: { horizontal: "auto", vertical: "hidden" },
+		renderLineHighlight: "none",
+		find: {
+			addExtraSpaceOnTop: false,
+			autoFindInSelection: "never",
+		},
 	},
 };
 
@@ -116,6 +142,19 @@ onUnmounted(() => {
 
 .BuilderEmbeddedCodeEditor--halfScreen {
 	min-height: 50vh;
+}
+
+.BuilderEmbeddedCodeEditor--singleLine {
+	min-height: 35px;
+	max-height: 35px;
+	height: 35px;
+	padding: 8.5px 12px 8.5px 12px;
+	display: flex;
+	align-items: center;
+}
+
+.BuilderEmbeddedCodeEditor--singleLine .editorContainer {
+	min-height: 18px;
 }
 
 .editorContainer {
