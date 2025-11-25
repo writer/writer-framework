@@ -91,6 +91,7 @@ export type RawJournalEntry = {
 	blockOutputs: Record<string, BlockOutput>;
 	instanceType: "editor" | "agent";
 	result: "success" | "error" | "stopped";
+	isRunable?: boolean;
 };
 
 export type JournalEntry = RawJournalEntry & {

@@ -19,6 +19,7 @@
 				variant="neutral"
 				size="small"
 				type="button"
+				:disabled="entry.isRunable === false"
 				@click="reRunExecution"
 			>
 				<WdsIcon name="play" />
