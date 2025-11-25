@@ -556,10 +556,6 @@ class AppProcess(multiprocessing.Process):
 
         import writer
 
-        # Load custom blocks from .wf/blocks/ directory
-        from writer.blocks.custom_block_registry import load_custom_blocks_from_project
-        load_custom_blocks_from_project(self.app_path)
-
         terminate_early = False
 
         try:

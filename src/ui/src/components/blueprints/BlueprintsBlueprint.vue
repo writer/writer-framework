@@ -112,12 +112,17 @@
 		<BlueprintToolbar
 			class="blueprintsToolbar"
 			@autogen-click="showAutogen"
+			@deploy="showDeploy"
 		/>
 		<WdsModal v-if="isAutogenModalShown">
 			<BlueprintsAutogen
 				@block-generation="handleBlockGeneration"
 			></BlueprintsAutogen>
 		</WdsModal>
+		<BuilderSettingsDeploySharedBlueprint
+			v-model="isDeployModalShown"
+			:blueprint-id="blueprintComponentId"
+		/>
 		<BlueprintNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
@@ -228,6 +233,10 @@ const BlueprintToolbar = defineAsyncComponentWithLoader({
 	loadingComponentProps: { width: "250px", height: "40px" },
 });
 
+const BuilderSettingsDeploySharedBlueprint = defineAsyncComponentWithLoader({
+	loader: () => import("@/builder/settings/BuilderSettingsDeploySharedBlueprint.vue"),
+});
+
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const notesManager = inject(injectionKeys.notesManager);
@@ -240,6 +249,11 @@ const isAutogenModalShown = inject(
 );
 function showAutogen() {
 	isAutogenModalShown.value = true;
+}
+
+const isDeployModalShown = ref(false);
+function showDeploy() {
+	isDeployModalShown.value = true;
 }
 
 const rootEl = useTemplateRef("rootEl");
@@ -570,7 +584,48 @@ function handleDrop(ev: DragEvent) {
 	const { x, y } = getAdjustedCoordinates(ev);
 	if (x < 0 || y < 0) return;
 
-	createNode(draggedType, { x, y });
+	// Read drag content for shared blueprints
+	let dragContent: Record<string, unknown> = {};
+	if (draggedType === "shared_blueprint") {
+		// Get the sourceBlueprintId from the MIME type (extracted in getComponentInfoFromDrag)
+		const sourceBlueprintIdFromMime = (dropInfo as { sourceBlueprintId?: string }).sourceBlueprintId;
+		
+		// Try text/plain first (more reliable across browsers)
+		try {
+			const textData = ev.dataTransfer.getData("text/plain");
+			if (textData && textData.trim() && textData !== "{}") {
+				const parsed = JSON.parse(textData);
+				if (Object.keys(parsed).length > 0 && parsed.sourceBlueprintId) {
+					dragContent = parsed;
+				}
+			}
+		} catch {
+			// Ignore JSON parse errors
+		}
+		
+		// Fallback: Try the custom MIME type with the ID
+		if (Object.keys(dragContent).length === 0 && sourceBlueprintIdFromMime) {
+			const expectedMimeType = `application/json;writer=shared_blueprint,${sourceBlueprintIdFromMime}`;
+			try {
+				const jsonData = ev.dataTransfer.getData(expectedMimeType);
+				if (jsonData && jsonData.trim() && jsonData !== "{}") {
+					const parsed = JSON.parse(jsonData);
+					if (Object.keys(parsed).length > 0) {
+						dragContent = parsed;
+					}
+				}
+			} catch {
+				// Ignore JSON parse errors
+			}
+		}
+		
+		// Final fallback: Use the sourceBlueprintId from the MIME type itself
+		if (Object.keys(dragContent).length === 0 && sourceBlueprintIdFromMime) {
+			dragContent = { sourceBlueprintId: sourceBlueprintIdFromMime };
+		}
+	}
+
+	createNode(draggedType, { x, y }, dragContent);
 }
 
 function handleArrowClick(ev: MouseEvent, arrowId: number) {
@@ -845,7 +900,7 @@ async function handleMouseup(ev: MouseEvent) {
 	});
 }
 
-function createNode(type: string, point: Point) {
+function createNode(type: string, point: Point, content?: Record<string, unknown>) {
 	const otherRectangles = nodes.value
 		.map((c) => getNodeRectange(c.id))
 		.filter(Boolean);
@@ -854,7 +909,11 @@ function createNode(type: string, point: Point) {
 		otherRectangles,
 		GRID_TICK,
 	);
-	createAndInsertComponent(type, blueprintComponentId, undefined, { x, y });
+	// Pass content for shared blueprints (includes sourceBlueprintId)
+	const initProps = Object.keys(content ?? {}).length > 0
+		? { x, y, content: content as Record<string, string> }
+		: { x, y };
+	createAndInsertComponent(type, blueprintComponentId, undefined, initProps);
 }
 
 function findAndCenterBlock(componentId: Component["id"]) {

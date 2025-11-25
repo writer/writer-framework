@@ -12,6 +12,7 @@ from writer.blocks.parsejson import ParseJSON
 from writer.blocks.returnvalue import ReturnValue
 from writer.blocks.runblueprint import RunBlueprint
 from writer.blocks.setstate import SetState
+from writer.blocks.shared_blueprint import SharedBlueprint
 from writer.blocks.uieventtrigger import UIEventTrigger
 from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 from writer.blocks.writeraddtokg import WriterAddToKG

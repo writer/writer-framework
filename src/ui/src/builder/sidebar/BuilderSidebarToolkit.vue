@@ -5,6 +5,10 @@
 		:placeholder="placeholder"
 		:search-count="searchCount"
 	>
+		<div v-if="isEditingSharedBlueprint" class="sharedBlueprintNotice">
+			<WdsIcon name="info" />
+			<span>Some blocks are hidden because they can't be used in shared blueprints.</span>
+		</div>
 		<div
 			v-for="(tools, categoryId) in categories"
 			:key="categoryId"
@@ -12,24 +16,12 @@
 		>
 			<div class="header">{{ categoryId }}</div>
 			<div class="tools">
+				<!-- Block Library button for Shared Blueprints category -->
 				<div
 					v-if="
-						categoryId === 'Custom Blocks' &&
+						categoryId === 'Shared Blueprints' &&
 						rootComponentId == 'blueprints_root' &&
-						isCustomBlocksEnabled
-					"
-					class="tool tool--create"
-					@click="showCreateCustomBlock"
-				>
-					<WdsIcon name="plus" />
-					<div class="name">Create Custom Block</div>
-				</div>
-				<!-- Block Library button for Custom Blocks category -->
-				<div
-					v-if="
-						categoryId === 'Custom Blocks' &&
-						rootComponentId == 'blueprints_root' &&
-						isCustomBlocksEnabled
+						isSharedBlueprintsEnabled
 					"
 					class="tool tool--create"
 					@click="showBlockLibrary"
@@ -42,9 +34,9 @@
 					:key="tool.type"
 					class="tool"
 					:class="{
-						'tool--custom':
-							categoryId === 'Custom Blocks' &&
-							isCustomBlocksEnabled,
+						'tool--shared':
+							categoryId === 'Shared Blueprints' &&
+							isSharedBlueprintsEnabled,
 					}"
 					:data-writer-tooltip="tool.description"
 					data-writer-tooltip-placement="right"
@@ -52,7 +44,9 @@
 					draggable="true"
 					:data-component-type="tool.type"
 					@dragend="handleDragEnd($event)"
-					@dragstart="handleDragStart($event, tool.type)"
+					@dragstart="
+						handleDragStart($event, tool.type, tool.sourceBlueprintId)
+					"
 				>
 					<SharedImgWithFallback
 						:alt="`(Icon for ${tool.name})`"
@@ -64,13 +58,19 @@
 					<div class="name">{{ tool.name }}</div>
 					<button
 						v-if="
-							categoryId === 'Custom Blocks' &&
-							isCustomBlocksEnabled
+							categoryId === 'Shared Blueprints' &&
+							isSharedBlueprintsEnabled &&
+							tool.sourceBlueprintId
 						"
 						class="tool__delete"
 						:data-writer-tooltip="`Delete ${tool.name}`"
 						data-writer-tooltip-placement="right"
-						@click.stop="handleDeleteBlock(tool.type, tool.name)"
+						@click.stop="
+							handleDeleteSharedBlueprint(
+								tool.sourceBlueprintId,
+								tool.name,
+							)
+						"
 					>
 						<WdsIcon name="trash" />
 					</button>
@@ -92,12 +92,8 @@
 			</div>
 		</template>
 	</BuilderSidebarPanel>
-	<BuilderSettingsCustomBlock
-		v-if="isCreateCustomBlockModalShown && isCustomBlocksEnabled"
-		v-model="isCreateCustomBlockModalShown"
-	/>
 	<BuilderBlockLibraryPanel
-		v-if="isCustomBlocksEnabled"
+		v-if="isSharedBlueprintsEnabled"
 		v-model="isBlockLibraryModalShown"
 	/>
 </template>
@@ -116,7 +112,6 @@ import { useDragDropComponent } from "../useDragDropComponent";
 import { Component } from "@/writerTypes";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
-import BuilderSettingsCustomBlock from "../settings/BuilderSettingsCustomBlock.vue";
 import { useToasts } from "../useToast";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
@@ -134,10 +129,6 @@ function showAutogen() {
 	isAutogenModalShown.value = true;
 }
 
-const isCreateCustomBlockModalShown = ref(false);
-function showCreateCustomBlock() {
-	isCreateCustomBlockModalShown.value = true;
-}
 
 const isBlockLibraryModalShown = ref(false);
 function showBlockLibrary() {
@@ -149,13 +140,39 @@ const wfbm = inject(injectionKeys.builderManager);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
 const query = ref("");
 
-const isCustomBlocksEnabled = computed(
+const isSharedBlueprintsEnabled = computed(
 	() =>
 		Array.isArray(wf.featureFlags.value) &&
-		wf.featureFlags.value.includes("custom_blocks"),
+		wf.featureFlags.value.includes("shared_blueprints"),
 );
 
 const rootComponentId = wfbm.activeRootId;
+
+// Get shared blueprints directly from component tree
+const sharedBlueprintsFromTree = computed(() => {
+	if (!isSharedBlueprintsEnabled.value) return [];
+	const allBlueprints = wf.getComponents("blueprints_root", {
+		sortedByPosition: true,
+	});
+	return allBlueprints.filter((c) => c.content?.isSharedBlueprint === true);
+});
+
+// Block types that should not be available when editing a shared blueprint
+const RESTRICTED_BLOCKS_IN_SHARED_BLUEPRINT = new Set([
+	"blueprints_runblueprint",
+	"blueprints_apitrigger",
+	"blueprints_uieventtrigger",
+	"blueprints_crontrigger",
+]);
+
+// Check if we're currently editing a shared blueprint
+const isEditingSharedBlueprint = computed(() => {
+	if (rootComponentId.value !== "blueprints_root") return false;
+	const activePageId = wf.activePageId.value;
+	if (!activePageId) return false;
+	const activePage = wf.getComponentById(activePageId);
+	return activePage?.content?.isSharedBlueprint === true;
+});
 
 const displayedCategories = [
 	"Layout",
@@ -166,7 +183,7 @@ const displayedCategories = [
 	"Logic",
 	"Triggers",
 	"Other",
-	"Custom Blocks",
+	"Shared Blueprints",
 ];
 
 const activeToolkit = computed(() => {
@@ -187,9 +204,10 @@ const categories = computed<
 		.filter(
 			([categoryId, tools]) =>
 				tools.length > 0 ||
-				(categoryId === "Custom Blocks" &&
+				(categoryId === "Shared Blueprints" &&
 					rootComponentId.value == "blueprints_root" &&
-					isCustomBlocksEnabled.value),
+					isSharedBlueprintsEnabled.value &&
+					!isEditingSharedBlueprint.value),
 		);
 
 	return Object.fromEntries(categoriesWithTools);
@@ -210,22 +228,23 @@ const placeholder = computed(() => {
 });
 
 function getRelevantToolsInCategory(categoryId: string) {
-	if (categoryId === "Custom Blocks") {
-		if (!isCustomBlocksEnabled.value) {
+	if (categoryId === "Shared Blueprints") {
+		// Don't show shared blueprints when editing a shared blueprint (no nesting for now)
+		if (!isSharedBlueprintsEnabled.value || isEditingSharedBlueprint.value) {
 			return [];
 		}
-		const typeList = getSupportedComponentTypes().filter((type) => {
-			if (!type.startsWith("custom_")) return false;
-			const def = getComponentDefinition(type);
-			if (!def.toolkit && activeToolkit.value !== "core") return false;
-			if (def.toolkit && def.toolkit !== activeToolkit.value)
-				return false;
-			if (def.deprecated) return false;
-			return true;
-		});
-		const enriched = typeList.map((type) => {
-			const { name, description } = getComponentDefinition(type);
-			return { type, name, description, category: "Custom Blocks" };
+		// Read shared blueprints directly from component tree
+		const enriched = sharedBlueprintsFromTree.value.map((blueprint) => {
+			const name = blueprint.content?.key || "Untitled Blueprint";
+			const description =
+				blueprint.content?.description || "A shared blueprint";
+			return {
+				type: `shared_blueprint:${blueprint.id}`,
+				name,
+				description,
+				category: "Shared Blueprints",
+				sourceBlueprintId: blueprint.id,
+			};
 		});
 		const q = query.value.toLocaleLowerCase();
 		const queryApplied = enriched
@@ -241,11 +260,13 @@ function getRelevantToolsInCategory(categoryId: string) {
 
 	const typeList = getSupportedComponentTypes().filter((type) => {
 		const def = getComponentDefinition(type);
-		if (type.startsWith("custom_")) return false;
+		if (type.startsWith("shared_")) return false;
 		if (def.category != categoryId) return false;
 		if (!def.toolkit && activeToolkit.value !== "core") return false;
 		if (def.toolkit && def.toolkit !== activeToolkit.value) return false;
 		if (def.deprecated) return false;
+		// Filter out restricted blocks when editing a shared blueprint
+		if (isEditingSharedBlueprint.value && RESTRICTED_BLOCKS_IN_SHARED_BLUEPRINT.has(type)) return false;
 		return true;
 	});
 	const enriched = typeList.map((type) => {
@@ -262,9 +283,27 @@ function getRelevantToolsInCategory(categoryId: string) {
 	return queryApplied;
 }
 
-function handleDragStart(ev: DragEvent, type: Component["type"]) {
+function handleDragStart(
+	ev: DragEvent,
+	type: Component["type"],
+	sourceBlueprintId?: string,
+) {
 	wfbm.setSelection(null);
-	ev.dataTransfer.setData(`application/json;writer=${type},`, "{}");
+	// For shared blueprints, include the source blueprint ID in both the MIME type and the JSON payload
+	// This provides redundancy in case the JSON payload is not preserved by the browser
+	if (sourceBlueprintId) {
+		const jsonData = JSON.stringify({ sourceBlueprintId });
+		// Include sourceBlueprintId in the MIME type for reliable extraction
+		// Format: application/json;writer=shared_blueprint,SOURCE_BLUEPRINT_ID
+		ev.dataTransfer.setData(
+			`application/json;writer=shared_blueprint,${sourceBlueprintId}`,
+			jsonData,
+		);
+		// Also set as text/plain as fallback
+		ev.dataTransfer.setData("text/plain", jsonData);
+	} else {
+		ev.dataTransfer.setData(`application/json;writer=${type},`, "{}");
+	}
 }
 
 function handleDragEnd(ev: DragEvent) {
@@ -272,42 +311,42 @@ function handleDragEnd(ev: DragEvent) {
 }
 
 function getToolIcons(tool: ReturnType<typeof getRelevantToolsInCategory>[0]) {
+	// For shared blueprints from tree, use generic shared blueprint icon
+	if (tool.sourceBlueprintId) {
+		return [
+			`/components/shared_blueprint.svg`,
+			`/components/blueprints_category_Shared Blueprints.svg`,
+		].map((p) => convertAbsolutePathtoFullURL(p));
+	}
 	return [
 		`/components/${tool.type}.svg`,
 		`/components/${activeToolkit.value == "blueprints" ? "blueprints_" : ""}category_${tool.category}.svg`,
 	].map((p) => convertAbsolutePathtoFullURL(p));
 }
 
-async function handleDeleteBlock(blockType: string, blockName: string) {
+function handleDeleteSharedBlueprint(
+	blueprintId: string,
+	blueprintName: string,
+) {
 	if (
 		!confirm(
-			`Are you sure you want to delete the custom block "${blockName}"?`,
+			`Are you sure you want to delete the shared blueprint "${blueprintName}"?`,
 		)
 	) {
 		return;
 	}
 
 	try {
-		const response = await fetch(`/api/custom-blocks/${blockType}`, {
-			method: "DELETE",
-		});
-
-		if (!response.ok) {
-			const error = await response
-				.json()
-				.catch(() => ({ detail: "Failed to delete block" }));
-			throw new Error(error.detail || "Failed to delete block");
-		}
-
+		// Delete the blueprint component directly from the component tree
+		wf.deleteComponent(blueprintId);
 		pushToast({
 			type: "success",
-			message: `Custom block '${blockName}' deleted.`,
+			message: `Shared blueprint '${blueprintName}' deleted.`,
 		});
-		await wf.init();
 	} catch (error) {
 		pushToast({
 			type: "error",
-			message: `Failed to delete block: ${error instanceof Error ? error.message : String(error)}`,
+			message: `Failed to delete shared blueprint: ${error instanceof Error ? error.message : String(error)}`,
 		});
 	}
 }
@@ -318,6 +357,24 @@ watch(activeToolkit, () => {
 </script>
 
 <style scoped>
+.sharedBlueprintNotice {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	padding: 12px;
+	margin-bottom: 12px;
+	background: var(--builderSubtleBackgroundColor, #f8fafc);
+	border-radius: 6px;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--builderSecondaryTextColor);
+}
+
+.sharedBlueprintNotice :deep(svg) {
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
 .category .header {
 	font-size: 12px;
 	font-weight: 500;
@@ -345,7 +402,7 @@ watch(activeToolkit, () => {
 	position: relative;
 }
 
-.tool--custom {
+.tool--shared {
 	grid-template-columns: 18px 1fr auto;
 }
 
@@ -387,7 +444,7 @@ watch(activeToolkit, () => {
 		background 0.2s;
 }
 
-.tool--custom:hover .tool__delete {
+.tool--shared:hover .tool__delete {
 	display: flex;
 }
 

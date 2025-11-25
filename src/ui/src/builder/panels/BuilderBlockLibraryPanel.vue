@@ -1,6 +1,6 @@
 <template>
 	<WdsModal
-		v-if="isOpen && isCustomBlocksEnabled"
+		v-if="isOpen && isSharedBlueprintsEnabled"
 		title="Block Library"
 		size="wide"
 		display-close-button
@@ -15,14 +15,6 @@
 						left-icon="search"
 					/>
 				</div>
-				<WdsButton
-					variant="primary"
-					size="small"
-					@click.stop="showCreateModal"
-				>
-					<WdsIcon name="plus" />
-					Create Block
-				</WdsButton>
 			</div>
 
 			<div class="BuilderBlockLibraryPanel__content">
@@ -54,22 +46,13 @@
 			</div>
 		</div>
 	</WdsModal>
-
-	<BuilderSettingsBlockLibrary
-		v-if="isCreateModalShown"
-		v-model="isCreateModalShown"
-		@created="handleBlockCreated"
-	/>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, inject, nextTick } from "vue";
+import { ref, computed, watch, inject } from "vue";
 import WdsModal from "@/wds/WdsModal.vue";
 import BuilderBlockLibraryItem from "./BuilderBlockLibraryItem.vue";
-import BuilderSettingsBlockLibrary from "../settings/BuilderSettingsBlockLibrary.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import WdsButton from "@/wds/WdsButton.vue";
-import WdsIcon from "@/wds/WdsIcon.vue";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "../useToast";
 import { useDebouncer } from "@/composables/useDebouncer";
@@ -90,10 +73,10 @@ const isOpen = computed({
 	set: (value) => emit("update:modelValue", value),
 });
 
-const isCustomBlocksEnabled = computed(
+const isSharedBlueprintsEnabled = computed(
 	() =>
 		Array.isArray(wf.featureFlags.value) &&
-		wf.featureFlags.value.includes("custom_blocks"),
+		wf.featureFlags.value.includes("shared_blueprints"),
 );
 
 const searchQuery = ref("");
@@ -107,10 +90,9 @@ const blocks = ref<
 	}>
 >([]);
 const isLoading = ref(false);
-const isCreateModalShown = ref(false);
 
 async function loadBlocks() {
-	if (!isCustomBlocksEnabled.value) return;
+	if (!isSharedBlueprintsEnabled.value) return;
 
 	isLoading.value = true;
 	try {
@@ -137,22 +119,6 @@ async function loadBlocks() {
 	}
 }
 
-async function showCreateModal() {
-	// Close the Block Library modal temporarily to avoid z-index issues
-	isOpen.value = false;
-	// Use nextTick to ensure the modal closes before opening the create modal
-	await nextTick();
-	isCreateModalShown.value = true;
-}
-
-async function handleBlockCreated() {
-	isCreateModalShown.value = false;
-	await loadBlocks();
-	// Reopen the Block Library modal after the block is created
-	await nextTick();
-	isOpen.value = true;
-}
-
 function handleBlockInstalled() {
 	// Block will reinitialize the session, so no need to do anything here
 }
@@ -171,7 +137,7 @@ function handleClose() {
 
 // Load blocks when modal opens
 watch(isOpen, (newValue) => {
-	if (newValue && isCustomBlocksEnabled.value) {
+	if (newValue && isSharedBlueprintsEnabled.value) {
 		loadBlocks();
 	}
 });

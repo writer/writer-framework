@@ -23,7 +23,6 @@ import {
 	getSupportedComponentTypes,
 	getComponentDefinition,
 	registerAbstractComponentTemplate,
-	clearCustomBlockTemplates,
 	setActiveFeatureFlags,
 } from "./templateMap";
 import * as typeHierarchy from "./typeHierarchy";
@@ -177,9 +176,6 @@ export function generateCore() {
 	function loadAbstractTemplates(
 		abstractTemplates: Record<string, AbstractTemplate>,
 	) {
-		// Clear custom block templates before reloading to remove deleted blocks
-		clearCustomBlockTemplates();
-
 		Object.entries(abstractTemplates ?? {}).forEach(
 			([type, abstractTemplate]) => {
 				registerAbstractComponentTemplate(type, abstractTemplate);

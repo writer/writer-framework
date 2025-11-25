@@ -260,13 +260,4 @@ export function registerAbstractComponentTemplate(
 	abstractTemplateMap[type] = abstractTemplate;
 }
 
-export function clearCustomBlockTemplates() {
-	const customBlockTypes = Object.keys(abstractTemplateMap).filter((type) =>
-		type.startsWith("custom_"),
-	);
-	for (const type of customBlockTypes) {
-		delete abstractTemplateMap[type];
-	}
-}
-
 export default templateMap;

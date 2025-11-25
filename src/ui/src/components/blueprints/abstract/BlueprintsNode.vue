@@ -30,7 +30,7 @@
 				<BlueprintsNodeNamer
 					:component-id="componentId"
 					class="nodeNamer"
-					:block-name="def.name"
+					:block-name="displayName"
 				></BlueprintsNodeNamer>
 				<div v-if="isDeprecated" class="deprecationNotice">
 					Deprecated
@@ -171,6 +171,24 @@ const isDeprecated = computed(() => {
 });
 
 const { component, definition: def } = useComponentInformation(wf, componentId);
+
+// For shared blueprints, display the source blueprint's name instead of "Shared Blueprint"
+const displayName = computed(() => {
+	if (component.value?.type === "shared_blueprint") {
+		const sourceBlueprintId = component.value?.content?.sourceBlueprintId;
+		if (sourceBlueprintId) {
+			const sourceBlueprint = wf.getComponentById(sourceBlueprintId);
+			if (sourceBlueprint) {
+				const blueprintName = sourceBlueprint.content?.key;
+				if (blueprintName) {
+					return blueprintName;
+				}
+			}
+		}
+		// Fallback: if sourceBlueprintId is not set, still try to show "Shared Blueprint" from definition
+	}
+	return def.value?.name || "Unknown";
+});
 
 const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == null) return null;
@@ -394,7 +412,7 @@ const possibleImageUrls = computed(() => {
 		`/components/blueprints_category_${def.value.category}.svg`,
 	];
 
-	if (wf.featureFlags.value.includes("custom_block_icons")) {
+	if (wf.featureFlags.value.includes("shared_blueprint_icons")) {
 		paths.unshift(`/static/components/${component.value.id}.svg`);
 	}
 

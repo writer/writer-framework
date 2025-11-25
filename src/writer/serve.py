@@ -15,6 +15,7 @@ import tempfile
 import textwrap
 import time
 import typing
+import uuid
 from contextlib import asynccontextmanager, suppress
 from importlib.machinery import ModuleSpec
 from typing import (
@@ -41,7 +42,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from writer import VERSION, abstract
+from writer import VERSION, abstract, wf_project
 from writer.ai import Graph
 from writer.app_runner import AppRunner
 from writer.blocks.block_library_db import (
@@ -50,15 +51,13 @@ from writer.blocks.block_library_db import (
     get_all_versions,
     get_latest_version,
     get_snippet,
+    get_snippet_by_identity,
     list_snippets,
 )
-from writer.blocks.custom_block_registry import (
-    CustomBlockMetadata,
-    load_block_from_directory,
-    make_blocks_dir,
-    register_custom_block,
-    sanitize_block_name,
-    unregister_custom_block,
+from writer.blocks.shared_blueprint_registry import (
+    analyze_dependencies,
+    filter_problematic_components,
+    remap_component_ids,
 )
 from writer.ss_types import (
     AppProcessServerResponse,
@@ -300,112 +299,122 @@ def get_asgi_app(
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid upload.")
 
-    def _create_and_register_block(
-        block_name: str, metadata_dict: dict, code: str
-    ) -> str:
-        """
-        Create a block directory, write files, and register the block.
-
-        Args:
-            block_name: Name of the block
-            metadata_dict: Block metadata dictionary
-            code: Block Python code
-
-        Returns:
-            block_type: The registered block type identifier
-        """
-        sanitized_name = sanitize_block_name(block_name).replace("custom_", "")
-        blocks_dir = make_blocks_dir(app_runner.app_path)
-        block_dir = blocks_dir / sanitized_name
-        block_dir.mkdir(parents=True, exist_ok=True)
-
-        json_path = block_dir / "block.json"
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(metadata_dict, f, indent=2, ensure_ascii=False)
-
-        py_path = block_dir / "block.py"
-        with open(py_path, "w", encoding="utf-8") as f:
-            f.write(code)
-
-        block_type = sanitize_block_name(block_name)
-        metadata = CustomBlockMetadata(**metadata_dict)
-        register_custom_block(block_type, metadata, code)
-
-        return block_type
-
-    @app.post("/api/custom-blocks")
-    async def create_custom_block(request: Request):
-        """Create a new custom block."""
+    @app.post("/api/shared-blueprints/deploy")
+    async def deploy_shared_blueprint(request: Request):
+        """Deploy a shared blueprint to the block library."""
         if serve_mode != "edit":
             raise HTTPException(status_code=403, detail="Invalid mode.")
 
         data = await _get_payload_as_json(request)
 
-        block_name = data["name"]
+        required_fields = ["blueprint_id", "name", "description"]
+        for field in required_fields:
+            if field not in data:
+                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+
+        blueprint_id = data["blueprint_id"]
+
+        # Get app_id and org_id from headers or environment
+        app_id = request.headers.get("x-agent-id") or os.getenv("WRITER_APP_ID", "")
+        org_id = request.headers.get("x-organization-id") or os.getenv("WRITER_ORG_ID", "")
+
+        if not app_runner.bmc_components:
+            raise HTTPException(status_code=404, detail="No components found.")
+
+        # Verify the blueprint exists and is a shared blueprint
+        blueprint = app_runner.bmc_components.get(blueprint_id)
+        if not blueprint or blueprint.get("type") != "blueprints_blueprint":
+            raise HTTPException(status_code=404, detail="Blueprint not found.")
+
+        if not blueprint.get("content", {}).get("isSharedBlueprint"):
+            raise HTTPException(status_code=400, detail="Blueprint is not marked as a shared blueprint.")
+
+        # Extract all components that belong to this blueprint (excluding notes)
+        blueprint_components = [
+            comp for comp in app_runner.bmc_components.values()
+            if comp.get("parentId") == blueprint_id and comp.get("type") != "note"
+        ]
+
+        if not blueprint_components:
+            raise HTTPException(status_code=400, detail="Blueprint has no components to deploy.")
+
+        # Filter out problematic components (UI triggers, cron triggers)
+        filtered_components, removed_components = filter_problematic_components(blueprint_components)
+
+        if not filtered_components:
+            raise HTTPException(
+                status_code=400,
+                detail="All components were filtered out. Blueprint contains only triggers that cannot be deployed as a shared blueprint."
+            )
+
+        # Analyze dependencies for warnings
+        dependencies = analyze_dependencies(filtered_components)
+
+        # Generate warnings from dependencies
+        warnings = []
+        if "state_variables" in dependencies:
+            for var in dependencies["state_variables"]:
+                warnings.append(f"Uses state variable: @{{{var}}}")
+        if "vault_keys" in dependencies:
+            for key in dependencies["vault_keys"]:
+                warnings.append(f"Requires vault key: {key}")
+        if "blueprint_references" in dependencies:
+            for ref in dependencies["blueprint_references"]:
+                warnings.append(f"References blueprint: {ref}")
+        if "shared_blueprint_references" in dependencies:
+            for ref in dependencies["shared_blueprint_references"]:
+                warnings.append(f"Uses shared blueprint: {ref}")
+
+        # Remap component IDs to avoid collisions when the blueprint is installed elsewhere
+        remapped_components = remap_component_ids(filtered_components)
+
+        blueprint_name = data["name"]
         metadata_dict = {
             "name": data["name"],
             "description": data["description"],
-            "version": data.get("version", "1.0.0"),
             "author": data.get("author", ""),
-            "state_inputs": data.get("state_inputs", []),
+            "state_inputs": dependencies.get("state_variables", []),
             "state_outputs": data.get("state_outputs", []),
             "dependencies": data.get("dependencies", []),
-            "vault_keys": data.get("vault_keys", []),
+            "vault_keys": dependencies.get("vault_keys", []),
+            "source_blueprint_id": blueprint_id,
         }
 
-        block_type = _create_and_register_block(block_name, metadata_dict, data["code"])
+        # Check if this blueprint already exists in the library (by identity)
+        existing_snippet = get_snippet_by_identity(blueprint_id, app_id, org_id)
 
-        return {"status": "success", "block_type": block_type}
-
-    @app.delete("/api/custom-blocks/{block_type}")
-    async def delete_custom_block(block_type: str):
-        """Delete a custom block."""
-        if serve_mode != "edit":
-            raise HTTPException(status_code=403, detail="Invalid mode.")
-
-        if not block_type.startswith("custom_"):
-            raise HTTPException(status_code=400, detail="Invalid block type.")
-
-        blocks_dir = make_blocks_dir(app_runner.app_path)
-        block_dir = None
-
-        if not blocks_dir.exists():
-            raise HTTPException(status_code=404, detail="Custom blocks directory not found.")
-
-        sanitized_name = block_type.replace("custom_", "")
-        potential_dir = blocks_dir / sanitized_name
-        if potential_dir.exists() and potential_dir.is_dir():
-            block_dir = potential_dir
+        if existing_snippet:
+            # Update existing snippet with new version
+            version_number = create_snippet_version(
+                existing_snippet.id,
+                remapped_components,
+                data["description"],
+                metadata_dict,
+            )
+            snippet_id = existing_snippet.id
         else:
-            block_dir = None
-            for candidate_dir in blocks_dir.iterdir():
-                if not candidate_dir.is_dir():
-                    continue
-                try:
-                    metadata, _ = load_block_from_directory(candidate_dir)
-                    if sanitize_block_name(metadata.name) == block_type:
-                        block_dir = candidate_dir
-                        break
-                except Exception:
-                    continue
-
-        if block_dir is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Block '{block_type}' not found."
+            # Create new snippet
+            snippet_id = create_snippet(
+                title=blueprint_name,
+                visibility="GLOBAL",
+                blueprint_id=blueprint_id,
+                app_id=app_id,
+                org_id=org_id,
+            )
+            version_number = create_snippet_version(
+                snippet_id,
+                remapped_components,
+                data["description"],
+                metadata_dict,
             )
 
-        try:
-            unregister_custom_block(block_type)
-        except KeyError:
-            pass
-
-        try:
-            shutil.rmtree(block_dir)
-        except Exception:
-            raise HTTPException(status_code=500, detail="Failed to delete block directory.")
-
-        return {"status": "success", "message": f"Block '{block_type}' deleted successfully."}
+        return {
+            "status": "success",
+            "snippet_id": snippet_id,
+            "version": version_number,
+            "warnings": warnings,
+            "filtered_components": removed_components,
+        }
 
     @app.post("/api/block-library/blocks")
     async def create_block_in_library(request: Request):
@@ -415,10 +424,13 @@ def get_asgi_app(
 
         data = await _get_payload_as_json(request)
 
-        required_fields = ["name", "description", "code"]
+        required_fields = ["name", "description", "blueprint_components"]
         for field in required_fields:
             if field not in data:
                 raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+
+        if not isinstance(data["blueprint_components"], list):
+            raise HTTPException(status_code=400, detail="blueprint_components must be a list")
 
         title = data["name"]
         snippet_id = create_snippet(title=title, visibility="GLOBAL")
@@ -436,7 +448,7 @@ def get_asgi_app(
 
         version_number = create_snippet_version(
             snippet_id=snippet_id,
-            code=data["code"],
+            blueprint_components=data["blueprint_components"],
             description=data["description"],
             metadata=metadata,
         )
@@ -494,7 +506,7 @@ def get_asgi_app(
             "visibility": snippet.visibility,
             "latest_version": {
                 "version_number": latest_version.version_number,
-                "code": latest_version.code,
+                "blueprint_components": latest_version.blueprint_components,
                 "description": latest_version.description,
                 "metadata": latest_version.metadata,
                 "created_at": latest_version.created_at.isoformat(),
@@ -524,7 +536,7 @@ def get_asgi_app(
 
     @app.post("/api/block-library/blocks/{snippet_id}/install")
     async def install_block_from_library(snippet_id: str):
-        """Install a block from the library to the local project."""
+        """Install a block from the library as a shared blueprint in the component tree."""
         if serve_mode != "edit":
             raise HTTPException(status_code=403, detail="Invalid mode.")
 
@@ -537,13 +549,77 @@ def get_asgi_app(
             raise HTTPException(status_code=404, detail="Block has no versions.")
 
         metadata_dict = latest_version.metadata
-        block_name = metadata_dict.get("name", snippet.title)
+        blueprint_name = metadata_dict.get("name", snippet.title)
+        blueprint_description = metadata_dict.get("description", "")
 
-        block_type = _create_and_register_block(
-            block_name, metadata_dict, latest_version.code
+        # Generate a unique ID for the new blueprint component
+        blueprint_id = uuid.uuid4().hex[:16]
+
+        # Determine the position for the new blueprint
+        existing_blueprints = [
+            comp for comp in (app_runner.bmc_components or {}).values()
+            if comp.get("parentId") == "blueprints_root"
+        ]
+        next_position = len(existing_blueprints)
+
+        # Create the blueprint component
+        blueprint_component = {
+            "id": blueprint_id,
+            "type": "blueprints_blueprint",
+            "parentId": "blueprints_root",
+            "position": next_position,
+            "content": {
+                "key": blueprint_name,
+                "description": blueprint_description,
+                "isSharedBlueprint": True,
+                "librarySnippetId": snippet_id,  # Track source for reference
+            },
+        }
+
+        # Create child components from the stored blueprint_components
+        # Each child component needs a new unique ID and the new blueprint as parent
+        id_mapping = {}
+        child_components = []
+        for idx, comp in enumerate(latest_version.blueprint_components):
+            old_id = comp.get("id", "")
+            new_id = uuid.uuid4().hex[:16]
+            id_mapping[old_id] = new_id
+
+            new_comp = comp.copy()
+            new_comp["id"] = new_id
+            new_comp["parentId"] = blueprint_id
+            new_comp["position"] = idx
+            child_components.append(new_comp)
+
+        # Update toNodeId references in outs to use new IDs
+        for comp in child_components:
+            if "outs" in comp and isinstance(comp["outs"], list):
+                for out in comp["outs"]:
+                    if isinstance(out, dict) and "toNodeId" in out:
+                        old_target = out["toNodeId"]
+                        if old_target in id_mapping:
+                            out["toNodeId"] = id_mapping[old_target]
+
+        # Update app_runner.bmc_components
+        if app_runner.bmc_components is None:
+            app_runner.bmc_components = {}
+
+        app_runner.bmc_components[blueprint_id] = blueprint_component
+        for child in child_components:
+            app_runner.bmc_components[child["id"]] = child
+
+        # Save to disk
+        wf_project.write_files_async(
+            app_runner.wf_project_context,
+            metadata={"writer_version": VERSION},
+            components=app_runner.bmc_components,
         )
 
-        return {"status": "success", "block_type": block_type}
+        return {
+            "status": "success",
+            "blueprint_id": blueprint_id,
+            "blueprint_name": blueprint_name,
+        }
 
     @app.post("/api/block-library/blocks/{snippet_id}/versions")
     async def create_block_version(snippet_id: str, request: Request):
@@ -567,7 +643,7 @@ def get_asgi_app(
 
         version_number = create_snippet_version(
             snippet_id=snippet_id,
-            code=data.get("code", latest_version.code if latest_version else ""),
+            blueprint_components=data.get("blueprint_components", latest_version.blueprint_components if latest_version else []),
             description=data.get("description", latest_version.description if latest_version else ""),
             metadata=metadata,
         )

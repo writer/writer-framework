@@ -8,7 +8,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,10 @@ class SnippetRecord:
     id: str  # UUID
     visibility: str  # "GLOBAL" only for now
     title: str
+    # Identity fields for unique identification
+    blueprint_id: str = ""  # Source blueprint component ID
+    app_id: str = ""  # Application ID
+    org_id: str = ""  # Organization ID
     created_at: datetime = field(default_factory=datetime.utcnow)
 
 
@@ -30,7 +34,7 @@ class SnippetVersionRecord:
     id: str  # UUID
     snippet_id: str
     version_number: int
-    code: str
+    blueprint_components: List[Dict[str, Any]]  # Blueprint component structure
     description: str
     metadata: dict  # name, state_inputs, state_outputs, etc.
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -41,34 +45,74 @@ _snippets: Dict[str, SnippetRecord] = {}
 _snippet_versions: Dict[str, List[SnippetVersionRecord]] = {}
 
 
-def create_snippet(title: str, visibility: str = "GLOBAL") -> str:
+def create_snippet(
+    title: str,
+    visibility: str = "GLOBAL",
+    blueprint_id: str = "",
+    app_id: str = "",
+    org_id: str = "",
+) -> str:
     """
     Create a new snippet record.
 
     Args:
         title: Snippet title
         visibility: Visibility level (default: "GLOBAL")
+        blueprint_id: Source blueprint component ID
+        app_id: Application ID
+        org_id: Organization ID
 
     Returns:
         snippet_id (UUID string)
     """
     snippet_id = str(uuid.uuid4())
-    snippet = SnippetRecord(id=snippet_id, visibility=visibility, title=title)
+    snippet = SnippetRecord(
+        id=snippet_id,
+        visibility=visibility,
+        title=title,
+        blueprint_id=blueprint_id,
+        app_id=app_id,
+        org_id=org_id,
+    )
     _snippets[snippet_id] = snippet
     _snippet_versions[snippet_id] = []
     logger.debug(f"Created snippet: {snippet_id} ({title})")
     return snippet_id
 
 
+def get_snippet_by_identity(
+    blueprint_id: str, app_id: str, org_id: str
+) -> Optional[SnippetRecord]:
+    """
+    Get a snippet by its identity (blueprint_id + app_id + org_id).
+
+    Args:
+        blueprint_id: Source blueprint component ID
+        app_id: Application ID
+        org_id: Organization ID
+
+    Returns:
+        SnippetRecord or None if not found
+    """
+    for snippet in _snippets.values():
+        if (
+            snippet.blueprint_id == blueprint_id
+            and snippet.app_id == app_id
+            and snippet.org_id == org_id
+        ):
+            return snippet
+    return None
+
+
 def create_snippet_version(
-    snippet_id: str, code: str, description: str, metadata: dict
+    snippet_id: str, blueprint_components: List[Dict[str, Any]], description: str, metadata: dict
 ) -> int:
     """
     Create a new version for a snippet.
 
     Args:
         snippet_id: ID of the snippet
-        code: Block Python code
+        blueprint_components: Blueprint component structure (list of component dicts)
         description: Block description
         metadata: Block metadata (name, state_inputs, etc.)
 
@@ -90,7 +134,7 @@ def create_snippet_version(
         id=version_id,
         snippet_id=snippet_id,
         version_number=version_number,
-        code=code,
+        blueprint_components=blueprint_components,
         description=description,
         metadata=metadata,
     )

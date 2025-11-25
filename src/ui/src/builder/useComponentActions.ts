@@ -172,11 +172,23 @@ export function useComponentActions(
 		const newId = generateNewComponentId();
 		const definition = wf.getComponentDefinition(type);
 		const { fields } = definition;
-		const initContent = {};
-		Object.entries(fields ?? {}).map(([fieldKey, field]) => {
-			initContent[fieldKey] =
-				initProperties?.["content"]?.[fieldKey] ?? field.init;
+		// Start with any existing content from initProperties, preserving all values
+		const initContent = { ...(initProperties?.content ?? {}) };
+		// Then initialize fields from the definition, only if not already set in initContent
+		// This ensures that explicitly passed values (like sourceBlueprintId) are preserved
+		Object.entries(fields ?? {}).forEach(([fieldKey, field]) => {
+			// Only set default if the field is not already in initContent
+			// This preserves explicitly set values, even if they're empty strings
+			if (!(fieldKey in initContent)) {
+				initContent[fieldKey] = field.init;
+			}
 		});
+
+		// Ensure sourceBlueprintId is preserved if it was provided (for shared blueprints)
+		// This is a special case since it's not in the field definition but needs to be preserved
+		if (initProperties?.content?.sourceBlueprintId) {
+			initContent.sourceBlueprintId = initProperties.content.sourceBlueprintId;
+		}
 
 		const component = {
 			...(initProperties ?? {}),

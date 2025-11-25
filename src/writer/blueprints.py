@@ -14,12 +14,6 @@ import writer.blocks
 import writer.blocks.base_block
 import writer.core
 import writer.core_ui
-from writer.blocks.custom_block_registry import (
-    load_custom_blocks_from_project,
-    get_registered_custom_blocks,
-    sanitize_block_name,
-    make_blocks_dir,
-)
 from writer.core import get_app_process
 from writer.journal import JournalRecord
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
@@ -293,6 +287,42 @@ class BlueprintRunner:
             execution_environment, self, title=title
         ).run()
 
+    def run_blueprint_from_components(
+        self, components: List[writer.core_ui.Component], execution_environment: Dict, title="Blueprint execution"
+    ):
+        """
+        Execute a blueprint from a list of component structures.
+        
+        Args:
+            components: List of Component objects representing the blueprint structure
+            execution_environment: Execution environment dict
+            title: Title for the execution
+            
+        Returns:
+            Result of blueprint execution
+        """
+        # Temporarily add components to the session component tree so evaluator can find them
+        component_ids = []
+        for component in components:
+            component_ids.append(component.id)
+            # Add to session component tree (session_cmc branch)
+            self.session.session_component_tree.tree_branches[0].components[component.id] = component
+        
+        try:
+            builder = GraphBuilder(
+                components=components,
+                tools=writer.blocks.base_block.block_map
+            )
+
+            return GraphRunner(
+                builder.build(),
+                execution_environment, self, title=title
+            ).run()
+        finally:
+            # Clean up: remove temporary components
+            for component_id in component_ids:
+                self.session.session_component_tree.tree_branches[0].components.pop(component_id, None)
+
     def cancel_blueprint_execution(self, run_id: str):
         self.run_manager.cancel_run(run_id)
 
@@ -315,29 +345,11 @@ class GraphNode:
         self.inputs = []
         self.outputs = []
         if not tool_class:
-            if component.type.startswith("custom_"):
-                try:
-                    app_process = get_app_process()
-                    app_path = app_process.app_path
-                    logging.info(
-                        f"Attempting to load custom blocks for missing type '{component.type}' "
-                        f"from {app_path}"
-                    )
-                    
-                    load_custom_blocks_from_project(app_path)
-                    tool_class = writer.blocks.base_block.block_map.get(component.type)
-                    
-                except RuntimeError as e:
-                    # get_app_process() might fail in some contexts (e.g. tests)
-                    logging.warning(
-                        f"Could not get app process to load custom blocks: {e}"
-                    )
-                except Exception as e:
-                    logging.error(
-                        f"Failed to load custom block '{component.type}': {e}",
-                        exc_info=True
-                    )
-            if not tool_class:
+            # For shared_blueprint type, use the SharedBlueprint class
+            if component.type == "shared_blueprint":
+                from writer.blocks.shared_blueprint import SharedBlueprint
+                tool_class = SharedBlueprint
+            else:
                 raise WriterConfigurationError(
                     f"Component type '{component.type}' is not registered as a block."
                 )

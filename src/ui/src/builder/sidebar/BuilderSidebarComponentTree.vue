@@ -5,12 +5,74 @@
 		placeholder="Component tree"
 		:search-count="searchResultCount"
 	>
-		<div>
+		<!-- UI mode: show pages -->
+		<div v-if="rootComponentId == 'root'">
 			<BuilderSidebarComponentTreeBranch
 				class="rootBranch"
 				:component-id="rootComponentId"
 				:query="query"
 			/>
+		</div>
+
+		<!-- Blueprints mode: show sections -->
+		<div v-else-if="rootComponentId == 'blueprints_root'" class="sections">
+			<!-- Blueprints Section -->
+			<div class="section">
+				<div class="section__header">
+					<span class="section__title">Blueprints</span>
+					<WdsButton
+						variant="neutral"
+						size="smallIcon"
+						data-automation-action="add-blueprint"
+						@click="addBlueprint"
+					>
+						<WdsIcon name="plus" />
+					</WdsButton>
+				</div>
+				<div class="section__content">
+					<BuilderSidebarComponentTreeBranch
+						v-for="blueprint in regularBlueprints"
+						:key="blueprint.id"
+						:component-id="blueprint.id"
+						:query="query"
+					/>
+					<div v-if="regularBlueprints.length === 0" class="section__empty">
+						No blueprints yet
+					</div>
+				</div>
+			</div>
+
+			<!-- Shared Blueprints Section -->
+			<div
+				v-if="wf.featureFlags.value?.includes('shared_blueprints')"
+				class="section"
+			>
+				<div class="section__header">
+					<span class="section__title">Shared Blueprints</span>
+					<WdsButton
+						variant="neutral"
+						size="smallIcon"
+						data-automation-action="add-shared-blueprint"
+						@click="addSharedBlueprint"
+					>
+						<WdsIcon name="plus" />
+					</WdsButton>
+				</div>
+				<div class="section__content">
+					<BuilderSidebarComponentTreeBranch
+						v-for="blueprint in sharedBlueprintItems"
+						:key="blueprint.id"
+						:component-id="blueprint.id"
+						:query="query"
+					/>
+					<div
+						v-if="sharedBlueprintItems.length === 0"
+						class="section__empty"
+					>
+						No shared blueprints yet
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<template #footer>
@@ -29,7 +91,7 @@
 					v-if="rootComponentId == 'blueprints_root'"
 					variant="special"
 					size="small"
-					data-automation-action="add-blueprint"
+					data-automation-action="add-blueprint-footer"
 					@click="addBlueprint"
 				>
 					<WdsIcon name="plus" />
@@ -41,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, nextTick, ref } from "vue";
+import { computed, inject, nextTick, ref } from "vue";
 import BuilderSidebarPanel from "./BuilderSidebarPanel.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderSidebarComponentTreeBranch from "./BuilderSidebarComponentTreeBranch.vue";
@@ -56,7 +118,11 @@ const wfbm = inject(injectionKeys.builderManager);
 const query = ref("");
 
 const tracking = useWriterTracking(wf);
-const { createAndInsertComponent } = useComponentActions(wf, wfbm, tracking);
+const { createAndInsertComponent, setContentValue } = useComponentActions(
+	wf,
+	wfbm,
+	tracking,
+);
 
 const rootComponentId = wfbm.activeRootId;
 
@@ -65,6 +131,24 @@ const { searchResultCount } = useComponentsTreeSearchResults(
 	query,
 	rootComponentId,
 );
+
+// Get all blueprints from blueprints_root
+const allBlueprints = computed(() => {
+	return wf.getComponents("blueprints_root", { sortedByPosition: true });
+});
+
+// Split blueprints into regular and shared blueprints
+const regularBlueprints = computed(() => {
+	return allBlueprints.value.filter(
+		(c) => !c.content?.isSharedBlueprint,
+	);
+});
+
+const sharedBlueprintItems = computed(() => {
+	return allBlueprints.value.filter(
+		(c) => c.content?.isSharedBlueprint === true,
+	);
+});
 
 async function addPage() {
 	const pageId = createAndInsertComponent("page", "root");
@@ -83,6 +167,19 @@ async function addBlueprint() {
 	await nextTick();
 	wfbm.setSelection(pageId);
 	tracking.track("blueprints_new_added");
+}
+
+async function addSharedBlueprint() {
+	const pageId = createAndInsertComponent(
+		"blueprints_blueprint",
+		"blueprints_root",
+	);
+	// Mark as shared blueprint
+	setContentValue(pageId, "isSharedBlueprint", true);
+	wf.setActivePageId(pageId);
+	await nextTick();
+	wfbm.setSelection(pageId);
+	tracking.track("shared_blueprint_new_added");
 }
 </script>
 
@@ -124,5 +221,43 @@ async function addBlueprint() {
 	justify-content: center;
 	border-top: 1px solid var(--builderSeparatorColor);
 	background: var(--builderBackgroundColor);
+}
+
+.sections {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.section {
+	display: flex;
+	flex-direction: column;
+}
+
+.section__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 16px;
+	border-bottom: 1px solid var(--builderSeparatorColor);
+}
+
+.section__title {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--builderSecondaryTextColor);
+}
+
+.section__content {
+	padding: 8px 0;
+}
+
+.section__empty {
+	padding: 8px 16px;
+	font-size: 12px;
+	color: var(--builderSecondaryTextColor);
+	font-style: italic;
 }
 </style>
