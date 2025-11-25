@@ -27,7 +27,9 @@ class SentryAdapter(ObservabilityProvider):
     
     def is_enabled(self) -> bool:
         """Check if Sentry is enabled."""
-        return os.getenv(SENTRY_ENABLED_ENV, "true").lower() != "false"
+        sentry_enabled = os.getenv(SENTRY_ENABLED_ENV, "true").lower() != "false"
+        sentry_dsn = os.getenv(SENTRY_DSN_ENV)
+        return sentry_enabled and bool(sentry_dsn)
     
     def _get_metadata(self) -> dict:
         """Get application metadata for Sentry tags/contexts."""
@@ -46,16 +48,21 @@ class SentryAdapter(ObservabilityProvider):
             return True
         
         if not self.is_enabled():
-            logger.debug("Sentry is disabled via environment variable")
+            logger.debug("Sentry is disabled - check SENTRY_ENABLED and SENTRY_DSN environment variables")
             return False
         
         try:
             import sentry_sdk
             from sentry_sdk.integrations.logging import LoggingIntegration
+        except ImportError as e:
+            logger.warning(f"Sentry SDK not available. Install it with: pip install sentry-sdk. Error: {e}")
+            return False
             
+        try:
             sentry_dsn = os.getenv(SENTRY_DSN_ENV)
             if not sentry_dsn:
-                logger.debug("Sentry DSN not provided, skipping initialization")
+                logger.warning(f"Sentry DSN not provided in {SENTRY_DSN_ENV} environment variable, skipping initialization")
+                logger.info("Set SENTRY_DSN environment variable to enable Sentry")
                 return False
             
             self._agent_id = os.getenv("WRITER_APP_ID")
@@ -89,6 +96,8 @@ class SentryAdapter(ObservabilityProvider):
             # Set global tags and contexts
             with sentry_sdk.configure_scope() as scope:
                 scope.set_tag("platform", "backend")
+                scope.set_tag("component", "backend")
+                scope.set_tag("layer", "server")
                 scope.set_tag("framework", "writer-framework")
                 if metadata["agent_id"]:
                     scope.set_tag("agent_id", metadata["agent_id"])
@@ -104,14 +113,16 @@ class SentryAdapter(ObservabilityProvider):
                     "name": "python",
                     "version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
                 })
+                scope.set_context("component", {
+                    "type": "backend",
+                    "platform": "backend",
+                    "layer": "server",
+                })
             
             logger.info(f"Sentry initialized (environment: {environment})")
             self._initialized = True
             return True
             
-        except ImportError:
-            logger.debug("Sentry SDK not available")
-            return False
         except Exception as e:
             logger.error(f"Failed to initialize Sentry: {e}", exc_info=True)
             return False

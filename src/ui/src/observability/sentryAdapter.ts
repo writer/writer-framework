@@ -106,6 +106,13 @@ export class SentryAdapter implements ObservabilityProvider {
 			return true;
 		}
 
+		if (!this.isEnabled()) {
+			console.info(
+				"Sentry DSN not provided, skipping Sentry initialization",
+			);
+			return false;
+		}
+
 		if (router) {
 			this.router = router;
 		}
@@ -176,9 +183,6 @@ export class SentryAdapter implements ObservabilityProvider {
 				}
 			}
 
-			const apiBaseUrl =
-				import.meta.env.VITE_WRITER_BASE_URL ?? window.location.origin;
-
 			const tracesSampleRate = parseFloat(
 				import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || "0.1",
 			);
@@ -188,7 +192,7 @@ export class SentryAdapter implements ObservabilityProvider {
 
 			const initConfig: SentryInitConfig = {
 				dsn,
-				environment: apiBaseUrl,
+				environment: "production",
 				tracesSampleRate,
 				replay: {
 					sampleRate: replaySampleRate,
@@ -254,7 +258,7 @@ export class SentryAdapter implements ObservabilityProvider {
 			this._setInitialMetadata(SentryModule);
 			this._setupRouteTracking();
 
-			console.info(`Sentry initialized (environment: ${apiBaseUrl})`);
+			console.info("Sentry initialized");
 			return true;
 		} catch (error) {
 			console.warn(
@@ -281,6 +285,12 @@ export class SentryAdapter implements ObservabilityProvider {
 
 			if (error instanceof Error) {
 				this.sentry.captureException(error, {
+					tags: {
+						platform: "frontend",
+						component: "frontend",
+						layer: "client",
+						...(context?.tags as Record<string, string>),
+					},
 					extra: {
 						...(context as Record<string, unknown>),
 						url: window.location.href,
@@ -288,6 +298,12 @@ export class SentryAdapter implements ObservabilityProvider {
 					},
 					contexts: {
 						runtime: runtimeContext,
+						component: {
+							type: "frontend",
+							platform: "frontend",
+							layer: "client",
+							...(context?.source && { source: context.source }),
+						},
 						...((context?.contexts as Record<string, unknown>) ||
 							({} as Record<string, unknown>)),
 					},
@@ -324,6 +340,12 @@ export class SentryAdapter implements ObservabilityProvider {
 		try {
 			this.sentry.captureMessage(message, {
 				level,
+				tags: {
+					platform: "frontend",
+					component: "frontend",
+					layer: "client",
+					...(context?.tags as Record<string, string>),
+				},
 				extra: {
 					...(context as Record<string, unknown>),
 					url: window.location.href,
@@ -334,6 +356,11 @@ export class SentryAdapter implements ObservabilityProvider {
 						url: window.location.href,
 						userAgent: navigator.userAgent,
 					} as RuntimeContext,
+					component: {
+						type: "frontend",
+						platform: "frontend",
+						layer: "client",
+					},
 					...((context?.contexts as Record<string, unknown>) ||
 						({} as Record<string, unknown>)),
 				},
@@ -392,6 +419,8 @@ export class SentryAdapter implements ObservabilityProvider {
 		try {
 			if (SentryModule.setTag) {
 				SentryModule.setTag("platform", "frontend");
+				SentryModule.setTag("component", "frontend");
+				SentryModule.setTag("layer", "client");
 				SentryModule.setTag("framework", "writer-framework");
 
 				const appMetadata = this._getAppMetadata();
@@ -416,6 +445,11 @@ export class SentryAdapter implements ObservabilityProvider {
 					name: "browser",
 					user_agent: navigator.userAgent,
 					language: navigator.language,
+				});
+				SentryModule.setContext("component", {
+					type: "frontend",
+					platform: "frontend",
+					layer: "client",
 				});
 			}
 		} catch (e) {

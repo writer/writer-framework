@@ -15,12 +15,6 @@ export default defineConfig({
 			process.env.WRITER_FRAMEWORK_VERSION || "",
 		),
 		VITE_SENTRY_DSN: JSON.stringify(process.env.VITE_SENTRY_DSN || ""),
-		VITE_SENTRY_ENABLED: JSON.stringify(
-			process.env.VITE_SENTRY_ENABLED || "false",
-		),
-		VITE_SENTRY_ENVIRONMENT: JSON.stringify(
-			process.env.VITE_SENTRY_ENVIRONMENT || "",
-		),
 		VITE_SENTRY_TRACES_SAMPLE_RATE: JSON.stringify(
 			process.env.VITE_SENTRY_TRACES_SAMPLE_RATE || "1.0",
 		),

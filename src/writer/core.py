@@ -1889,6 +1889,33 @@ class EventHandler:
             calling_arguments = self._get_calling_arguments(ev, instance_path=None)
             return self._call_handler_callable(handler_callable, calling_arguments)
         except BaseException as e:
+            try:
+                import sentry_sdk
+                with sentry_sdk.push_scope() as scope:
+                    scope.set_tag("platform", "backend")
+                    scope.set_tag("component", "backend")
+                    scope.set_tag("layer", "server")
+                    scope.set_tag("source", "event_handler")
+                    scope.set_tag("event_type", ev.type)
+                    scope.set_context("event", {
+                        "type": ev.type,
+                        "handler": ev.handler,
+                        "is_safe": ev.isSafe,
+                    })
+                    scope.set_context("component", {
+                        "type": "backend",
+                        "platform": "backend",
+                        "layer": "server",
+                        "source": "event_handler",
+                    })
+                    event_id = sentry_sdk.capture_exception(e)
+                    if event_id:
+                        logging.info(f"Error sent to Sentry (event_id: {event_id}, event_type: {ev.type})")
+            except ImportError:
+                logging.warning("Sentry SDK not available - error will not be sent to Sentry")
+            except Exception as sentry_error:
+                logging.error(f"Failed to send error to Sentry: {sentry_error}", exc_info=True)
+            
             if not isinstance(e, BlueprintExecutionError):
                 # Only create a notification and log entry
                 # for non-blueprint errors, as blueprint errors

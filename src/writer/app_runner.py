@@ -499,6 +499,14 @@ class AppProcess(multiprocessing.Process):
         self._apply_configuration()
         import os
 
+        try:
+            from writer.observability import get_registry
+            observability_registry = get_registry(app_path=self.app_path)
+            if observability_registry.initialize_provider():
+                self.logger.info("Sentry initialized in app process")
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize Sentry in app process: {e}")
+
         os.chdir(self.app_path)
         self._load_module()
         # Allows for relative imports from the app's path

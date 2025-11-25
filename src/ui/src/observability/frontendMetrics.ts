@@ -91,6 +91,18 @@ export function trackError(error: Error, errorType?: string): void {
 		},
 		unit: MetricUnit.None,
 	});
+
+	const provider = observabilityRegistry.getInitializedProvider();
+	if (provider) {
+		try {
+			provider.captureException(error, {
+				source: "global_error_handler",
+				error_type: errorType || error.name || "unknown",
+			});
+		} catch (e) {
+			console.warn("Failed to send error to Sentry:", e);
+		}
+	}
 }
 
 export function trackWebSocketLatency(latencyMs: number): void {

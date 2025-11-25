@@ -600,6 +600,26 @@ def get_asgi_app(
                     }))
 
             except Exception as e:
+                try:
+                    import sentry_sdk
+                    with sentry_sdk.push_scope() as scope:
+                        scope.set_tag("platform", "backend")
+                        scope.set_tag("component", "backend")
+                        scope.set_tag("layer", "server")
+                        scope.set_tag("source", "blueprint_api_endpoint")
+                        scope.set_tag("blueprint_id", blueprint_id)
+                        if branch_id:
+                            scope.set_tag("branch_id", branch_id)
+                        scope.set_context("component", {
+                            "type": "backend",
+                            "platform": "backend",
+                            "layer": "server",
+                            "source": "blueprint_api_endpoint",
+                        })
+                        sentry_sdk.capture_exception(e)
+                except Exception:
+                    pass
+                
                 # Bubble up any unexpected error as 'error' SSE event
                 await queue.put(await format_event("error", {
                     "msg": f"Agent Builder internal error: {str(e)}",

@@ -17,6 +17,8 @@ import writer.core_ui
 from writer.journal import JournalRecord
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
+logger = logging.getLogger(__name__)
+
 MAX_DAG_DEPTH = 32
 MAX_LOG_ITERABLE_SIZE = 100
 MAX_LOG_STRING_LENGTH = 5000
@@ -774,11 +776,47 @@ class GraphRunner:
                 try:
                     result_node: GraphNode = future.result()
                 except BlueprintExecutionError as e:
+                    try:
+                        import sentry_sdk
+                        with sentry_sdk.push_scope() as scope:
+                            scope.set_tag("source", "blueprint_execution")
+                            scope.set_tag("error_type", "BlueprintExecutionError")
+                            scope.set_context("blueprint", {
+                                "run_id": self.run_id,
+                                "title": self.status_logger.title,
+                            })
+                            sentry_sdk.capture_exception(e)
+                    except Exception:
+                        pass
+                    
                     self._cancel_all_jobs()
                     self.status_logger.log("Execution failed", entry_type="error", exit=str(e))
                     journal_record.save(result="error")
                     raise e
                 except BaseException as e:
+                    # Capture all other exceptions in Sentry
+                    try:
+                        import sentry_sdk
+                        with sentry_sdk.push_scope() as scope:
+                            scope.set_tag("platform", "backend")
+                            scope.set_tag("component", "backend")
+                            scope.set_tag("layer", "server")
+                            scope.set_tag("source", "blueprint_execution")
+                            scope.set_tag("error_type", type(e).__name__)
+                            scope.set_context("blueprint", {
+                                "run_id": self.run_id,
+                                "title": self.status_logger.title,
+                            })
+                            scope.set_context("component", {
+                                "type": "backend",
+                                "platform": "backend",
+                                "layer": "server",
+                                "source": "blueprint_execution",
+                            })
+                            sentry_sdk.capture_exception(e)
+                    except Exception:
+                        pass
+                    
                     abort_event.set()
                     self._cancel_all_jobs()
                     self.status_logger.log("Execution failed.", entry_type="error", exit=str(e))
