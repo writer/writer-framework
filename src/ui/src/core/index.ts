@@ -87,8 +87,6 @@ export function generateCore() {
 
 	const activePageId = ref<Component["id"] | undefined>();
 
-	const skipKeepAliveSocketMsg = ref(false);
-
 	const writerOrgId = computed(
 		() => Number(writerApplication.value?.organizationId) || undefined,
 	);
@@ -187,11 +185,7 @@ export function generateCore() {
 
 	function sendKeepAliveMessage() {
 		setTimeout(() => {
-			if (skipKeepAliveSocketMsg.value) {
-				sendKeepAliveMessage();
-			} else {
-				sendFrontendMessage("keepAlive", {}, sendKeepAliveMessage);
-			}
+			sendFrontendMessage("keepAlive", {}, sendKeepAliveMessage);
 		}, KEEP_ALIVE_DELAY_MS);
 	}
 
@@ -968,7 +962,6 @@ export function generateCore() {
 		featureFlags: readonly(featureFlags),
 		getWebSocket,
 		stopSync,
-		skipKeepAliveSocketMsg,
 		// writer cloud variables
 		writerApplication: readonly(writerApplication),
 		isWriterCloudApp,
