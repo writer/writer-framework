@@ -62,6 +62,7 @@ class TestJournal:
                     "executionTimeInSeconds": ANY,
                 },
             },
+            "isRunable": True,
             "result": "success",
         }
 
@@ -95,6 +96,7 @@ class TestJournal:
                 "type": "Cron",
             },
             "blockOutputs": ANY,
+            "isRunable": True,
             "result": "success",
         }
 
@@ -134,6 +136,7 @@ class TestJournal:
                     "type": "UI",
                 },
                 "blockOutputs": ANY,
+                "isRunable": True,
                 "result": "success",
             }
 
@@ -173,6 +176,7 @@ class TestJournal:
                     "type": "UI",
                 },
                 "blockOutputs": ANY,
+                "isRunable": True,
                 "result": "success",
             }
 
@@ -207,6 +211,7 @@ class TestJournal:
                     "type": "On demand",
                 },
                 "blockOutputs": ANY,
+                "isRunable": True,
                 "result": "success",
             }
 
@@ -245,6 +250,7 @@ class TestJournal:
                     "type": "On demand",
                 },
                 "blockOutputs": ANY,
+                "isRunable": True,
                 "result": "success",
             }
 
@@ -282,5 +288,6 @@ class TestJournal:
                     "type": "On demand",
                 },
                 "blockOutputs": ANY,
+                "isRunable": True,
                 "result": "error",
             }

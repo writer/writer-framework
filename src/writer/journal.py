@@ -1,6 +1,7 @@
+import json
 import logging
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
+from typing import TYPE_CHECKING, Any, Dict, Literal
 
 import writer.abstract
 from writer.core import Config
@@ -56,6 +57,7 @@ class JournalRecord:
             self.trigger["type"] = "On demand"
 
         self.graph = graph
+        self.is_runable = True
 
     def _get_block_name(self, component: "Component") -> str:
         block_title = component.content.get("alias")
@@ -88,12 +90,38 @@ class JournalRecord:
             
             block_outputs[graph_node.id] = block_data
         
-        return {
+
+        data = {
             "timestamp": self.started_at.isoformat(),
             "instanceType": self.instance_type,
             "trigger": self.trigger,
             "blockOutputs": block_outputs,
         }
+        sanitized_data = self._sanitize_data(data)
+        return {
+            **sanitized_data,
+            "isRunable": self.is_runable,
+        }
+
+    def _sanitize_data(self, data):
+        if data is None:
+            return None
+
+        if isinstance(data, list):
+            return [self._sanitize_data(item) for item in data]
+        if isinstance(data, dict):
+            return {
+                k: self._sanitize_data(v)
+                for k, v in data.items()
+            }
+        if isinstance(data, (str, int, float, bool, type(None))):
+            return data
+
+        try:
+            return json.loads(json.dumps(data))
+        except (TypeError, OverflowError):
+            self.is_runable = False
+            return f"Can't be displayed in the Journal. Value of type: {str(type(data))}."
 
     def construct_key(self) -> str:
         return f"{JOURNAL_KEY_PREFIX}{self.instance_type[0]}-{int(self.started_at.timestamp() * 1000)}"
