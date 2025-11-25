@@ -197,7 +197,6 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 				},
 				unit: MetricUnit.None,
 			},
-			logger,
 		);
 
 		return await Promise.all([

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { observabilityRegistry } from "./index";
 
 export enum MetricName {
@@ -51,10 +52,21 @@ export function trackPageLoadTime(): void {
 	}
 
 	try {
-		const timing = window.performance.timing;
-		if (timing && timing.loadEventEnd && timing.navigationStart) {
-			const loadTime = timing.loadEventEnd - timing.navigationStart;
+		let loadTime: number | null = null;
 
+		const navigationEntries = performance.getEntriesByType(
+			"navigation",
+		) as PerformanceNavigationTiming[];
+		if (navigationEntries.length > 0) {
+			const entry = navigationEntries[0];
+			if (entry.loadEventEnd && entry.startTime) {
+				loadTime = entry.loadEventEnd - entry.startTime;
+			} else if (entry.duration) {
+				loadTime = entry.duration;
+			}
+		}
+
+		if (loadTime !== null) {
 			recordDistributionSafely(
 				MetricName.FrontendPageLoadTime,
 				loadTime,
@@ -67,7 +79,6 @@ export function trackPageLoadTime(): void {
 			);
 		}
 	} catch (e) {
-		// eslint-disable-next-line no-console
 		console.warn("Failed to track page load time:", e);
 	}
 }
@@ -83,16 +94,12 @@ export function trackError(error: Error, errorType?: string): void {
 }
 
 export function trackWebSocketLatency(latencyMs: number): void {
-	recordDistributionSafely(
-		MetricName.WebSocketLatency,
-		latencyMs,
-		{
-			tags: {
-				metric_type: MetricType.Network,
-			},
-			unit: MetricUnit.Millisecond,
+	recordDistributionSafely(MetricName.WebSocketLatency, latencyMs, {
+		tags: {
+			metric_type: MetricType.Network,
 		},
-	);
+		unit: MetricUnit.Millisecond,
+	});
 }
 
 let lastTrackedRoute: string | null = null;
@@ -130,48 +137,27 @@ export function trackInteractionDuration(
 	);
 }
 
-/**
- * Safely increments a metric if the provider supports it.
- * Handles the common pattern of checking for incrementMetric support and error handling.
- *
- * @param name The metric name to increment
- * @param options Optional metric options (tags, unit, value)
- * @param logger Optional logger for error reporting. If not provided, uses console.warn
- */
 export function incrementMetricSafely(
 	name: string,
 	options?: IncrementMetricOptions,
-	logger?: { warn: (message: string, error?: unknown) => void },
 ): void {
 	const provider = observabilityRegistry.getInitializedProvider();
 	if (provider && "incrementMetric" in provider) {
 		try {
-			(provider as IncrementMetricProvider).incrementMetric(name, options);
+			(provider as IncrementMetricProvider).incrementMetric(
+				name,
+				options,
+			);
 		} catch (e) {
-			if (logger) {
-				logger.warn("Failed to increment metric:", e);
-			} else {
-				// eslint-disable-next-line no-console
-				console.warn("Failed to increment metric:", e);
-			}
+			console.warn("Failed to increment metric:", e);
 		}
 	}
 }
 
-/**
- * Safely records a distribution metric if the provider supports it.
- * Handles the common pattern of checking for recordDistribution support and error handling.
- *
- * @param name The metric name to record
- * @param value The metric value to record
- * @param options Optional metric options (tags, unit)
- * @param logger Optional logger for error reporting. If not provided, uses console.warn
- */
 export function recordDistributionSafely(
 	name: string,
 	value: number,
 	options?: RecordDistributionOptions,
-	logger?: { warn: (message: string, error?: unknown) => void },
 ): void {
 	const provider = observabilityRegistry.getInitializedProvider();
 	if (provider && "recordDistribution" in provider) {
@@ -182,12 +168,7 @@ export function recordDistributionSafely(
 				options,
 			);
 		} catch (e) {
-			if (logger) {
-				logger.warn("Failed to record metric:", e);
-			} else {
-				// eslint-disable-next-line no-console
-				console.warn("Failed to record metric:", e);
-			}
+			console.warn("Failed to record metric:", e);
 		}
 	}
 }

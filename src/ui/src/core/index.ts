@@ -797,7 +797,6 @@ export function generateCore() {
 					},
 					unit: MetricUnit.Millisecond,
 				},
-				logger,
 			);
 		} catch (error) {
 			logger.error("sendFrontendMessage error", error);
@@ -811,7 +810,6 @@ export function generateCore() {
 					},
 					unit: MetricUnit.None,
 				},
-				logger,
 			);
 		}
 	}
@@ -830,7 +828,6 @@ export function generateCore() {
 					},
 					unit: MetricUnit.None,
 				},
-				logger,
 			);
 		}
 	}
@@ -847,7 +844,6 @@ export function generateCore() {
 				},
 				unit: MetricUnit.None,
 			},
-			logger,
 		);
 	}
 
