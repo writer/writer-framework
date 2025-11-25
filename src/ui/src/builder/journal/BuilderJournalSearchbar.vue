@@ -1,6 +1,6 @@
 <template>
 	<div class="BuilderJournalSearchbar">
-		<WdsTextInput v-model="search" left-icon="search" />
+		<WdsTextInput v-model="search" left-icon="search" maxlength="200" />
 		<div class="BuilderJournalSearchbar__dropdown">
 			<WdsSelect
 				v-model="filters.statuses"

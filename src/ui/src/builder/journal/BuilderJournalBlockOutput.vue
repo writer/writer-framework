@@ -63,10 +63,9 @@
 				v-if="output.message && activeTab === 'error'"
 				class="output-block__message"
 			>
-				<div
-					class="output-block__message-content"
-					v-html="output.message"
-				></div>
+				<div class="output-block__message-content">
+					{{ output.message }}
+				</div>
 			</div>
 
 			<!-- Stdout Tab -->
@@ -102,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType, ref } from "vue";
+import { computed, PropType, ref, watch } from "vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsTabs from "@/wds/WdsTabs.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
@@ -150,13 +149,18 @@ const blockTabs = computed(() => {
 	}
 	tabs.push({ label: "Result", value: "result" });
 
-	// Set default active tab if not set
-	if (!activeTab.value && tabs.length > 0) {
-		activeTab.value = tabs[0].value;
-	}
-
 	return tabs;
 });
+
+watch(
+	blockTabs,
+	(tabs) => {
+		if (!activeTab.value && tabs.length > 0) {
+			activeTab.value = tabs[0].value;
+		}
+	},
+	{ immediate: true },
+);
 
 function formatTimestamp(timestamp: number): string {
 	const date = new Date(timestamp * 1000);

@@ -30,7 +30,11 @@ const props = defineProps({
 	entry: { type: Object as PropType<UnifiedEntry>, required: true },
 });
 
-const dateObj = computed(() => new Date(props.entry.timestamp));
+const dateObj = computed<Date>(() => {
+	const date = new Date(props.entry.timestamp);
+	return Number.isNaN(date.getTime()) ? new Date() : date;
+});
+
 const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
 	dateOptions: { year: "numeric", month: "short", day: "numeric" },
 	timeOptions: {
