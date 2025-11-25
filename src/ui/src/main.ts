@@ -12,6 +12,9 @@ import { useNotesManager } from "./core/useNotesManager.js";
 import { CollaborationManager } from "./writerTypes.js";
 import { useSecretsManager } from "./core/useSecretsManager.js";
 import { RECONNECT_DELAY_MS, MAX_RETRIES } from "@/constants/retry";
+import { observabilityRegistry } from "./observability";
+import { trackPageLoadTime } from "./observability/frontendMetrics";
+import { setupGlobalErrorHandling } from "./composables/useGlobalErrorHandling";
 
 const wf = generateCore();
 
@@ -23,6 +26,8 @@ globalThis.injectionKeys = injectionKeys;
 globalThis.core = wf;
 
 const logger = useLogger();
+
+setupGlobalErrorHandling();
 
 async function load() {
 	await wf.init();
@@ -59,7 +64,15 @@ async function load() {
 	app.provide(injectionKeys.collaborationManager, collaborationManager);
 	app.provide(injectionKeys.secretsManager, secretsManager);
 
+	try {
+		await observabilityRegistry.initializeProvider(null, app);
+	} catch (error) {
+		logger.warn("Failed to initialize observability provider:", error);
+	}
+
 	app.mount("#app");
+
+	trackPageLoadTime();
 
 	if (wf.isWriterCloudApp.value && collaborationManager) {
 		await enableCollaboration(collaborationManager).catch(logger.error);
@@ -73,7 +86,7 @@ async function enableCollaboration(collaborationManager: CollaborationManager) {
 	const { writerApi } = useWriterApi();
 	const writerProfile = await writerApi.fetchUserProfile();
 	collaborationManager.updateOutgoingPing({
-		userId: writerProfile.id.toString(),
+		userId: writerProfile.id,
 		action: "join",
 	});
 	collaborationManager.sendCollaborationPing();
@@ -130,6 +143,15 @@ initialise()
 	})
 	.catch((reason) => {
 		logger.error("Core initialisation failed.", reason);
+
+		observabilityRegistry.captureException(
+			reason instanceof Error ? reason : new Error(String(reason)),
+			{
+				source: "core_initialization",
+				component: "main",
+				stage: "initialization",
+			},
+		);
 
 		const errorDiv = document.createElement("div");
 		errorDiv.className = "error-message";

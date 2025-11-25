@@ -1,15 +1,40 @@
 /* eslint-disable no-console */
 
+import { observabilityRegistry } from "@/observability";
+
 export type ILogger = Pick<typeof console, "log" | "warn" | "info" | "error">;
 
-/**
- * A simple abstraction to use logger in the application. For the moment, it's just a proxy to `console`, but it can be plugged to any library later.
- */
 export function useLogger(): ILogger {
+	const provider = observabilityRegistry.getInitializedProvider();
+
 	return {
 		log: console.log,
-		warn: console.warn,
 		info: console.info,
-		error: console.error,
+		warn: (...args: any[]) => {
+			console.warn(...args);
+			if (provider && args.length > 0) {
+				const message =
+					typeof args[0] === "string" ? args[0] : String(args[0]);
+				provider.captureMessage(message, "warning", {
+					source: "logger",
+					component: "useLogger",
+					args: args.slice(1),
+				});
+			}
+		},
+		error: (...args: any[]) => {
+			console.error(...args);
+			if (provider && args.length > 0) {
+				const error =
+					args[0] instanceof Error
+						? args[0]
+						: new Error(String(args[0]));
+				provider.captureException(error, {
+					source: "logger",
+					component: "useLogger",
+					args: args.slice(1),
+				});
+			}
+		},
 	};
 }

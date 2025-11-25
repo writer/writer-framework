@@ -2,6 +2,10 @@ import type { generateCore } from "@/core";
 import { useWriterApi } from "./useWriterApi";
 import { watch } from "vue";
 import { useLogger } from "./useLogger";
+import {
+	MetricUnit,
+	incrementMetricSafely,
+} from "@/observability/frontendMetrics";
 
 let isIdentified = false;
 
@@ -184,6 +188,16 @@ export function useWriterTracking(wf: ReturnType<typeof generateCore>) {
 		const propertiesExpanded =
 			expandEventPropertiesWithResources(properties);
 		logger.log("[tracking]", eventNameFormated, propertiesExpanded);
+
+		incrementMetricSafely(
+			`user_action.${eventName}`,
+			{
+				tags: {
+					event_type: eventName,
+				},
+				unit: MetricUnit.None,
+			},
+		);
 
 		return await Promise.all([
 			trackWithApi(eventNameFormated, propertiesExpanded),

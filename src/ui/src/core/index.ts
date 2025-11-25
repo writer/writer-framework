@@ -33,6 +33,13 @@ import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
 import { RECONNECT_DELAY_MS } from "@/constants/retry";
+import { MetricName, MetricUnit } from "@/observability/frontendMetrics";
+import {
+	trackWebSocketLatency,
+	trackInteractionDuration,
+	incrementMetricSafely,
+	recordDistributionSafely,
+} from "@/observability/frontendMetrics";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -185,7 +192,14 @@ export function generateCore() {
 
 	function sendKeepAliveMessage() {
 		setTimeout(() => {
-			sendFrontendMessage("keepAlive", {}, sendKeepAliveMessage);
+			const pingStartTime = performance.now();
+			sendFrontendMessage("keepAlive", {}, (response) => {
+				if (response?.ok) {
+					const latency = performance.now() - pingStartTime;
+					trackWebSocketLatency(latency);
+				}
+				sendKeepAliveMessage();
+			});
 		}, KEEP_ALIVE_DELAY_MS);
 	}
 
@@ -731,11 +745,25 @@ export function generateCore() {
 		}
 		const logger = useLogger();
 		const trackingId = frontendMessageCounter++;
+		const messageStartTime = performance.now();
+		const interactionStartTime = performance.now();
+
+		const wrappedCallback = callback
+			? (response: { ok: boolean; payload?: unknown }) => {
+					if (response?.ok && type !== "keepAlive") {
+						const duration =
+							performance.now() - interactionStartTime;
+						trackInteractionDuration(type, duration);
+					}
+					callback(response);
+				}
+			: undefined;
+
 		try {
-			if (callback || track) {
+			if (wrappedCallback || track) {
 				frontendMessageMap.value.set(trackingId, {
 					type,
-					callback,
+					callback: wrappedCallback,
 				});
 			}
 			if (track) {
@@ -758,18 +786,65 @@ export function generateCore() {
 				throw "Connection lost.";
 			}
 			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
+
+			const messageDuration = performance.now() - messageStartTime;
+			recordDistributionSafely(
+				MetricName.WebSocketMessageDuration,
+				messageDuration,
+				{
+					tags: {
+						message_type: type,
+					},
+					unit: MetricUnit.Millisecond,
+				},
+			);
 		} catch (error) {
 			logger.error("sendFrontendMessage error", error);
 			callback?.({ ok: false });
+
+			incrementMetricSafely(
+				MetricName.WebSocketMessageError,
+				{
+					tags: {
+						message_type: type,
+					},
+					unit: MetricUnit.None,
+				},
+			);
 		}
 	}
 
 	function deleteComponent(componentId: Component["id"]) {
+		const logger = useLogger();
+		const component = components.value[componentId];
 		delete components.value[componentId];
+
+		if (component) {
+			incrementMetricSafely(
+				MetricName.ComponentDeleted,
+				{
+					tags: {
+						component_type: component.type,
+					},
+					unit: MetricUnit.None,
+				},
+			);
+		}
 	}
 
 	function addComponent(component: Component) {
+		const logger = useLogger();
 		components.value[component.id] = component;
+
+		incrementMetricSafely(
+			MetricName.ComponentAdded,
+			{
+				tags: {
+					component_type: component.type,
+				},
+				unit: MetricUnit.None,
+			},
+		);
 	}
 
 	/**

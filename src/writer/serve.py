@@ -164,6 +164,14 @@ def get_asgi_app(
     app.state.writer_app = True
     app.state.app_runner = app_runner
 
+    try:
+        from writer.observability import get_registry
+        observability_registry = get_registry(app_path=user_app_path)
+        if observability_registry.initialize_provider():
+            observability_registry.instrument_app(app)
+    except Exception as e:
+        logging.warning(f"Failed to initialize observability provider: {e}")
+
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
         if not extensions_path.exists():
