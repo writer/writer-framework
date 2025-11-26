@@ -1,46 +1,46 @@
 <template>
 	<WdsModal
-		v-if="isOpen && isSharedBlueprintsEnabled"
-		title="Block Library"
+		v-if="isOpen && isBlueprintLibraryEnabled"
+		title="Blueprint Library"
 		size="wide"
 		display-close-button
 		@close="handleClose"
 	>
-		<div class="BuilderBlockLibraryPanel">
-			<div class="BuilderBlockLibraryPanel__header">
-				<div class="BuilderBlockLibraryPanel__search">
+		<div class="BuilderBlueprintLibraryPanel">
+			<div class="BuilderBlueprintLibraryPanel__header">
+				<div class="BuilderBlueprintLibraryPanel__search">
 					<WdsTextInput
 						v-model="searchQuery"
-						placeholder="Search blocks..."
+						placeholder="Search blueprints..."
 						left-icon="search"
 					/>
 				</div>
 			</div>
 
-			<div class="BuilderBlockLibraryPanel__content">
-				<div v-if="isLoading" class="BuilderBlockLibraryPanel__loading">
-					<p>Loading blocks...</p>
+			<div class="BuilderBlueprintLibraryPanel__content">
+				<div v-if="isLoading" class="BuilderBlueprintLibraryPanel__loading">
+					<p>Loading blueprints...</p>
 				</div>
 
 				<div
-					v-else-if="blocks.length === 0"
-					class="BuilderBlockLibraryPanel__empty"
+					v-else-if="blueprints.length === 0"
+					class="BuilderBlueprintLibraryPanel__empty"
 				>
-					<p>No blocks found</p>
+					<p>No blueprints found</p>
 					<p
 						v-if="searchQuery"
-						class="BuilderBlockLibraryPanel__empty__hint"
+						class="BuilderBlueprintLibraryPanel__empty__hint"
 					>
 						Try adjusting your search
 					</p>
 				</div>
 
-				<div v-else class="BuilderBlockLibraryPanel__grid">
-					<BuilderBlockLibraryItem
-						v-for="block in blocks"
-						:key="block.id"
-						:block="block"
-						@installed="handleBlockInstalled"
+				<div v-else class="BuilderBlueprintLibraryPanel__grid">
+					<BuilderBlueprintLibraryItem
+						v-for="blueprint in blueprints"
+						:key="blueprint.id"
+						:block="blueprint"
+						@installed="handleBlueprintInstalled"
 					/>
 				</div>
 			</div>
@@ -51,7 +51,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, inject } from "vue";
 import WdsModal from "@/wds/WdsModal.vue";
-import BuilderBlockLibraryItem from "./BuilderBlockLibraryItem.vue";
+import BuilderBlueprintLibraryItem from "./BuilderBlueprintLibraryItem.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "../useToast";
@@ -73,14 +73,14 @@ const isOpen = computed({
 	set: (value) => emit("update:modelValue", value),
 });
 
-const isSharedBlueprintsEnabled = computed(
+const isBlueprintLibraryEnabled = computed(
 	() =>
 		Array.isArray(wf.featureFlags.value) &&
-		wf.featureFlags.value.includes("shared_blueprints"),
+		wf.featureFlags.value.includes("blueprint_library"),
 );
 
 const searchQuery = ref("");
-const blocks = ref<
+const blueprints = ref<
 	Array<{
 		id: string;
 		title: string;
@@ -91,8 +91,8 @@ const blocks = ref<
 >([]);
 const isLoading = ref(false);
 
-async function loadBlocks() {
-	if (!isSharedBlueprintsEnabled.value) return;
+async function loadBlueprints() {
+	if (!isBlueprintLibraryEnabled.value) return;
 
 	isLoading.value = true;
 	try {
@@ -105,53 +105,53 @@ async function loadBlocks() {
 			`/api/block-library/blocks?${params.toString()}`,
 		);
 		if (!response.ok) {
-			throw new Error("Failed to load blocks");
+			throw new Error("Failed to load blueprints");
 		}
 
-		blocks.value = await response.json();
+		blueprints.value = await response.json();
 	} catch (error) {
 		pushToast({
 			type: "error",
-			message: `Failed to load blocks: ${error instanceof Error ? error.message : String(error)}`,
+			message: `Failed to load blueprints: ${error instanceof Error ? error.message : String(error)}`,
 		});
 	} finally {
 		isLoading.value = false;
 	}
 }
 
-function handleBlockInstalled() {
-	// Block will reinitialize the session, so no need to do anything here
+function handleBlueprintInstalled() {
+	// Blueprint will reinitialize the session, so no need to do anything here
 }
 
 // Debounced load function
-const debouncedLoadBlocks = useDebouncer(loadBlocks, 300);
+const debouncedLoadBlueprints = useDebouncer(loadBlueprints, 300);
 
-// Load blocks on mount and when search query changes
+// Load blueprints on mount and when search query changes
 watch([searchQuery], () => {
-	debouncedLoadBlocks();
+	debouncedLoadBlueprints();
 });
 
 function handleClose() {
 	isOpen.value = false;
 }
 
-// Load blocks when modal opens
+// Load blueprints when modal opens
 watch(isOpen, (newValue) => {
-	if (newValue && isSharedBlueprintsEnabled.value) {
-		loadBlocks();
+	if (newValue && isBlueprintLibraryEnabled.value) {
+		loadBlueprints();
 	}
 });
 </script>
 
 <style scoped>
-.BuilderBlockLibraryPanel {
+.BuilderBlueprintLibraryPanel {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
 	max-height: 80vh;
 }
 
-.BuilderBlockLibraryPanel__header {
+.BuilderBlueprintLibraryPanel__header {
 	display: flex;
 	gap: 12px;
 	padding: 16px;
@@ -160,25 +160,25 @@ watch(isOpen, (newValue) => {
 	flex-shrink: 0;
 }
 
-.BuilderBlockLibraryPanel__search {
+.BuilderBlueprintLibraryPanel__search {
 	flex: 1;
 }
 
-.BuilderBlockLibraryPanel__content {
+.BuilderBlueprintLibraryPanel__content {
 	flex: 1;
 	overflow-y: auto;
 	min-height: 0;
 }
 
-.BuilderBlockLibraryPanel__grid {
+.BuilderBlueprintLibraryPanel__grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 	gap: 16px;
 	padding: 16px;
 }
 
-.BuilderBlockLibraryPanel__loading,
-.BuilderBlockLibraryPanel__empty {
+.BuilderBlueprintLibraryPanel__loading,
+.BuilderBlueprintLibraryPanel__empty {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -188,8 +188,9 @@ watch(isOpen, (newValue) => {
 	text-align: center;
 }
 
-.BuilderBlockLibraryPanel__empty__hint {
+.BuilderBlueprintLibraryPanel__empty__hint {
 	font-size: 12px;
 	margin-top: 8px;
 }
 </style>
+

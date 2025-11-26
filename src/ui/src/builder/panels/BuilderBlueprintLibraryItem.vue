@@ -1,15 +1,15 @@
 <template>
-	<div class="BuilderBlockLibraryItem">
-		<div class="BuilderBlockLibraryItem__header">
-			<h3 class="BuilderBlockLibraryItem__title">{{ block.title }}</h3>
-			<span class="BuilderBlockLibraryItem__version"
+	<div class="BuilderBlueprintLibraryItem">
+		<div class="BuilderBlueprintLibraryItem__header">
+			<h3 class="BuilderBlueprintLibraryItem__title">{{ block.title }}</h3>
+			<span class="BuilderBlueprintLibraryItem__version"
 				>v{{ block.version_number }}</span
 			>
 		</div>
-		<p class="BuilderBlockLibraryItem__description">
+		<p class="BuilderBlueprintLibraryItem__description">
 			{{ block.description }}
 		</p>
-		<div class="BuilderBlockLibraryItem__actions">
+		<div class="BuilderBlueprintLibraryItem__actions">
 			<WdsButton
 				variant="primary"
 				size="small"
@@ -62,30 +62,30 @@ async function handleInstall() {
 
 		if (!response.ok) {
 			const error = await response.json();
-			throw new Error(error.detail || "Failed to install block");
+			throw new Error(error.detail || "Failed to install blueprint");
 		}
 
 		pushToast({
 			type: "success",
-			message: `Block "${props.block.title}" installed successfully`,
+			message: `Blueprint "${props.block.title}" installed successfully`,
 		});
 
 		emit("installed");
 
-		// Reinitialize session to pick up the new block (similar to file save)
+		// Reinitialize session to pick up the new blueprint (similar to file save)
 		try {
 			await wf.init();
 		} catch (error) {
 			pushToast({
 				type: "error",
 				message:
-					"Block installed but failed to reload. Please refresh the page.",
+					"Blueprint installed but failed to reload. Please refresh the page.",
 			});
 		}
 	} catch (error) {
 		pushToast({
 			type: "error",
-			message: `Failed to install block: ${error instanceof Error ? error.message : String(error)}`,
+			message: `Failed to install blueprint: ${error instanceof Error ? error.message : String(error)}`,
 		});
 	} finally {
 		isInstalling.value = false;
@@ -94,7 +94,7 @@ async function handleInstall() {
 </script>
 
 <style scoped>
-.BuilderBlockLibraryItem {
+.BuilderBlueprintLibraryItem {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
@@ -105,31 +105,31 @@ async function handleInstall() {
 	transition: border-color 0.2s;
 }
 
-.BuilderBlockLibraryItem:hover {
+.BuilderBlueprintLibraryItem:hover {
 	border-color: var(--builderPrimaryColor);
 }
 
-.BuilderBlockLibraryItem__header {
+.BuilderBlueprintLibraryItem__header {
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 12px;
 }
 
-.BuilderBlockLibraryItem__title {
+.BuilderBlueprintLibraryItem__title {
 	font-size: 16px;
 	font-weight: 600;
 	margin: 0;
 	flex: 1;
 }
 
-.BuilderBlockLibraryItem__version {
+.BuilderBlueprintLibraryItem__version {
 	font-size: 12px;
 	color: var(--builderSecondaryTextColor);
 	white-space: nowrap;
 }
 
-.BuilderBlockLibraryItem__description {
+.BuilderBlueprintLibraryItem__description {
 	font-size: 14px;
 	color: var(--builderSecondaryTextColor);
 	margin: 0;
@@ -140,9 +140,10 @@ async function handleInstall() {
 	overflow: hidden;
 }
 
-.BuilderBlockLibraryItem__actions {
+.BuilderBlueprintLibraryItem__actions {
 	display: flex;
 	justify-content: flex-end;
 	margin-top: auto;
 }
 </style>
+

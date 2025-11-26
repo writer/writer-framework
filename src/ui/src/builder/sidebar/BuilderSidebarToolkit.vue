@@ -14,21 +14,24 @@
 			:key="categoryId"
 			class="category"
 		>
-			<div class="header">{{ categoryId }}</div>
-			<div class="tools">
-				<!-- Block Library button for Shared Blueprints category -->
-				<div
+			<div class="header">
+				<span>{{ categoryId }}</span>
+				<!-- Blueprint Library button for Shared Blueprints category -->
+				<button
 					v-if="
 						categoryId === 'Shared Blueprints' &&
 						rootComponentId == 'blueprints_root' &&
-						isSharedBlueprintsEnabled
+						isBlueprintLibraryEnabled
 					"
-					class="tool tool--create"
-					@click="showBlockLibrary"
+					class="header__library-btn"
+					data-writer-tooltip="Blueprint Library"
+					data-writer-tooltip-placement="right"
+					@click="showBlueprintLibrary"
 				>
-					<WdsIcon name="folder" />
-					<div class="name">Block Library</div>
-				</div>
+					<WdsIcon name="layout-grid" />
+				</button>
+			</div>
+			<div class="tools">
 				<div
 					v-for="tool in tools"
 					:key="tool.type"
@@ -92,9 +95,9 @@
 			</div>
 		</template>
 	</BuilderSidebarPanel>
-	<BuilderBlockLibraryPanel
-		v-if="isSharedBlueprintsEnabled"
-		v-model="isBlockLibraryModalShown"
+	<BuilderBlueprintLibraryPanel
+		v-if="isBlueprintLibraryEnabled"
+		v-model="isBlueprintLibraryModalShown"
 	/>
 </template>
 
@@ -115,8 +118,8 @@ import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useToasts } from "../useToast";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
-const BuilderBlockLibraryPanel = defineAsyncComponentWithLoader({
-	loader: () => import("../panels/BuilderBlockLibraryPanel.vue"),
+const BuilderBlueprintLibraryPanel = defineAsyncComponentWithLoader({
+	loader: () => import("../panels/BuilderBlueprintLibraryPanel.vue"),
 });
 
 const { pushToast } = useToasts();
@@ -130,9 +133,9 @@ function showAutogen() {
 }
 
 
-const isBlockLibraryModalShown = ref(false);
-function showBlockLibrary() {
-	isBlockLibraryModalShown.value = true;
+const isBlueprintLibraryModalShown = ref(false);
+function showBlueprintLibrary() {
+	isBlueprintLibraryModalShown.value = true;
 }
 
 const wf = inject(injectionKeys.core);
@@ -144,6 +147,12 @@ const isSharedBlueprintsEnabled = computed(
 	() =>
 		Array.isArray(wf.featureFlags.value) &&
 		wf.featureFlags.value.includes("shared_blueprints"),
+);
+
+const isBlueprintLibraryEnabled = computed(
+	() =>
+		Array.isArray(wf.featureFlags.value) &&
+		wf.featureFlags.value.includes("blueprint_library"),
 );
 
 const rootComponentId = wfbm.activeRootId;
@@ -376,6 +385,9 @@ watch(activeToolkit, () => {
 }
 
 .category .header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 12px; /* 100% */
@@ -383,6 +395,32 @@ watch(activeToolkit, () => {
 	text-transform: uppercase;
 	color: var(--builderSecondaryTextColor);
 	margin-bottom: 8px;
+}
+
+.header__library-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	color: var(--builderSecondaryTextColor);
+	border-radius: 4px;
+	opacity: 0.7;
+	transition: opacity 0.2s, background 0.2s;
+}
+
+.header__library-btn:hover {
+	opacity: 1;
+	background: var(--builderSubtleSeparatorColor);
+}
+
+.header__library-btn :deep(svg) {
+	width: 14px;
+	height: 14px;
 }
 
 .tools {
@@ -413,16 +451,6 @@ watch(activeToolkit, () => {
 }
 
 .tool:hover {
-	background: var(--builderSubtleSeparatorColor);
-}
-
-.tool--create {
-	cursor: pointer;
-	opacity: 0.8;
-}
-
-.tool--create:hover {
-	opacity: 1;
 	background: var(--builderSubtleSeparatorColor);
 }
 
