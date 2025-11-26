@@ -67,31 +67,6 @@ class CodeBlock(BlueprintBlock):
     def set_output(self, output: Any):
         self.result = output
 
-    def _execute_code(self, code: str):
-        """
-        Execute Python code in the block's execution environment.
-
-        Args:
-            code: Python code string to execute
-        """
-        self.result = None
-
-        writeruserapp = sys.modules.get("writeruserapp")
-        block_globals = (
-            {
-                "state": self.runner.session.session_state,
-            }
-            | self.execution_environment
-            | writeruserapp.__dict__
-            | {"set_output": self.set_output}
-        )
-
-        with (
-            use_stdout_redirect(lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured stdout", entry)),
-            use_logging_redirect(lambda entry: self.runner.session.session_state.add_log_entry("info", "Captured logs", entry)),
-        ):
-            exec(code, block_globals | {"logger": exec_logger})
-
     def run(self):
         try:
             code = self._get_field("code")

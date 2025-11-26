@@ -23,29 +23,6 @@
 				Version {{ deployResult.version }}
 			</div>
 
-			<!-- Filtered components notice -->
-			<div
-				v-if="deployResult.filteredComponents.length > 0"
-				class="DeploySharedBlueprint__notice DeploySharedBlueprint__notice--info"
-			>
-				<div class="DeploySharedBlueprint__noticeHeader">
-					<WdsIcon name="info" />
-					<span>Components Excluded</span>
-				</div>
-				<p>
-					The following components were excluded because they won't
-					work in a shared blueprint:
-				</p>
-				<ul>
-					<li
-						v-for="comp in deployResult.filteredComponents"
-						:key="comp"
-					>
-						{{ comp }}
-					</li>
-				</ul>
-			</div>
-
 			<!-- Warnings -->
 			<div
 				v-if="deployResult.warnings.length > 0"
@@ -123,7 +100,6 @@ interface DeployResult {
 	blueprintName: string;
 	version: string;
 	warnings: string[];
-	filteredComponents: string[];
 }
 
 const props = defineProps<{
@@ -226,7 +202,6 @@ async function handleDeploy() {
 			blueprintName: form.value.name.trim(),
 			version: data.version,
 			warnings: data.warnings || [],
-			filteredComponents: data.filtered_components || [],
 		};
 
 		// Reinitialize session to pick up the new/updated shared blueprint

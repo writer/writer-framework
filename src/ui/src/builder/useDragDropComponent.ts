@@ -22,6 +22,7 @@ If the user gets off bounds by MAX_DISTANCE_FROM_CANDIDATE_PX, the candidacy is 
 */
 
 const MAX_DISTANCE_FROM_CANDIDATE_PX = 30;
+// Format: application/json;writer=COMPONENT_TYPE,COMPONENT_ID_OR_SOURCE_BLUEPRINT_ID
 const dragDropMimeRegex =
 	/^application\/json;writer=(?<componentType>\w+),(?<componentId>[\w\-]*)$/;
 const candidateId: Ref<Component["id"]> = ref(null);
@@ -30,40 +31,19 @@ const isCandidacyConfirmed: Ref<boolean> = ref(false);
 let candidacyStartTime: number = null;
 let insertionPosition: number = null;
 
-// Regex to extract source blueprint ID from shared blueprint MIME type
-// Format: application/json;writer=shared_blueprint,SOURCE_BLUEPRINT_ID
-const sharedBlueprintMimeRegex =
-	/^application\/json;writer=shared_blueprint,(?<sourceBlueprintId>[\w\-]*)$/;
-
 export function useDragDropComponent(wf: Core) {
 	function getComponentInfoFromDrag(ev: DragEvent) {
-		const allTypes = Array.from(ev.dataTransfer.types);
-		
-		// Check all MIME types for shared blueprint first (special handling)
-		for (const mimeType of allTypes) {
-			if (mimeType?.startsWith("application/json;writer=shared_blueprint")) {
-				// Extract the source blueprint ID from the MIME type
-				const match = mimeType.match(sharedBlueprintMimeRegex);
-				const sourceBlueprintId = match?.groups?.sourceBlueprintId || "";
-				return {
-					draggedType: "shared_blueprint",
-					draggedId: "",
-					sourceBlueprintId, // Pass the ID extracted from MIME type
-				};
-			}
-		}
-		
-		// Then check the first MIME type with the regex
-		const mimeString: string = allTypes[0];
-		const matchGroups = mimeString?.match(dragDropMimeRegex)?.groups;
-		if (!matchGroups) {
-			return;
-		}
-		const result = {
-			draggedType: matchGroups.componentType,
-			draggedId: matchGroups.componentId,
+		const mimeString = ev.dataTransfer.types[0];
+		const match = mimeString?.match(dragDropMimeRegex);
+		if (!match?.groups) return;
+
+		const { componentType, componentId } = match.groups;
+		return {
+			draggedType: componentType,
+			draggedId: componentType === "shared_blueprint" ? "" : componentId,
+			// For shared_blueprint, componentId contains the sourceBlueprintId
+			sourceBlueprintId: componentType === "shared_blueprint" ? componentId : undefined,
 		};
-		return result;
 	}
 
 	function getIdFromElement(el: HTMLElement) {

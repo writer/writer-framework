@@ -124,41 +124,6 @@ def remap_component_ids(components: List[Dict[str, Any]]) -> List[Dict[str, Any]
     return remapped
 
 
-# Component types that should be filtered out when saving as shared blueprint
-FILTERED_COMPONENT_TYPES: Set[str] = {
-    "blueprints_uieventtrigger",  # References UI component IDs
-    "blueprints_crontrigger",     # Cron jobs are project-specific
-}
-
-
-def filter_problematic_components(
-    components: List[Dict[str, Any]]
-) -> Tuple[List[Dict[str, Any]], List[str]]:
-    """
-    Filter out components that won't work in a shared blueprint.
-    
-    Args:
-        components: List of component dictionaries
-        
-    Returns:
-        Tuple of (filtered_components, list of filtered component descriptions)
-    """
-    filtered = []
-    removed = []
-    
-    for comp in components:
-        comp_type = comp.get("type", "")
-        if comp_type in FILTERED_COMPONENT_TYPES:
-            # Get a friendly name for the removed component
-            alias = comp.get("content", {}).get("alias", "")
-            name = alias or comp_type.replace("blueprints_", "").replace("_", " ").title()
-            removed.append(f"{name} ({comp_type})")
-        else:
-            filtered.append(comp)
-    
-    return filtered, removed
-
-
 def analyze_dependencies(components: List[Dict[str, Any]]) -> Dict[str, List[str]]:
     """
     Analyze components for external dependencies that may need attention.

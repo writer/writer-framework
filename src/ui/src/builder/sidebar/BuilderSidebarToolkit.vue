@@ -298,21 +298,11 @@ function handleDragStart(
 	sourceBlueprintId?: string,
 ) {
 	wfbm.setSelection(null);
-	// For shared blueprints, include the source blueprint ID in both the MIME type and the JSON payload
-	// This provides redundancy in case the JSON payload is not preserved by the browser
-	if (sourceBlueprintId) {
-		const jsonData = JSON.stringify({ sourceBlueprintId });
-		// Include sourceBlueprintId in the MIME type for reliable extraction
-		// Format: application/json;writer=shared_blueprint,SOURCE_BLUEPRINT_ID
-		ev.dataTransfer.setData(
-			`application/json;writer=shared_blueprint,${sourceBlueprintId}`,
-			jsonData,
-		);
-		// Also set as text/plain as fallback
-		ev.dataTransfer.setData("text/plain", jsonData);
-	} else {
-		ev.dataTransfer.setData(`application/json;writer=${type},`, "{}");
-	}
+	// Embed sourceBlueprintId in the MIME type for shared blueprints
+	const mimeType = sourceBlueprintId
+		? `application/json;writer=shared_blueprint,${sourceBlueprintId}`
+		: `application/json;writer=${type},`;
+	ev.dataTransfer.setData(mimeType, "{}");
 }
 
 function handleDragEnd(ev: DragEvent) {

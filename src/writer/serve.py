@@ -9,7 +9,6 @@ import mimetypes
 import os
 import os.path
 import pathlib
-import shutil
 import socket
 import tempfile
 import textwrap
@@ -56,7 +55,6 @@ from writer.blocks.block_library_db import (
 )
 from writer.blocks.shared_blueprint_registry import (
     analyze_dependencies,
-    filter_problematic_components,
     remap_component_ids,
 )
 from writer.ss_types import (
@@ -338,17 +336,8 @@ def get_asgi_app(
         if not blueprint_components:
             raise HTTPException(status_code=400, detail="Blueprint has no components to deploy.")
 
-        # Filter out problematic components (UI triggers, cron triggers)
-        filtered_components, removed_components = filter_problematic_components(blueprint_components)
-
-        if not filtered_components:
-            raise HTTPException(
-                status_code=400,
-                detail="All components were filtered out. Blueprint contains only triggers that cannot be deployed as a shared blueprint."
-            )
-
         # Analyze dependencies for warnings
-        dependencies = analyze_dependencies(filtered_components)
+        dependencies = analyze_dependencies(blueprint_components)
 
         # Generate warnings from dependencies
         warnings = []
@@ -366,7 +355,7 @@ def get_asgi_app(
                 warnings.append(f"Uses shared blueprint: {ref}")
 
         # Remap component IDs to avoid collisions when the blueprint is installed elsewhere
-        remapped_components = remap_component_ids(filtered_components)
+        remapped_components = remap_component_ids(blueprint_components)
 
         blueprint_name = data["name"]
         metadata_dict = {
@@ -413,7 +402,6 @@ def get_asgi_app(
             "snippet_id": snippet_id,
             "version": version_number,
             "warnings": warnings,
-            "filtered_components": removed_components,
         }
 
     @app.post("/api/block-library/blocks")

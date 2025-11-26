@@ -24,10 +24,10 @@ const {
 	isRunning,
 } = useBlueprintRun(wf, wfbm, blueprintComponentId);
 
-const isSharedBlueprintsEnabled = computed(
+const isBlueprintLibraryEnabled = computed(
 	() =>
 		Array.isArray(wf.featureFlags.value) &&
-		wf.featureFlags.value.includes("shared_blueprints"),
+		wf.featureFlags.value.includes("blueprint_library"),
 );
 
 // Check if the current blueprint is a shared blueprint
@@ -83,14 +83,14 @@ async function runBlueprint(componentId?: string) {
 		>
 			<WdsIcon name="wand-sparkles" />
 		</WdsButton>
-		<WdsButton
-			v-if="isSharedBlueprintsEnabled && isSharedBlueprint"
-			variant="special"
-			data-automation-action="deploy-shared-blueprint"
-			data-writer-tooltip="Deploy this shared blueprint"
-			data-writer-tooltip-placement="bottom"
-			@click="emit('deploy')"
-		>
+	<WdsButton
+		v-if="isBlueprintLibraryEnabled && isSharedBlueprint"
+		variant="special"
+		data-automation-action="deploy-shared-blueprint"
+		data-writer-tooltip="Deploy this shared blueprint"
+		data-writer-tooltip-placement="bottom"
+		@click="emit('deploy')"
+	>
 			<WdsIcon name="rocket" />
 			Deploy
 		</WdsButton>

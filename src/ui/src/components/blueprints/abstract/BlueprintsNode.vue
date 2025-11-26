@@ -412,6 +412,10 @@ const possibleImageUrls = computed(() => {
 		`/components/blueprints_category_${def.value.category}.svg`,
 	];
 
+	if (wf.featureFlags.value.includes("custom_block_icons")) {
+		paths.unshift(`/static/components/${component.value.id}.svg`);
+	}
+
 	return paths.map((p) => convertAbsolutePathtoFullURL(p));
 });
 
