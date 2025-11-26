@@ -43,7 +43,7 @@ const options = computed<Option[]>(() => [
 	{
 		label: socketTimeout.preventTasks.value.has("stayAwake")
 			? "Turn off stay awake mode"
-			: "Prevent session to expire",
+			: "Keep session awake",
 		value: "awake",
 		icon: "coffee",
 	},
