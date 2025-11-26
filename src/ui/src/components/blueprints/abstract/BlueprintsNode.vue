@@ -412,10 +412,6 @@ const possibleImageUrls = computed(() => {
 		`/components/blueprints_category_${def.value.category}.svg`,
 	];
 
-	if (wf.featureFlags.value.includes("shared_blueprints")) {
-		paths.unshift(`/static/components/${component.value.id}.svg`);
-	}
-
 	return paths.map((p) => convertAbsolutePathtoFullURL(p));
 });
 

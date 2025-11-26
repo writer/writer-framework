@@ -82,51 +82,7 @@ export function useDragDropComponent(wf: Core) {
 			return;
 		}
 		const { draggedType, draggedId } = dragInfo;
-		
-		// Read the JSON payload from drag data FIRST (before checking parentId)
-		// This is important because getData() can only be called during the drop event
-		let dragContent: Record<string, unknown> = {};
-		
-		// For shared blueprints, try reading from multiple sources
-		if (draggedType === "shared_blueprint") {
-			// Get the sourceBlueprintId from the MIME type (extracted in getComponentInfoFromDrag)
-			const sourceBlueprintIdFromMime = (dragInfo as { sourceBlueprintId?: string }).sourceBlueprintId;
-			
-			// Try text/plain first (more reliable across browsers)
-			try {
-				const textData = ev.dataTransfer.getData("text/plain");
-				if (textData && textData.trim() && textData !== "{}") {
-					const parsed = JSON.parse(textData);
-					if (Object.keys(parsed).length > 0 && parsed.sourceBlueprintId) {
-						dragContent = parsed;
-					}
-				}
-			} catch {
-				// Ignore JSON parse errors
-			}
-			
-			// Fallback: Try the custom MIME type with the ID
-			if (Object.keys(dragContent).length === 0 && sourceBlueprintIdFromMime) {
-				const expectedMimeType = `application/json;writer=shared_blueprint,${sourceBlueprintIdFromMime}`;
-				try {
-					const jsonData = ev.dataTransfer.getData(expectedMimeType);
-					if (jsonData && jsonData.trim() && jsonData !== "{}") {
-						const parsed = JSON.parse(jsonData);
-						if (Object.keys(parsed).length > 0) {
-							dragContent = parsed;
-						}
-					}
-				} catch {
-					// Ignore JSON parse errors
-				}
-			}
-			
-			// Final fallback: Use the sourceBlueprintId from the MIME type itself
-			if (Object.keys(dragContent).length === 0 && sourceBlueprintIdFromMime) {
-				dragContent = { sourceBlueprintId: sourceBlueprintIdFromMime };
-			}
-		}
-		
+
 		const dropTargetId = getIdFromElement(ev.target as HTMLElement);
 		const parentId = findSuitableParent(
 			dropTargetId,
@@ -136,25 +92,13 @@ export function useDragDropComponent(wf: Core) {
 		if (!parentId) {
 			return;
 		}
-		
-		// Fallback: Try all available MIME types to find the one with JSON data
-		if (Object.keys(dragContent).length === 0) {
-			for (const mimeType of ev.dataTransfer.types) {
-				if (mimeType.startsWith("application/json;writer=")) {
-					try {
-						const jsonData = ev.dataTransfer.getData(mimeType);
-						if (jsonData) {
-							const parsed = JSON.parse(jsonData);
-							// Only use non-empty objects (empty object "{}" means no content)
-							if (Object.keys(parsed).length > 0) {
-								dragContent = parsed;
-								break; // Use the first valid JSON data we find
-							}
-						}
-					} catch {
-						// Ignore JSON parse errors, try next MIME type
-					}
-				}
+
+		// For shared blueprints, use the sourceBlueprintId from the MIME type
+		let dragContent: Record<string, unknown> = {};
+		if (draggedType === "shared_blueprint") {
+			const sourceBlueprintId = (dragInfo as { sourceBlueprintId?: string }).sourceBlueprintId;
+			if (sourceBlueprintId) {
+				dragContent = { sourceBlueprintId };
 			}
 		}
 

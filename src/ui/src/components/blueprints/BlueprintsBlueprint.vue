@@ -584,44 +584,12 @@ function handleDrop(ev: DragEvent) {
 	const { x, y } = getAdjustedCoordinates(ev);
 	if (x < 0 || y < 0) return;
 
-	// Read drag content for shared blueprints
-	let dragContent: Record<string, unknown> = {};
+	// For shared blueprints, use the sourceBlueprintId from the MIME type
+	let dragContent: Record<string, unknown> | undefined;
 	if (draggedType === "shared_blueprint") {
-		// Get the sourceBlueprintId from the MIME type (extracted in getComponentInfoFromDrag)
-		const sourceBlueprintIdFromMime = (dropInfo as { sourceBlueprintId?: string }).sourceBlueprintId;
-		
-		// Try text/plain first (more reliable across browsers)
-		try {
-			const textData = ev.dataTransfer.getData("text/plain");
-			if (textData && textData.trim() && textData !== "{}") {
-				const parsed = JSON.parse(textData);
-				if (Object.keys(parsed).length > 0 && parsed.sourceBlueprintId) {
-					dragContent = parsed;
-				}
-			}
-		} catch {
-			// Ignore JSON parse errors
-		}
-		
-		// Fallback: Try the custom MIME type with the ID
-		if (Object.keys(dragContent).length === 0 && sourceBlueprintIdFromMime) {
-			const expectedMimeType = `application/json;writer=shared_blueprint,${sourceBlueprintIdFromMime}`;
-			try {
-				const jsonData = ev.dataTransfer.getData(expectedMimeType);
-				if (jsonData && jsonData.trim() && jsonData !== "{}") {
-					const parsed = JSON.parse(jsonData);
-					if (Object.keys(parsed).length > 0) {
-						dragContent = parsed;
-					}
-				}
-			} catch {
-				// Ignore JSON parse errors
-			}
-		}
-		
-		// Final fallback: Use the sourceBlueprintId from the MIME type itself
-		if (Object.keys(dragContent).length === 0 && sourceBlueprintIdFromMime) {
-			dragContent = { sourceBlueprintId: sourceBlueprintIdFromMime };
+		const sourceBlueprintId = (dropInfo as { sourceBlueprintId?: string }).sourceBlueprintId;
+		if (sourceBlueprintId) {
+			dragContent = { sourceBlueprintId };
 		}
 	}
 
