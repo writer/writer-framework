@@ -320,12 +320,11 @@ function handleDragEnd(ev: DragEvent) {
 }
 
 function getToolIcons(tool: ReturnType<typeof getRelevantToolsInCategory>[0]) {
-	// For shared blueprints from tree, use generic shared blueprint icon
+	// For shared blueprints from tree, use the Logic category icon
 	if (tool.sourceBlueprintId) {
-		return [
-			`/components/shared_blueprint.svg`,
-			`/components/blueprints_category_Shared Blueprints.svg`,
-		].map((p) => convertAbsolutePathtoFullURL(p));
+		return [`/components/blueprints_category_Logic.svg`].map((p) =>
+			convertAbsolutePathtoFullURL(p),
+		);
 	}
 	return [
 		`/components/${tool.type}.svg`,
