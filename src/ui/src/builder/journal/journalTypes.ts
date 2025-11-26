@@ -1,4 +1,5 @@
 import type {
+	ENTRY_TYPE_OPTIONS,
 	INSTANCE_TYPE_OPTIONS,
 	STATUS_OPTIONS,
 	TRIGGER_OPTIONS,
@@ -8,9 +9,11 @@ import type {
 export type StatusValue = (typeof STATUS_OPTIONS)[number]["value"];
 export type TriggerValue = (typeof TRIGGER_OPTIONS)[number]["value"];
 export type InstanceTypeValue = (typeof INSTANCE_TYPE_OPTIONS)[number]["value"];
+export type EntryTypeValue = (typeof ENTRY_TYPE_OPTIONS)[number]["value"];
 
 export interface JournalFilters {
 	statuses: StatusValue[];
 	triggers: TriggerValue[];
 	instanceTypes: InstanceTypeValue[];
+	entryTypes: EntryTypeValue[];
 }

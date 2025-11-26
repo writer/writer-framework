@@ -74,8 +74,8 @@ defineEmits({
 }
 
 .WdsTag--variant-error {
-	background-color: var(--wdsColorRed1);
-	color: var(--wdsColorRed6);
+	background-color: var(--wdsColorOrange1);
+	color: var(--wdsColorOrange5);
 }
 
 .WdsTag--variant-warning {

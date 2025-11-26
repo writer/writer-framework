@@ -5,8 +5,12 @@
 	>
 		<div class="BuilderJournalEntry__summary">
 			<BuilderJournalEntryResult
+				v-if="journalEntry.entryType === 'execution'"
 				:result="journalEntry.result"
-			></BuilderJournalEntryResult>
+			/>
+			<div v-else class="BuilderJournalEntry__summary__init-badge">
+				<WdsIcon name="settings" />
+			</div>
 			<div class="BuilderJournalEntry__summary__content">
 				<div class="BuilderJournalEntry__summary__component">
 					{{ journalEntry.title }}
@@ -24,7 +28,11 @@
 				</div>
 			</div>
 			<div class="BuilderJournalEntry__info__details">
-				{{ journalEntry.trigger.type }}
+				{{
+					journalEntry.entryType === "execution"
+						? journalEntry.trigger.type
+						: "Initialization"
+				}}
 			</div>
 		</div>
 	</div>
@@ -32,12 +40,13 @@
 
 <script setup lang="ts">
 import BuilderJournalEntryResult from "./BuilderJournalEntryResult.vue";
-import { JournalEntry } from "../BuilderJournal.vue";
+import WdsIcon from "@/wds/WdsIcon.vue";
+import { UnifiedEntry } from "../BuilderJournal.vue";
 import { computed, PropType } from "vue";
 import { useDateTimeFormatter } from "@/composables/useDateTimeFormatter";
 
 const props = defineProps({
-	journalEntry: { type: Object as PropType<JournalEntry>, required: true },
+	journalEntry: { type: Object as PropType<UnifiedEntry>, required: true },
 });
 
 defineEmits<{
@@ -106,6 +115,23 @@ const { formattedDate, formattedTime } = useDateTimeFormatter(dateObj, {
 .BuilderJournalEntry__summary__instanceType {
 	font-size: 12px;
 	color: var(--wdsColorGray5);
+}
+
+.BuilderJournalEntry__summary__init-badge {
+	width: 24px;
+	height: 24px;
+	border-radius: 25%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--wdsColorPurple2);
+	color: var(--wdsColorPurple6);
+	flex-shrink: 0;
+}
+
+.BuilderJournalEntry__summary__init-badge :deep(svg) {
+	width: 16px;
+	height: 16px;
 }
 
 .BuilderJournalEntry__info {
