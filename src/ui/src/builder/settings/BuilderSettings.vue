@@ -41,7 +41,7 @@
 			class="BuilderSettings__titleBar"
 		>
 			<p class="BuilderSettings__titleBar__title">
-				{{ componentDefinition.name }}
+				{{ displayName }}
 			</p>
 			<div class="BuilderSettings__titleBar__actions">
 				<WdsButton
@@ -127,6 +127,21 @@ const { component, definition: componentDefinition } = useComponentInformation(
 	ssbm.firstSelectedId,
 );
 const resultId = useBlueprintComponentResultId(component, componentDefinition);
+
+// For shared blueprints, show the source blueprint's name instead of "Shared Blueprint"
+const displayName = computed(() => {
+	if (component.value?.type === "shared_blueprint") {
+		const sourceBlueprintId = component.value?.content?.sourceBlueprintId;
+		if (sourceBlueprintId) {
+			const sourceBlueprint = wf.getComponentById(sourceBlueprintId);
+			const blueprintName = sourceBlueprint?.content?.key;
+			if (blueprintName) {
+				return blueprintName;
+			}
+		}
+	}
+	return componentDefinition.value?.name ?? "Unknown";
+});
 
 const { copy, copied: isComponentIdCopied } = useClipboard();
 

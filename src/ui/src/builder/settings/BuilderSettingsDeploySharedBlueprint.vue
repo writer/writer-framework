@@ -2,7 +2,7 @@
 	<WdsModal
 		v-if="isOpen"
 		:actions="modalActions"
-		:title="deployResult ? 'Shared Blueprint Deployed' : 'Deploy Shared Blueprint'"
+		:title="deployResult ? 'Blueprint Published' : 'Publish Blueprint'"
 		display-close-button
 		@close="handleClose"
 	>
@@ -14,8 +14,8 @@
 					class="DeploySharedBlueprint__successIcon"
 				/>
 				<p>
-					Shared blueprint "<strong>{{ deployResult.blueprintName }}</strong
-					>" deployed successfully!
+					Blueprint "<strong>{{ deployResult.blueprintName }}</strong
+					>" published successfully!
 				</p>
 			</div>
 
@@ -50,12 +50,12 @@
 			<div v-if="currentVersion" class="DeploySharedBlueprint__versionInfo">
 				<WdsIcon name="package" />
 				<span
-					>Currently deployed: <strong>v{{ currentVersion }}</strong></span
+					>Currently published: <strong>v{{ currentVersion }}</strong></span
 				>
 			</div>
 			<div v-else class="DeploySharedBlueprint__versionInfo">
 				<WdsIcon name="package" />
-				<span>Not yet deployed</span>
+				<span>Not yet published</span>
 			</div>
 
 			<WdsFieldWrapper label="Name" required>
@@ -184,7 +184,7 @@ async function handleDeploy() {
 
 		if (!response.ok) {
 			const error = await response.json();
-			throw new Error(error.detail || "Failed to deploy shared blueprint");
+			throw new Error(error.detail || "Failed to publish blueprint");
 		}
 
 		const data = await response.json();
@@ -211,13 +211,13 @@ async function handleDeploy() {
 			pushToast({
 				type: "error",
 				message:
-					"Shared blueprint deployed but failed to reload. Please refresh the page.",
+					"Blueprint published but failed to reload. Please refresh the page.",
 			});
 		}
 	} catch (error) {
 		pushToast({
 			type: "error",
-			message: `Error deploying shared blueprint: ${error instanceof Error ? error.message : String(error)}`,
+			message: `Error publishing blueprint: ${error instanceof Error ? error.message : String(error)}`,
 		});
 	} finally {
 		isDeploying.value = false;
@@ -262,7 +262,7 @@ const modalActions = computed<ModalAction[]>(() => {
 			},
 		},
 		{
-			desc: isDeploying.value ? "Deploying..." : "Deploy",
+			desc: isDeploying.value ? "Publishing..." : "Publish",
 			fn: handleDeploy,
 			disabled: isDeploying.value,
 		},

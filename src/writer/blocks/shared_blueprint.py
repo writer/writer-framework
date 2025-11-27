@@ -37,7 +37,15 @@ class SharedBlueprint(BlueprintBlock):
                     "description": "Executes a shared blueprint from the component tree.",
                     "category": "Logic",
                     "toolkit": "blueprints",
-                    "fields": {},
+                    "fields": {
+                        "payload": {
+                            "name": "Payload",
+                            "desc": "The value specified will be available using the template syntax, e.g. @{payload}.",
+                            "default": "{}",
+                            "type": "Text",
+                            "control": "Textarea",
+                        },
+                    },
                     "outs": {
                         "success": {
                             "name": "Success",
@@ -113,6 +121,10 @@ class SharedBlueprint(BlueprintBlock):
             )
 
         try:
+            # Get payload and expand execution environment
+            payload = self._get_field("payload")
+            expanded_execution_environment = self.execution_environment | {"payload": payload}
+            
             # Convert blueprint component dicts to Component objects
             components = [
                 writer.core_ui.Component(**comp_dict)
@@ -127,10 +139,10 @@ class SharedBlueprint(BlueprintBlock):
             except Exception:
                 blueprint_name = "Unknown"
             
-            # Execute the blueprint
+            # Execute the blueprint with the expanded environment
             return_value = self.runner.run_blueprint_from_components(
                 components,
-                self.execution_environment,
+                expanded_execution_environment,
                 title=f"Shared blueprint execution ({blueprint_name})"
             )
             

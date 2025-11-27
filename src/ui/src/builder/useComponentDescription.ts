@@ -19,6 +19,18 @@ export function useComponentDescription(
 		if (type == "blueprints_blueprint") {
 			return content?.["key"] || "Blueprint";
 		}
+		// For shared blueprints, show the source blueprint's name
+		if (type == "shared_blueprint") {
+			const sourceBlueprintId = content?.["sourceBlueprintId"];
+			if (sourceBlueprintId) {
+				const sourceBlueprint = wf.getComponentById(sourceBlueprintId);
+				const blueprintName = sourceBlueprint?.content?.key;
+				if (blueprintName) {
+					return blueprintName;
+				}
+			}
+			return "Shared Blueprint";
+		}
 		return def.value?.name ?? `Unknown (${type})`;
 	});
 

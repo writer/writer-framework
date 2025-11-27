@@ -18,7 +18,7 @@ class SnippetRecord:
     """Record representing a snippet (block) in the library."""
 
     id: str  # UUID
-    visibility: str  # "GLOBAL" only for now
+    visibility: str  # "ORG" for organization-level visibility
     title: str
     # Identity fields for unique identification
     blueprint_id: str = ""  # Source blueprint component ID
@@ -47,7 +47,7 @@ _snippet_versions: Dict[str, List[SnippetVersionRecord]] = {}
 
 def create_snippet(
     title: str,
-    visibility: str = "GLOBAL",
+    visibility: str = "ORG",
     blueprint_id: str = "",
     app_id: str = "",
     org_id: str = "",
@@ -57,7 +57,7 @@ def create_snippet(
 
     Args:
         title: Snippet title
-        visibility: Visibility level (default: "GLOBAL")
+        visibility: Visibility level (default: "ORG")
         blueprint_id: Source blueprint component ID
         app_id: Application ID
         org_id: Organization ID

@@ -299,7 +299,7 @@ def get_asgi_app(
 
     @app.post("/api/shared-blueprints/deploy")
     async def deploy_shared_blueprint(request: Request):
-        """Deploy a shared blueprint to the block library."""
+        """Publish a shared blueprint to the block library."""
         if serve_mode != "edit":
             raise HTTPException(status_code=403, detail="Invalid mode.")
 
@@ -314,7 +314,7 @@ def get_asgi_app(
 
         # Get app_id and org_id from headers or environment
         app_id = request.headers.get("x-agent-id") or os.getenv("WRITER_APP_ID", "")
-        org_id = request.headers.get("x-organization-id") or os.getenv("WRITER_ORG_ID", "")
+        org_id = request.headers.get("x-organization-id") or os.getenv("WRITER_ORG_ID", "1")
 
         if not app_runner.bmc_components:
             raise HTTPException(status_code=404, detail="No components found.")
@@ -385,7 +385,7 @@ def get_asgi_app(
             # Create new snippet
             snippet_id = create_snippet(
                 title=blueprint_name,
-                visibility="GLOBAL",
+                visibility="ORG",
                 blueprint_id=blueprint_id,
                 app_id=app_id,
                 org_id=org_id,

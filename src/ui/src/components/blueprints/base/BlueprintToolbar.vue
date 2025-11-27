@@ -86,13 +86,13 @@ async function runBlueprint(componentId?: string) {
 	<WdsButton
 		v-if="isBlueprintLibraryEnabled && isSharedBlueprint"
 		variant="special"
-		data-automation-action="deploy-shared-blueprint"
-		data-writer-tooltip="Deploy this shared blueprint"
+		data-automation-action="publish-shared-blueprint"
+		data-writer-tooltip="Publish this shared blueprint"
 		data-writer-tooltip-placement="bottom"
 		@click="emit('deploy')"
 	>
 			<WdsIcon name="rocket" />
-			Deploy
+			Publish blueprint
 		</WdsButton>
 		<WdsButtonSplit
 			v-if="triggerComponents.length && !isRunning"
