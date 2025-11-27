@@ -65,12 +65,13 @@ class JournalRecord:
 
     def _get_block_info(self, component: "Component") -> Dict[str, str]:
         block_title = component.content.get("alias")
+        component_definition = writer.abstract.templates.get(component.type)
         if block_title is not None:
             return {
                 "title": block_title,
-                "category": "Unknown category"
+                "category": component_definition.writer.get("category", "Unknown category")
             }
-        component_definition = writer.abstract.templates.get(component.type)
+        
         if component_definition is None:
             return {
                 "title": "Unknown block",
