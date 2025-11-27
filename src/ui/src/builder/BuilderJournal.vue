@@ -74,11 +74,11 @@ type TriggerInfo = {
 	type: "On demand" | "UI" | "API" | "Cron";
 	event: string;
 	component: ComponentInfo;
-	payload: any;
+	payload: unknown;
 };
 
 type BlockOutput = {
-	result: any;
+	result: unknown;
 	outcome: string;
 	component?: ComponentInfo | null;
 	startedAt?: number;
@@ -91,6 +91,7 @@ type BlockOutput = {
 export type RawJournalEntry = {
 	trigger: TriggerInfo;
 	timestamp: string;
+	blueprintId: string | null;
 	blockOutputs: Record<string, BlockOutput>;
 	instanceType: "editor" | "agent";
 	result: "success" | "error" | "stopped";
@@ -221,12 +222,12 @@ const filteredEntries = computed<Record<string, UnifiedEntry | null>>(() => {
 			if (!searchMatch) {
 				if (entry.entryType === "execution") {
 					searchMatch = entry.title
-						.toLowerCase()
-						.includes(searchTextLower);
+						?.toLowerCase()
+						?.includes(searchTextLower);
 				} else {
 					// For init logs, search in stdout and logs
 					searchMatch =
-						entry.title.toLowerCase().includes(searchTextLower) ||
+						entry.title?.toLowerCase()?.includes(searchTextLower) ||
 						entry.stdout
 							?.toLowerCase()
 							?.includes(searchTextLower) ||
@@ -275,8 +276,9 @@ const sortedEntries = computed<Record<string, UnifiedEntry | null>>(() => {
 });
 
 async function loadEntries() {
-	loading.value = true;
-
+	if (Object.keys(entries.value).length === 0) {
+		loading.value = true;
+	}
 	try {
 		// Fetch both journal entries and init logs in parallel
 		const [journalResponse, initLogsResponse] = await Promise.all([

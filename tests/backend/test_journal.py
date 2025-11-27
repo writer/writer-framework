@@ -32,6 +32,7 @@ class TestJournal:
         assert entry == {
             "timestamp": ANY,
             "instanceType": "agent",
+            "blueprintId": "m4gycroojx6am4cq",
             "trigger": {
                 "event": "wf-run-blueprint-via-api",
                 "payload": {"proposedSessionId": None},
@@ -46,6 +47,7 @@ class TestJournal:
                         "type": "blueprints_apitrigger",
                         "id": "qfqpqmjdpzuu8fe9",
                         "title": "API alias",
+                        "category": "Triggers",
                     },
                     "startedAt": ANY,
                     "executionTimeInSeconds": ANY,
@@ -57,6 +59,7 @@ class TestJournal:
                         "type": "blueprints_logmessage",
                         "id": "pa448833kc2pis3a",
                         "title": "Log message",
+                        "category": "Other",
                     },
                     "startedAt": ANY,
                     "executionTimeInSeconds": ANY,
@@ -85,6 +88,7 @@ class TestJournal:
         assert entry == {
             "timestamp": ANY,
             "instanceType": "agent",
+            "blueprintId": "m4gycroojx6am4cq",
             "trigger": {
                 "event": "wf-run-blueprint-via-api",
                 "payload": {"proposedSessionId": None},
@@ -129,6 +133,7 @@ class TestJournal:
             assert entry == {
                 "timestamp": ANY,
                 "instanceType": "editor",
+                "blueprintId": "m4gycroojx6am4cq",
                 "trigger": {
                     "event": "wf-click",
                     "payload": {"ctrl_key": False, "shift_key": False, "meta_key": False},
@@ -169,6 +174,7 @@ class TestJournal:
             assert entry == {
                 "timestamp": ANY,
                 "instanceType": "agent",
+                "blueprintId": "m4gycroojx6am4cq",
                 "trigger": {
                     "event": "wf-click",
                     "payload": {"ctrl_key": False, "shift_key": False, "meta_key": False},
@@ -204,6 +210,7 @@ class TestJournal:
             assert entry == {
                 "timestamp": ANY,
                 "instanceType": "editor",
+                "blueprintId": "m4gycroojx6am4cq",
                 "trigger": {
                     "event": "wf-run-blueprint-branch",
                     "payload": {},
@@ -239,6 +246,7 @@ class TestJournal:
             assert entry == {
                 "timestamp": ANY,
                 "instanceType": "editor",
+                "blueprintId": "m4gycroojx6am4cq",
                 "trigger": {
                     "event": "wf-run-blueprint",
                     "payload": {},
@@ -277,6 +285,7 @@ class TestJournal:
             assert entry == {
                 "timestamp": ANY,
                 "instanceType": "editor",
+                "blueprintId": "n5tm1c8il2kpzttw",
                 "trigger": {
                     "event": "wf-run-blueprint",
                     "payload": {},

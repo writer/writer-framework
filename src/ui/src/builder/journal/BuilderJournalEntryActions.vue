@@ -1,25 +1,25 @@
 <template>
 	<div class="actions">
-		<WdsButton
-			v-if="entry.entryType === 'execution'"
-			variant="neutral"
-			size="small"
-			type="button"
-			@click="$emit('re-run')"
-		>
-			<WdsIcon name="play" />
-			Re-run
-		</WdsButton>
-		<WdsButton
-			v-if="entry.entryType === 'execution'"
-			variant="neutral"
-			size="small"
-			type="button"
-			@click="$emit('go-to-trigger')"
-		>
-			<WdsIcon name="locate" />
-			Go to Trigger
-		</WdsButton>
+		<template v-if="entry.entryType === 'execution'">
+			<WdsButton
+				variant="neutral"
+				size="small"
+				type="button"
+				@click="$emit('re-run')"
+			>
+				<WdsIcon name="play" />
+				Re-run
+			</WdsButton>
+			<WdsButton
+				variant="neutral"
+				size="small"
+				type="button"
+				@click="$emit('go-to-trigger')"
+			>
+				<WdsIcon name="locate" />
+				Go to Trigger
+			</WdsButton>
+		</template>
 		<WdsButton
 			variant="neutral"
 			size="small"
