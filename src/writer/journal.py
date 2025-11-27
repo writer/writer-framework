@@ -29,6 +29,10 @@ class JournalRecord:
         self.started_at = datetime.now(timezone.utc)
         self.instance_type = "editor" if Config.mode == "edit" else "agent"
 
+        # Get blueprint_id from the parent of any node in the graph
+        # All nodes in a blueprint share the same parent blueprint component
+        self.blueprint_id = graph.nodes[0].component.parentId if graph.nodes else None
+
         self.trigger = {
             "event": execution_environment.get("context", {}).get("event"),
             "payload": execution_environment.get("payload"),
@@ -37,7 +41,7 @@ class JournalRecord:
 
         if self.trigger["event"] == "wf-run-blueprint":
             self.trigger["component"]["type"] = "blueprint"
-            self.trigger["component"]["id"] = graph.nodes[0].component.parentId
+            self.trigger["component"]["id"] = self.blueprint_id
             blueprint_component = core_ui.current_component_tree().get_component(self.trigger["component"]["id"])
             if blueprint_component is not None:
                 self.trigger["component"]["title"] = blueprint_component.content.get("key")
@@ -45,7 +49,7 @@ class JournalRecord:
             self.trigger["component"]["type"] = "block"
             component = graph.get_start_nodes()[0].component
             self.trigger["component"]["id"] = component.id
-            self.trigger["component"]["title"] = self._get_block_name(component)
+            self.trigger["component"]["title"] = self._get_block_info(component)["title"]
 
         if "API" in title:
             self.trigger["type"] = "API"
@@ -59,25 +63,45 @@ class JournalRecord:
         self.graph = graph
         self.is_runable = True
 
-    def _get_block_name(self, component: "Component") -> str:
+    def _get_block_info(self, component: "Component") -> Dict[str, str]:
         block_title = component.content.get("alias")
-        if block_title is not None:
-            return block_title
         component_definition = writer.abstract.templates.get(component.type)
+        
+        # If component has an alias, use it as title
+        if block_title is not None:
+            category = "Unknown category"
+            if component_definition is not None:
+                category = component_definition.writer.get("category", "Unknown category")
+            return {
+                "title": block_title,
+                "category": category
+            }
+        
+        # If no component definition found, return defaults
         if component_definition is None:
-            return "Unknown block"
-        return component_definition.writer.get("name", "Unknown block")
+            return {
+                "title": "Unknown block",
+                "category": "Unknown category"
+            }
+
+        # Use component definition for both title and category
+        return {
+            "title": component_definition.writer.get("name", "Unknown block"),
+            "category": component_definition.writer.get("category", "Unknown category")
+        }
 
     def to_dict(self) -> Dict[str, Any]:
         block_outputs = {}
         for graph_node in self.graph.nodes:
+            block_info = self._get_block_info(graph_node.component)
             block_data: Dict[str, Any] = {
                 "result": graph_node.result,
                 "outcome": graph_node.outcome,
                 "component": {
                     "type": graph_node.component.type,
                     "id": graph_node.component.id,
-                    "title": self._get_block_name(graph_node.component)
+                    "title": block_info["title"],
+                    "category": block_info["category"]
                 }
             }
             
@@ -104,6 +128,7 @@ class JournalRecord:
         data = {
             "timestamp": self.started_at.isoformat(),
             "instanceType": self.instance_type,
+            "blueprintId": self.blueprint_id,
             "trigger": self.trigger,
             "blockOutputs": block_outputs,
         }
