@@ -98,7 +98,7 @@ const { setContentValue } = useComponentActions(wf, wfbm);
 
 interface DeployResult {
 	blueprintName: string;
-	version: string;
+	version: number;
 	warnings: string[];
 }
 

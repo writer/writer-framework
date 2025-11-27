@@ -1,7 +1,11 @@
 """
 Mock in-memory database for block library snippets.
 
-Simulates Postgres snippets and snippet_versions tables using in-memory dictionaries.
+Simulates the application tables structure using in-memory dictionaries:
+- SnippetRecord -> Application (with type='shared-blueprint')
+- SnippetVersionRecord -> ApplicationVersion + ApplicationVersionData combined
+
+Version numbers are simple integers, derived from the count of versions.
 """
 
 import logging
@@ -15,25 +19,34 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SnippetRecord:
-    """Record representing a snippet (block) in the library."""
+    """
+    Record representing a snippet (block) in the library.
+    
+    Maps to: Application table with type='shared-blueprint'
+    """
 
-    id: str  # UUID
-    visibility: str  # "ORG" for organization-level visibility
-    title: str
-    org_id: str = ""  # Organization ID
+    id: str  # UUID (application.id)
+    visibility: str  # "ORGANIZATION" for org-level visibility
+    title: str  # Stored in the associated ApplicationVersion.name
+    org_id: str = ""  # Organization ID (application.organization_id)
+    live_version_id: Optional[str] = None  # Points to latest version (application.live_version_id)
     created_at: datetime = field(default_factory=datetime.utcnow)
 
 
 @dataclass
 class SnippetVersionRecord:
-    """Record representing a version of a snippet."""
+    """
+    Record representing a version of a snippet.
+    
+    Maps to: ApplicationVersion + ApplicationVersionData combined
+    """
 
-    id: str  # UUID
-    snippet_id: str
-    version: str  # Semantic version (e.g., "1.0.0")
-    blueprint_components: List[Dict[str, Any]]  # Blueprint component structure
-    description: str
-    metadata: dict  # name, state_inputs, state_outputs, etc.
+    id: str  # UUID (application_version.id)
+    snippet_id: str  # application_id
+    version_number: int  # Derived from count of versions
+    blueprint_components: List[Dict[str, Any]]  # From application_version_data.data.components
+    description: str  # application_version.description
+    metadata: dict  # Stored in application_version_data.data.metadata
     created_at: datetime = field(default_factory=datetime.utcnow)
 
 
@@ -44,7 +57,7 @@ _snippet_versions: Dict[str, List[SnippetVersionRecord]] = {}
 
 def create_snippet(
     title: str,
-    visibility: str = "ORG",
+    visibility: str = "ORGANIZATION",
     org_id: str = "",
 ) -> str:
     """
@@ -52,7 +65,7 @@ def create_snippet(
 
     Args:
         title: Snippet title
-        visibility: Visibility level (default: "ORG")
+        visibility: Visibility level (default: "ORGANIZATION")
         org_id: Organization ID
 
     Returns:
@@ -64,6 +77,7 @@ def create_snippet(
         visibility=visibility,
         title=title,
         org_id=org_id,
+        live_version_id=None,
     )
     _snippets[snippet_id] = snippet
     _snippet_versions[snippet_id] = []
@@ -71,30 +85,12 @@ def create_snippet(
     return snippet_id
 
 
-def _increment_semver(version: str) -> str:
-    """
-    Increment the patch version of a semantic version string.
-    
-    Args:
-        version: Semantic version string (e.g., "1.0.0")
-        
-    Returns:
-        Incremented version string (e.g., "1.0.1")
-    """
-    parts = version.split(".")
-    if len(parts) != 3:
-        return "1.0.1"  # Fallback if invalid
-    major, minor, patch = parts
-    return f"{major}.{minor}.{int(patch) + 1}"
-
-
 def create_snippet_version(
     snippet_id: str,
     blueprint_components: List[Dict[str, Any]],
     description: str,
     metadata: dict,
-    version: Optional[str] = None,
-) -> str:
+) -> int:
     """
     Create a new version for a snippet.
 
@@ -103,11 +99,9 @@ def create_snippet_version(
         blueprint_components: Blueprint component structure (list of component dicts)
         description: Block description
         metadata: Block metadata (name, state_inputs, etc.)
-        version: Optional semantic version (e.g., "1.0.0"). If not provided,
-                 auto-increments patch version from latest, or starts at "1.0.0".
 
     Returns:
-        version (semantic version string)
+        version_number (integer, starting from 1)
 
     Raises:
         ValueError: If snippet_id doesn't exist
@@ -117,22 +111,14 @@ def create_snippet_version(
 
     versions = _snippet_versions.get(snippet_id, [])
     
-    # Determine version
-    if version:
-        new_version = version
-    elif versions:
-        # Auto-increment patch version from latest
-        latest = versions[-1]
-        new_version = _increment_semver(latest.version)
-    else:
-        # First version
-        new_version = "1.0.0"
+    # Version number is simply the count + 1
+    new_version_number = len(versions) + 1
 
     version_id = str(uuid.uuid4())
     version_record = SnippetVersionRecord(
         id=version_id,
         snippet_id=snippet_id,
-        version=new_version,
+        version_number=new_version_number,
         blueprint_components=blueprint_components,
         description=description,
         metadata=metadata,
@@ -142,8 +128,11 @@ def create_snippet_version(
         _snippet_versions[snippet_id] = []
     _snippet_versions[snippet_id].append(version_record)
 
-    logger.debug(f"Created version {new_version} for snippet {snippet_id}")
-    return new_version
+    # Update the snippet's live_version_id to point to this new version
+    _snippets[snippet_id].live_version_id = version_id
+
+    logger.debug(f"Created version {new_version_number} for snippet {snippet_id}")
+    return new_version_number
 
 
 def get_snippet(snippet_id: str) -> Optional[SnippetRecord]:
@@ -190,18 +179,24 @@ def get_all_versions(snippet_id: str) -> List[SnippetVersionRecord]:
 
 
 def list_snippets(
-    search_query: Optional[str] = None
+    search_query: Optional[str] = None,
+    org_id: Optional[str] = None,
 ) -> List[SnippetRecord]:
     """
-    List all snippets, optionally filtered by search query.
+    List all snippets, optionally filtered by search query and org_id.
 
     Args:
         search_query: Optional search string to filter by title/description
+        org_id: Optional organization ID to filter by
 
     Returns:
         List of SnippetRecord matching the filters
     """
     results = list(_snippets.values())
+
+    # Filter by org_id if provided
+    if org_id:
+        results = [s for s in results if s.org_id == org_id]
 
     # Filter by search query if provided
     if search_query:
@@ -254,4 +249,3 @@ def clear_all() -> None:
     """
     _snippets.clear()
     _snippet_versions.clear()
-

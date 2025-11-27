@@ -417,7 +417,7 @@ def get_asgi_app(
             raise HTTPException(status_code=400, detail="blueprint_components must be a list")
 
         title = data["name"]
-        snippet_id = create_snippet(title=title, visibility="GLOBAL")
+        snippet_id = create_snippet(title=title, visibility="ORGANIZATION")
 
         metadata = {
             "name": data["name"],
@@ -462,7 +462,7 @@ def get_asgi_app(
                     "id": snippet.id,
                     "title": snippet.title,
                     "description": latest_version.description,
-                    "version": latest_version.version,
+                    "version_number": latest_version.version_number,
                     "created_at": snippet.created_at.isoformat(),
                     "metadata": latest_version.metadata,
                 }
@@ -489,7 +489,7 @@ def get_asgi_app(
             "title": snippet.title,
             "visibility": snippet.visibility,
             "latest_version": {
-                "version": latest_version.version,
+                "version_number": latest_version.version_number,
                 "blueprint_components": latest_version.blueprint_components,
                 "description": latest_version.description,
                 "metadata": latest_version.metadata,
@@ -510,7 +510,7 @@ def get_asgi_app(
         versions = get_all_versions(snippet_id)
         return [
             {
-                "version": v.version,
+                "version_number": v.version_number,
                 "description": v.description,
                 "created_at": v.created_at.isoformat(),
                 "metadata": v.metadata,
