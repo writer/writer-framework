@@ -20,9 +20,6 @@ class SnippetRecord:
     id: str  # UUID
     visibility: str  # "ORG" for organization-level visibility
     title: str
-    # Identity fields for unique identification
-    blueprint_id: str = ""  # Source blueprint component ID
-    app_id: str = ""  # Application ID
     org_id: str = ""  # Organization ID
     created_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -48,8 +45,6 @@ _snippet_versions: Dict[str, List[SnippetVersionRecord]] = {}
 def create_snippet(
     title: str,
     visibility: str = "ORG",
-    blueprint_id: str = "",
-    app_id: str = "",
     org_id: str = "",
 ) -> str:
     """
@@ -58,8 +53,6 @@ def create_snippet(
     Args:
         title: Snippet title
         visibility: Visibility level (default: "ORG")
-        blueprint_id: Source blueprint component ID
-        app_id: Application ID
         org_id: Organization ID
 
     Returns:
@@ -70,38 +63,12 @@ def create_snippet(
         id=snippet_id,
         visibility=visibility,
         title=title,
-        blueprint_id=blueprint_id,
-        app_id=app_id,
         org_id=org_id,
     )
     _snippets[snippet_id] = snippet
     _snippet_versions[snippet_id] = []
     logger.debug(f"Created snippet: {snippet_id} ({title})")
     return snippet_id
-
-
-def get_snippet_by_identity(
-    blueprint_id: str, app_id: str, org_id: str
-) -> Optional[SnippetRecord]:
-    """
-    Get a snippet by its identity (blueprint_id + app_id + org_id).
-
-    Args:
-        blueprint_id: Source blueprint component ID
-        app_id: Application ID
-        org_id: Organization ID
-
-    Returns:
-        SnippetRecord or None if not found
-    """
-    for snippet in _snippets.values():
-        if (
-            snippet.blueprint_id == blueprint_id
-            and snippet.app_id == app_id
-            and snippet.org_id == org_id
-        ):
-            return snippet
-    return None
 
 
 def create_snippet_version(

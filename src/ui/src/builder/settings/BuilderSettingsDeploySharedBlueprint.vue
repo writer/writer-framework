@@ -189,7 +189,8 @@ async function handleDeploy() {
 
 		const data = await response.json();
 
-		// Update blueprint's deployed version and description
+		// Update blueprint's published snippet ID, version, and description
+		setContentValue(props.blueprintId, "publishedSnippetId", data.snippet_id);
 		setContentValue(props.blueprintId, "deployedVersion", data.version);
 		setContentValue(
 			props.blueprintId,

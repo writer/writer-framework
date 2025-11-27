@@ -50,7 +50,6 @@ from writer.blocks.block_library_db import (
     get_all_versions,
     get_latest_version,
     get_snippet,
-    get_snippet_by_identity,
     list_snippets,
 )
 from writer.blocks.shared_blueprint_registry import (
@@ -312,8 +311,7 @@ def get_asgi_app(
 
         blueprint_id = data["blueprint_id"]
 
-        # Get app_id and org_id from headers or environment
-        app_id = request.headers.get("x-agent-id") or os.getenv("WRITER_APP_ID", "")
+        # Get org_id from headers or environment
         org_id = request.headers.get("x-organization-id") or os.getenv("WRITER_ORG_ID", "1")
 
         if not app_runner.bmc_components:
@@ -366,11 +364,11 @@ def get_asgi_app(
             "state_outputs": data.get("state_outputs", []),
             "dependencies": data.get("dependencies", []),
             "vault_keys": dependencies.get("vault_keys", []),
-            "source_blueprint_id": blueprint_id,
         }
 
-        # Check if this blueprint already exists in the library (by identity)
-        existing_snippet = get_snippet_by_identity(blueprint_id, app_id, org_id)
+        # Check if this blueprint has already been published (has a stored snippet ID)
+        published_snippet_id = blueprint.get("content", {}).get("publishedSnippetId")
+        existing_snippet = get_snippet(published_snippet_id) if published_snippet_id else None
 
         if existing_snippet:
             # Update existing snippet with new version
@@ -382,12 +380,10 @@ def get_asgi_app(
             )
             snippet_id = existing_snippet.id
         else:
-            # Create new snippet
+            # Create new snippet with a new UUID
             snippet_id = create_snippet(
                 title=blueprint_name,
                 visibility="ORG",
-                blueprint_id=blueprint_id,
-                app_id=app_id,
                 org_id=org_id,
             )
             version_number = create_snippet_version(
