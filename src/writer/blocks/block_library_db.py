@@ -30,7 +30,7 @@ class SnippetVersionRecord:
 
     id: str  # UUID
     snippet_id: str
-    version_number: int
+    version: str  # Semantic version (e.g., "1.0.0")
     blueprint_components: List[Dict[str, Any]]  # Blueprint component structure
     description: str
     metadata: dict  # name, state_inputs, state_outputs, etc.
@@ -71,9 +71,30 @@ def create_snippet(
     return snippet_id
 
 
+def _increment_semver(version: str) -> str:
+    """
+    Increment the patch version of a semantic version string.
+    
+    Args:
+        version: Semantic version string (e.g., "1.0.0")
+        
+    Returns:
+        Incremented version string (e.g., "1.0.1")
+    """
+    parts = version.split(".")
+    if len(parts) != 3:
+        return "1.0.1"  # Fallback if invalid
+    major, minor, patch = parts
+    return f"{major}.{minor}.{int(patch) + 1}"
+
+
 def create_snippet_version(
-    snippet_id: str, blueprint_components: List[Dict[str, Any]], description: str, metadata: dict
-) -> int:
+    snippet_id: str,
+    blueprint_components: List[Dict[str, Any]],
+    description: str,
+    metadata: dict,
+    version: Optional[str] = None,
+) -> str:
     """
     Create a new version for a snippet.
 
@@ -82,9 +103,11 @@ def create_snippet_version(
         blueprint_components: Blueprint component structure (list of component dicts)
         description: Block description
         metadata: Block metadata (name, state_inputs, etc.)
+        version: Optional semantic version (e.g., "1.0.0"). If not provided,
+                 auto-increments patch version from latest, or starts at "1.0.0".
 
     Returns:
-        version_number (auto-incremented)
+        version (semantic version string)
 
     Raises:
         ValueError: If snippet_id doesn't exist
@@ -93,14 +116,23 @@ def create_snippet_version(
         raise ValueError(f"Snippet {snippet_id} not found")
 
     versions = _snippet_versions.get(snippet_id, [])
-    # Auto-increment version number
-    version_number = len(versions) + 1
+    
+    # Determine version
+    if version:
+        new_version = version
+    elif versions:
+        # Auto-increment patch version from latest
+        latest = versions[-1]
+        new_version = _increment_semver(latest.version)
+    else:
+        # First version
+        new_version = "1.0.0"
 
     version_id = str(uuid.uuid4())
-    version = SnippetVersionRecord(
+    version_record = SnippetVersionRecord(
         id=version_id,
         snippet_id=snippet_id,
-        version_number=version_number,
+        version=new_version,
         blueprint_components=blueprint_components,
         description=description,
         metadata=metadata,
@@ -108,10 +140,10 @@ def create_snippet_version(
 
     if snippet_id not in _snippet_versions:
         _snippet_versions[snippet_id] = []
-    _snippet_versions[snippet_id].append(version)
+    _snippet_versions[snippet_id].append(version_record)
 
-    logger.debug(f"Created version {version_number} for snippet {snippet_id}")
-    return version_number
+    logger.debug(f"Created version {new_version} for snippet {snippet_id}")
+    return new_version
 
 
 def get_snippet(snippet_id: str) -> Optional[SnippetRecord]:
@@ -152,7 +184,7 @@ def get_all_versions(snippet_id: str) -> List[SnippetVersionRecord]:
         snippet_id: Snippet ID
 
     Returns:
-        List of SnippetVersionRecord, sorted by version_number
+        List of SnippetVersionRecord, in chronological order
     """
     return _snippet_versions.get(snippet_id, []).copy()
 

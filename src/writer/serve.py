@@ -437,7 +437,7 @@ def get_asgi_app(
             metadata=metadata,
         )
 
-        return {"snippet_id": snippet_id, "version_number": version_number}
+        return {"snippet_id": snippet_id, "version": version_number}
 
     @app.get("/api/block-library/blocks")
     async def list_blocks_in_library(request: Request):
@@ -462,7 +462,7 @@ def get_asgi_app(
                     "id": snippet.id,
                     "title": snippet.title,
                     "description": latest_version.description,
-                    "version_number": latest_version.version_number,
+                    "version": latest_version.version,
                     "created_at": snippet.created_at.isoformat(),
                     "metadata": latest_version.metadata,
                 }
@@ -489,7 +489,7 @@ def get_asgi_app(
             "title": snippet.title,
             "visibility": snippet.visibility,
             "latest_version": {
-                "version_number": latest_version.version_number,
+                "version": latest_version.version,
                 "blueprint_components": latest_version.blueprint_components,
                 "description": latest_version.description,
                 "metadata": latest_version.metadata,
@@ -510,7 +510,7 @@ def get_asgi_app(
         versions = get_all_versions(snippet_id)
         return [
             {
-                "version_number": v.version_number,
+                "version": v.version,
                 "description": v.description,
                 "created_at": v.created_at.isoformat(),
                 "metadata": v.metadata,
@@ -632,7 +632,7 @@ def get_asgi_app(
             metadata=metadata,
         )
 
-        return {"version_number": version_number}
+        return {"version": version_number}
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):
