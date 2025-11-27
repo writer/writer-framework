@@ -66,18 +66,25 @@ class JournalRecord:
     def _get_block_info(self, component: "Component") -> Dict[str, str]:
         block_title = component.content.get("alias")
         component_definition = writer.abstract.templates.get(component.type)
+        
+        # If component has an alias, use it as title
         if block_title is not None:
+            category = "Unknown category"
+            if component_definition is not None:
+                category = component_definition.writer.get("category", "Unknown category")
             return {
                 "title": block_title,
-                "category": component_definition.writer.get("category", "Unknown category")
+                "category": category
             }
         
+        # If no component definition found, return defaults
         if component_definition is None:
             return {
                 "title": "Unknown block",
                 "category": "Unknown category"
             }
 
+        # Use component definition for both title and category
         return {
             "title": component_definition.writer.get("name", "Unknown block"),
             "category": component_definition.writer.get("category", "Unknown category")
