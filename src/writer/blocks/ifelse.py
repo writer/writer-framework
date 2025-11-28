@@ -53,9 +53,9 @@ class IfElseBlock(BlueprintBlock):
         try:
             writeruserapp = sys.modules.get("writeruserapp")
             block_globals = {
-                "state": self.runner.session.session_state,
                 **self.execution_environment,
                 **(writeruserapp.__dict__ if writeruserapp else {}),
+                "state": self.runner.session.session_state,
             }
             # Evaluate the expression and set the result
             compiled_expr = compile(expression, "<expression>", mode="eval")
