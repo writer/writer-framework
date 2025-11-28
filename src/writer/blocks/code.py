@@ -1,4 +1,3 @@
-import io
 import logging
 import sys
 import traceback
@@ -74,12 +73,13 @@ class CodeBlock(BlueprintBlock):
 
             writeruserapp = sys.modules.get("writeruserapp")
             block_globals = (
-                {
-                    "state": self.runner.session.session_state,
-                }
-                | self.execution_environment
+                self.execution_environment
                 | writeruserapp.__dict__
-                | {"set_output": self.set_output}
+                | {
+                    "state": self.runner.session.session_state,
+                    "set_output": self.set_output,
+                    "logger": exec_logger,
+                }
             )
 
             with (
@@ -92,7 +92,7 @@ class CodeBlock(BlueprintBlock):
                     lambda entry: setattr(self, 'captured_logs', entry)
                 ]),
             ):
-                exec(code, block_globals | {"logger": exec_logger})
+                exec(code, block_globals)
 
             self.outcome = "success"
         except BaseException as e:
