@@ -372,10 +372,21 @@ function handleRendererDrop(ev: DragEvent) {
 	ssbm.setSelection(null);
 	const dropInfo = dropComponent(ev);
 	if (!dropInfo) return;
-	const { draggedType, draggedId, parentId, position } = dropInfo;
+	const { draggedType, draggedId, parentId, position, dragContent } =
+		dropInfo;
 
 	if (!draggedId) {
-		createAndInsertComponent(draggedType, parentId, position);
+		// Pass dragContent as initial content for the component
+		const initProperties =
+			Object.keys(dragContent).length > 0
+				? { content: dragContent as Record<string, string> }
+				: undefined;
+		createAndInsertComponent(
+			draggedType,
+			parentId,
+			position,
+			initProperties,
+		);
 	} else {
 		moveComponent(draggedId, parentId, position);
 	}

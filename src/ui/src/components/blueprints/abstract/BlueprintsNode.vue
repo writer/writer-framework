@@ -30,7 +30,7 @@
 				<BlueprintsNodeNamer
 					:component-id="componentId"
 					class="nodeNamer"
-					:block-name="def.name"
+					:block-name="displayName"
 				></BlueprintsNodeNamer>
 				<div v-if="isDeprecated" class="deprecationNotice">
 					Deprecated
@@ -150,6 +150,7 @@ import BlueprintsNodeOutput from "./BlueprintsNodeOutput.vue";
 import BlueprintsNodeLogs from "./BlueprintsNodeLogs.vue";
 import BlueprintsNodeTools from "./BlueprintsNodeTools.vue";
 import { useBlueprintNodeTools } from "@/composables/useBlueprintNodeTools";
+import { getSourceBlueprintName } from "@/builder/useComponentDescription";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
@@ -171,6 +172,15 @@ const isDeprecated = computed(() => {
 });
 
 const { component, definition: def } = useComponentInformation(wf, componentId);
+
+const displayName = computed(() => {
+	if (!component.value) return "Unknown";
+	return (
+		getSourceBlueprintName(wf, component.value) ||
+		def.value?.name ||
+		"Unknown"
+	);
+});
 
 const completionStyle = computed(() => {
 	if (latestKnownOutcome.value == null) return null;

@@ -181,10 +181,19 @@ function handleDragOver(ev: DragEvent) {
 function handleDrop(ev: DragEvent) {
 	const dragInfo = getComponentInfoFromDrag(ev);
 	if (!dragInfo) return;
-	const { draggedType, draggedId } = dragInfo;
+	const { draggedType, draggedId, sourceBlueprintId } = dragInfo;
 
 	if (!draggedId) {
-		createAndInsertComponent(draggedType, component.value.id);
+		const initProperties = sourceBlueprintId
+			? { content: { sourceBlueprintId } }
+			: undefined;
+
+		createAndInsertComponent(
+			draggedType,
+			component.value.id,
+			undefined,
+			initProperties,
+		);
 	} else {
 		moveComponent(draggedId, component.value.id);
 	}
