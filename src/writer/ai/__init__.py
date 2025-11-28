@@ -2,6 +2,7 @@ import json
 import logging
 from contextvars import ContextVar
 from datetime import datetime
+from functools import wraps
 from typing import (
     Any,
     Callable,
@@ -13,6 +14,7 @@ from typing import (
     Optional,
     Set,
     TypedDict,
+    TypeVar,
     Union,
     cast,
 )
@@ -20,7 +22,7 @@ from uuid import uuid4
 
 from httpx import Timeout
 from writerai import DefaultHttpxClient, Writer
-from writerai._exceptions import WriterError
+from writerai._exceptions import BadRequestError, WriterError
 from writerai._response import BinaryAPIResponse
 from writerai._streaming import Stream
 from writerai._types import Body, Headers, NotGiven, Query
@@ -1041,6 +1043,36 @@ def delete_file(
     return files.delete(file_id, **config)
 
 
+class GuardrailError(Exception):
+    def __init__(self, name: str, message: str, *args):
+        super().__init__(f"{message}: {name}", *args)
+
+
+R = TypeVar("R")
+
+
+def catch_guardrail_error(func: Callable[..., R]) -> Callable[..., R]:
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> R:
+        try:
+            return func(*args, **kwargs)
+        except BadRequestError as e:
+            parsed = e.response.json()
+            errors = parsed.get("errors")
+            if not errors:
+                raise
+
+            guardrail_info = parsed.get("extras", {}).get("guardrail_info")
+            if guardrail_info is None:
+                raise
+
+            raise GuardrailError(
+                name=guardrail_info["guardrail_name"],
+                message=errors[0]["description"],
+            ) from None
+
+    return wrapper
+
 class Conversation:
     """
     Manages messages within a conversation flow with an AI system,
@@ -1848,6 +1880,7 @@ class Conversation:
 
         self.__add__({"role": role, "content": content})
 
+    @catch_guardrail_error
     def _send_chat_request(
             self,
             request_model: str,
@@ -2918,6 +2951,7 @@ class Tools:
         return result.entities
 
 
+@catch_guardrail_error
 def complete(
         initial_text: str,
         config: Optional['CreateOptions'] = None
@@ -2964,6 +2998,7 @@ def complete(
         f"{response_data}")
 
 
+@catch_guardrail_error
 def stream_complete(
         initial_text: str,
         config: Optional['CreateOptions'] = None

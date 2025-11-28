@@ -58,11 +58,13 @@ from writer.ai import (
     Graph,
     GraphDeleteResponse,
     GraphRemoveFileFromGraphResponse,
+    GuardrailError,
     SDKFile,
     SDKGraph,
     WriterAIManager,
     apps,
     ask,
+    catch_guardrail_error,
     complete,
     create_function_tool,
     create_graph,
@@ -79,6 +81,7 @@ from writer.ai import (
     upload_file,
 )
 from writerai import Writer
+from writerai._exceptions import BadRequestError
 from writerai._streaming import Stream
 from writerai.pagination import SyncCursorPage
 from writerai.types import (
@@ -549,6 +552,43 @@ def emulate_app_process(request):
         mock_get_app_process.return_value = fake_process
         yield fake_process
         patch.stopall()
+
+
+MOCK_GUARDRAIL_ERROR_DATA = {
+    'tpe': 'fail.input',
+    'errors': [
+        {
+            'description': 'Violated guardrail policy',
+            'key': 'fail.input.generic',
+            'extras': 'status_code_400'
+        }
+    ],
+    'extras': {
+        'guardrail_info': {
+            'guardrail_name': 'denied-topic-nba',
+            'mode': 'during_call',
+            'action': 'block',
+            'provider': 'bedrock'
+        },
+        'provider_message': 'Sorry, the model cannot answer this question.; Sorry, the model cannot answer this question.; topic:NBA conversation'
+    }
+}
+
+def test_catch_guardrail_error():
+
+    def mock_chat():
+        raise BadRequestError(
+            message="test",
+            response=httpx.Response(
+                status_code=400,
+                json=MOCK_GUARDRAIL_ERROR_DATA,
+                request=httpx.Request("GET", "https://example.com")
+            ),
+            body="",
+        )
+
+    with pytest.raises(GuardrailError):
+        catch_guardrail_error(mock_chat)()
 
 
 def test_conversation_init_with_prompt():
