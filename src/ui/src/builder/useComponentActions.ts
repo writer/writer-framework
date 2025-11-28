@@ -172,10 +172,14 @@ export function useComponentActions(
 		const newId = generateNewComponentId();
 		const definition = wf.getComponentDefinition(type);
 		const { fields } = definition;
-		const initContent = {};
-		Object.entries(fields ?? {}).map(([fieldKey, field]) => {
-			initContent[fieldKey] =
-				initProperties?.["content"]?.[fieldKey] ?? field.init;
+		// Start with any existing content from initProperties, preserving all values
+		// (e.g., sourceBlueprintId for shared blueprints)
+		const initContent = { ...(initProperties?.content ?? {}) };
+		// Then initialize fields from the definition, only if not already set
+		Object.entries(fields ?? {}).forEach(([fieldKey, field]) => {
+			if (!(fieldKey in initContent)) {
+				initContent[fieldKey] = field.init;
+			}
 		});
 
 		const component = {
