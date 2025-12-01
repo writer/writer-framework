@@ -360,9 +360,7 @@ watch([highlightsList, pagesLoaded], () => {
 	}
 });
 
-watch(scale, reload);
-
-watch(fields.source, reload);
+watch([scale, fields.source], reload);
 
 watch(highlights, () => {
 	highlightsList.value = [];
