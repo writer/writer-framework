@@ -25,7 +25,7 @@ class SharedBlueprint(BlueprintBlock):
 
     @classmethod
     def register(cls, type: str):
-        """Register the shared_blueprint type with its abstract template."""
+        """Register the blueprints_shared type with its abstract template."""
         super(SharedBlueprint, cls).register(type)
         register_abstract_template(
             type,
