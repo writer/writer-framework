@@ -1,14 +1,17 @@
+import contextlib
 import json
 import logging
+from contextvars import ContextVar
+from copy import deepcopy
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Dict, Literal
+from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
 import writer.abstract
 from writer.core import Config
 from writer.keyvalue_storage import writer_kv_storage
 
 if TYPE_CHECKING:
-    from writer.blueprints import Graph
+    from writer.blueprints import Graph, GraphNode
     from writer.core import Component
 
 
@@ -33,6 +36,7 @@ class JournalRecord:
         # All nodes in a blueprint share the same parent blueprint component
         self.blueprint_id = graph.nodes[0].component.parentId if graph.nodes else None
 
+        self.execution_environment = execution_environment
         self.trigger = {
             "event": execution_environment.get("context", {}).get("event"),
             "payload": execution_environment.get("payload"),
@@ -61,12 +65,26 @@ class JournalRecord:
             self.trigger["type"] = "On demand"
 
         self.graph = graph
+        self.block_outputs: Dict[str, Any] = {}
+        for graph_node in self.graph.nodes:
+            block_info = self._get_block_info(graph_node.component)
+            self.block_outputs[graph_node.id] = {
+                "component": {
+                    "type": graph_node.component.type,
+                    "id": graph_node.component.id,
+                    "title": block_info["title"],
+                    "category": block_info["category"]
+                },
+                "executions": []
+            }
+
         self.is_runable = True
+        self.result: Optional[Literal["success", "error", "stopped"]] = None
 
     def _get_block_info(self, component: "Component") -> Dict[str, str]:
         block_title = component.content.get("alias")
         component_definition = writer.abstract.templates.get(component.type)
-        
+
         # If component has an alias, use it as title
         if block_title is not None:
             category = "Unknown category"
@@ -76,7 +94,7 @@ class JournalRecord:
                 "title": block_title,
                 "category": category
             }
-        
+
         # If no component definition found, return defaults
         if component_definition is None:
             return {
@@ -91,39 +109,9 @@ class JournalRecord:
         }
 
     def to_dict(self) -> Dict[str, Any]:
-        block_outputs = {}
+        block_outputs = deepcopy(self.block_outputs)
         for graph_node in self.graph.nodes:
-            block_info = self._get_block_info(graph_node.component)
-            block_data: Dict[str, Any] = {
-                "result": graph_node.result,
-                "outcome": graph_node.outcome,
-                "component": {
-                    "type": graph_node.component.type,
-                    "id": graph_node.component.id,
-                    "title": block_info["title"],
-                    "category": block_info["category"]
-                }
-            }
-            
-            # Add timing information if available
-            if graph_node.tool:
-                if hasattr(graph_node.tool, 'started_at') and graph_node.tool.started_at >= 0:
-                    block_data["startedAt"] = graph_node.tool.started_at
-                if hasattr(graph_node.tool, 'execution_time_in_seconds') and graph_node.tool.execution_time_in_seconds >= 0:
-                    block_data["executionTimeInSeconds"] = graph_node.tool.execution_time_in_seconds
-                
-                # Add captured logs if available
-                if hasattr(graph_node.tool, 'captured_stdout') and graph_node.tool.captured_stdout:
-                    block_data["stdout"] = graph_node.tool.captured_stdout
-                if hasattr(graph_node.tool, 'captured_logs') and graph_node.tool.captured_logs:
-                    block_data["logs"] = graph_node.tool.captured_logs
-                
-                # Add error message if available (contains the traceback for errors)
-                if hasattr(graph_node.tool, 'message') and graph_node.tool.message:
-                    block_data["message"] = graph_node.tool.message
-            
-            block_outputs[graph_node.id] = block_data
-        
+            block_outputs[graph_node.id]["executions"].append(self.get_execution_data(graph_node))
 
         data = {
             "timestamp": self.started_at.isoformat(),
@@ -131,12 +119,38 @@ class JournalRecord:
             "blueprintId": self.blueprint_id,
             "trigger": self.trigger,
             "blockOutputs": block_outputs,
+            "result": self.result,
         }
         sanitized_data = self._sanitize_data(data)
         return {
             **sanitized_data,
             "isRunable": self.is_runable,
         }
+
+    def get_execution_data(self, graph_node: "GraphNode") -> Dict[str, Any]:
+        execution_data: Dict[str, Any] = {
+            "result": graph_node.result,
+            "outcome": graph_node.outcome,
+        }
+
+        # Add timing information if available
+        if graph_node.tool:
+            if hasattr(graph_node.tool, 'started_at') and graph_node.tool.started_at >= 0:
+                execution_data["startedAt"] = graph_node.tool.started_at
+            if hasattr(graph_node.tool, 'execution_time_in_seconds') and graph_node.tool.execution_time_in_seconds >= 0:
+                execution_data["executionTimeInSeconds"] = graph_node.tool.execution_time_in_seconds
+
+            # Add captured logs if available
+            if hasattr(graph_node.tool, 'captured_stdout') and graph_node.tool.captured_stdout:
+                execution_data["stdout"] = graph_node.tool.captured_stdout
+            if hasattr(graph_node.tool, 'captured_logs') and graph_node.tool.captured_logs:
+                execution_data["logs"] = graph_node.tool.captured_logs
+
+            # Add error message if available (contains the traceback for errors)
+            if hasattr(graph_node.tool, 'message') and graph_node.tool.message:
+                execution_data["message"] = graph_node.tool.message
+
+        return execution_data
 
     def _sanitize_data(self, data):
         if data is None:
@@ -161,9 +175,53 @@ class JournalRecord:
     def construct_key(self) -> str:
         return f"{JOURNAL_KEY_PREFIX}{self.instance_type[0]}-{int(self.started_at.timestamp() * 1000)}"
     
-    def save(self, result: Literal["success", "error", "stopped"]) -> None:
+    def set_result(self, result: Literal["success", "error", "stopped"]) -> None:
+        self.result = result
+
+    def add_nested_execution(self, nested_record: "JournalRecord") -> None:
+        for graph_node in nested_record.graph.nodes:
+            if graph_node.id not in self.block_outputs:
+                self.block_outputs[graph_node.id] = nested_record.block_outputs[graph_node.id]
+            self.block_outputs[graph_node.id]["executions"].append(nested_record.get_execution_data(graph_node))
+    
+    def save(self) -> None:
         if "journal" not in Config.feature_flags or not writer_kv_storage.is_accessible():
             return
         data = self.to_dict()
-        data["result"] = result
         writer_kv_storage.save(self.construct_key(), data)
+
+
+_parent_journal_record: ContextVar[Optional[JournalRecord]] = ContextVar("parent_journal_record", default=None)
+_current_journal_record: ContextVar[Optional[JournalRecord]] = ContextVar("current_journal_record", default=None)
+
+@contextlib.contextmanager
+def use_journal_record_context(
+    execution_environment: Dict,
+    title: str,
+    graph: "Graph"
+):
+    parent_record = _parent_journal_record.get()
+    current_record = JournalRecord(execution_environment, title, graph)
+    _current_journal_record.set(current_record)
+    if parent_record is None:
+        _parent_journal_record.set(current_record)
+
+    try:
+        yield current_record
+    except BaseException as e:
+        current_record.set_result("error")
+        raise e
+    finally:
+        _current_journal_record.set(None)
+        if parent_record is not None:
+            parent_record.add_nested_execution(current_record)
+        else:
+            try:
+                current_record.save()
+            except Exception:
+                logger.exception("Failed to save a Journal entry")
+            _parent_journal_record.set(None)
+
+
+def get_current_journal_record() -> Optional[JournalRecord]:
+    return _current_journal_record.get()

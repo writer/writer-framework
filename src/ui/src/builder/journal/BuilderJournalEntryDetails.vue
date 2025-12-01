@@ -95,8 +95,8 @@ const blockOutputsArray = computed(() => {
 	const entries = Object.entries(props.entry.blockOutputs);
 	// Sort by startedAt timestamp (earliest first, missing timestamps go to bottom)
 	return entries.sort((a, b) => {
-		const timeA = a[1].startedAt ?? Infinity;
-		const timeB = b[1].startedAt ?? Infinity;
+		const timeA = a[1].executions?.[0]?.startedAt ?? Infinity;
+		const timeB = b[1].executions?.[0]?.startedAt ?? Infinity;
 		return timeA - timeB;
 	});
 });

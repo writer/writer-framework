@@ -1,5 +1,9 @@
 <template>
-	<div class="BuilderJournalBlockOutput" :class="rootClass">
+	<div
+		v-if="firstExecution"
+		class="BuilderJournalBlockOutput"
+		:class="rootClass"
+	>
 		<div
 			class="BuilderJournalBlockOutput__header"
 			:role="blockId ? 'button' : undefined"
@@ -37,21 +41,24 @@
 		</div>
 		<div class="BuilderJournalBlockOutput__meta">
 			<div class="BuilderJournalBlockOutput__status">
-				<span>Outcome: {{ output.outcome }}</span>
+				<span>Outcome: {{ firstExecution.outcome }}</span>
 			</div>
 			<div
 				v-if="
-					output.startedAt !== undefined ||
-					output.executionTimeInSeconds !== undefined
+					firstExecution.startedAt !== undefined ||
+					firstExecution.executionTimeInSeconds !== undefined
 				"
 				class="BuilderJournalBlockOutput__timing"
 			>
-				<span v-if="output.startedAt !== undefined">
-					Started: {{ formatTimestamp(output.startedAt) }}
+				<span v-if="firstExecution.startedAt !== undefined">
+					Started:
+					{{ formatTimestamp(firstExecution.startedAt) }}
 				</span>
-				<span v-if="output.executionTimeInSeconds !== undefined">
+				<span
+					v-if="firstExecution.executionTimeInSeconds !== undefined"
+				>
 					Duration:
-					{{ formatDuration(output.executionTimeInSeconds) }}
+					{{ formatDuration(firstExecution.executionTimeInSeconds) }}
 				</span>
 			</div>
 		</div>
@@ -68,31 +75,31 @@
 		<div class="BuilderJournalBlockOutput__tab-content">
 			<!-- Error Details Tab -->
 			<div
-				v-if="output.message && activeTab === 'error'"
+				v-if="firstExecution.message && activeTab === 'error'"
 				class="BuilderJournalBlockOutput__message"
 			>
 				<div class="BuilderJournalBlockOutput__message-content">
-					{{ output.message }}
+					{{ firstExecution.message }}
 				</div>
 			</div>
 
 			<!-- Stdout Tab -->
 			<div
-				v-if="output.stdout && activeTab === 'stdout'"
+				v-if="firstExecution.stdout && activeTab === 'stdout'"
 				class="BuilderJournalBlockOutput__log-section"
 			>
 				<pre class="BuilderJournalBlockOutput__log-content">{{
-					output.stdout
+					firstExecution.stdout
 				}}</pre>
 			</div>
 
 			<!-- Logs Tab -->
 			<div
-				v-if="output.logs && activeTab === 'logs'"
+				v-if="firstExecution.logs && activeTab === 'logs'"
 				class="BuilderJournalBlockOutput__log-section"
 			>
 				<pre class="BuilderJournalBlockOutput__log-content">{{
-					output.logs
+					firstExecution.logs
 				}}</pre>
 			</div>
 
@@ -102,7 +109,7 @@
 				class="BuilderJournalBlockOutput__result-section"
 			>
 				<SharedJsonViewer
-					:data="output.result"
+					:data="firstExecution.result"
 					is-root
 					is-root-open
 					enable-copy-to-json
@@ -119,21 +126,7 @@ import WdsTabs from "@/wds/WdsTabs.vue";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import SharedJsonViewer from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
-
-type BlockOutput = {
-	result: unknown;
-	outcome: string;
-	message?: string;
-	stdout?: string;
-	logs?: string;
-	startedAt?: number;
-	executionTimeInSeconds?: number;
-	component?: {
-		type?: string;
-		title?: string;
-		category?: string;
-	} | null;
-};
+import { BlockOutput } from "../BuilderJournal.vue";
 
 const props = defineProps({
 	blockId: { type: String, required: true },
@@ -145,19 +138,22 @@ defineEmits<{
 	"go-to-block": [blockId: string];
 }>();
 
+const firstExecution = computed(() => props.output.executions?.[0]);
 const activeTab = ref<string>("");
 
 // Build tabs based on available data
 const blockTabs = computed(() => {
+	if (!firstExecution.value) return [];
+
 	const tabs = [];
 
-	if (props.output.message) {
+	if (firstExecution.value.message) {
 		tabs.push({ label: "Error", value: "error" });
 	}
-	if (props.output.stdout) {
+	if (firstExecution.value.stdout) {
 		tabs.push({ label: "Stdout", value: "stdout" });
 	}
-	if (props.output.logs) {
+	if (firstExecution.value.logs) {
 		tabs.push({ label: "Logs", value: "logs" });
 	}
 	tabs.push({ label: "Result", value: "result" });
@@ -206,7 +202,7 @@ const rootClassByOutcome: Record<string, string> = {
 
 const rootClass = computed(
 	() =>
-		rootClassByOutcome[props.output.outcome] ||
+		rootClassByOutcome[firstExecution.value.outcome] ||
 		"BuilderJournalBlockOutput--success",
 );
 

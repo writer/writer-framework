@@ -8,13 +8,13 @@ import time
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager
 from contextvars import ContextVar, copy_context
-from typing import Any, Dict, Generator, List, Literal, Optional, OrderedDict, Union
+from typing import Any, Dict, Generator, List, Literal, Optional, Union
 
 import writer.blocks
 import writer.blocks.base_block
 import writer.core
 import writer.core_ui
-from writer.journal import JournalRecord
+from writer.journal import use_journal_record_context
 from writer.ss_types import BlueprintExecutionError, BlueprintExecutionLog, WriterConfigurationError
 
 MAX_DAG_DEPTH = 32
@@ -750,68 +750,61 @@ class GraphRunner:
                 return self._execute(executor, event)
 
     def _execute(self, executor: ThreadPoolExecutor, abort_event: threading.Event) -> Optional[Any]:
-        journal_record = JournalRecord(
-            execution_environment=self.execution_environment,
-            title=self.status_logger.title,
-            graph=self.graph
-        )
+        with use_journal_record_context(self.execution_environment, self.status_logger.title, self.graph) as journal_record:
+            while self.queue or self.futures:
+                while self.queue:
+                    node: GraphNode = self.queue.pop(0)
+                    if node.can_run() and node.outcome is None:
+                        self.futures.append(node.run(self.execution_environment, self.runner, executor))
 
-        while self.queue or self.futures:
-            while self.queue:
-                node: GraphNode = self.queue.pop(0)
-                if node.can_run() and node.outcome is None:
-                    self.futures.append(node.run(self.execution_environment, self.runner, executor))
+                self.status_logger.log("Executing...")
+                done, _ = wait(self.futures, timeout=self.CANCELATION_CHECK_INTERVAL, return_when=FIRST_COMPLETED)
+                if not done:
+                    if abort_event.is_set():
+                        self._cancel_all_jobs()
+                        self.status_logger.log("Terminated.", entry_type="info", exit="aborted")
+                        journal_record.set_result("stopped")
+                        return None
+                    else:
+                        continue
+                self.status_logger.log("Executing...")
+                for future in done:
+                    if future in self.futures:
+                        self.futures.remove(future)
+                    try:
+                        result_node: GraphNode = future.result()
+                    except BlueprintExecutionError as e:
+                        self._cancel_all_jobs()
+                        self.status_logger.log("Execution failed", entry_type="error", exit=str(e))
+                        raise e
+                    except BaseException as e:
+                        abort_event.set()
+                        self._cancel_all_jobs()
+                        self.status_logger.log("Execution failed.", entry_type="error", exit=str(e))
+                        raise BlueprintExecutionError(
+                            f"Blueprint execution was stopped due to an error - {e.__class__.__name__}: {e}"
+                        ) from e 
+                    if result_node.outcome == "stopped":
+                        continue 
+                    if result_node.return_value is not None:
+                        self._cancel_local_jobs()
+                        self.status_logger.log(
+                            f"Execution completed, node {result_node.id} returned value: {result_node.return_value}",
+                            entry_type="info",
+                            exit="return"
+                        )
+                        
+                        journal_record.set_result("success")
+                        return result_node.return_value
+                    for output in result_node.outputs:
+                        to_node_id = output.get("toNodeId")
+                        next_node = self.graph.get_node(to_node_id)
+                        if next_node:
+                            self.queue.append(next_node)
 
-            self.status_logger.log("Executing...")
-            done, _ = wait(self.futures, timeout=self.CANCELATION_CHECK_INTERVAL, return_when=FIRST_COMPLETED)
-            if not done:
-                if abort_event.is_set():
-                    self._cancel_all_jobs()
-                    self.status_logger.log("Terminated.", entry_type="info", exit="aborted")
-                    journal_record.save(result="stopped")
-                    return None
-                else:
-                    continue
-            self.status_logger.log("Executing...")
-            for future in done:
-                if future in self.futures:
-                    self.futures.remove(future)
-                try:
-                    result_node: GraphNode = future.result()
-                except BlueprintExecutionError as e:
-                    self._cancel_all_jobs()
-                    self.status_logger.log("Execution failed", entry_type="error", exit=str(e))
-                    journal_record.save(result="error")
-                    raise e
-                except BaseException as e:
-                    abort_event.set()
-                    self._cancel_all_jobs()
-                    self.status_logger.log("Execution failed.", entry_type="error", exit=str(e))
-                    journal_record.save(result="error")
-                    raise BlueprintExecutionError(
-                        f"Blueprint execution was stopped due to an error - {e.__class__.__name__}: {e}"
-                    ) from e 
-                if result_node.outcome == "stopped":
-                    continue 
-                if result_node.return_value is not None:
-                    self._cancel_local_jobs()
-                    self.status_logger.log(
-                        f"Execution completed, node {result_node.id} returned value: {result_node.return_value}",
-                        entry_type="info",
-                        exit="return"
-                    )
-                    
-                    journal_record.save(result="success")
-                    return result_node.return_value
-                for output in result_node.outputs:
-                    to_node_id = output.get("toNodeId")
-                    next_node = self.graph.get_node(to_node_id)
-                    if next_node:
-                        self.queue.append(next_node)
-
-        self.status_logger.log("Execution completed.", entry_type="info", exit="completed")
-        journal_record.save(result="success")
-        return None
+            self.status_logger.log("Execution completed.", entry_type="info", exit="completed")
+            journal_record.set_result("success")
+            return None
 
     def _cancel_local_jobs(self):
         self.queue.clear()

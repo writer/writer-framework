@@ -51,6 +51,7 @@ import { Component, WriterComponentDefinition } from "@/writerTypes";
 import injectionKeys from "@/injectionKeys";
 import type { JournalFilters } from "./journal/journalTypes";
 import { useComponentActions } from "./useComponentActions";
+import { JsonData } from "@/components/shared/SharedJsonViewer/SharedJsonViewer.vue";
 
 defineOptions({
 	name: "BuilderJournal",
@@ -69,23 +70,28 @@ type ComponentInfo = {
 	type: string;
 	id: string;
 	title: string;
+	category?: string;
 };
 type TriggerInfo = {
 	type: "On demand" | "UI" | "API" | "Cron";
 	event: string;
 	component: ComponentInfo;
-	payload: unknown;
+	payload: JsonData;
 };
 
-type BlockOutput = {
-	result: unknown;
+type BlockExecution = {
+	result: JsonData;
 	outcome: string;
-	component?: ComponentInfo | null;
 	startedAt?: number;
 	executionTimeInSeconds?: number;
 	stdout?: string;
 	logs?: string;
 	message?: string;
+};
+
+export type BlockOutput = {
+	component?: ComponentInfo | null;
+	executions: BlockExecution[];
 };
 
 export type RawJournalEntry = {
