@@ -36,6 +36,7 @@ class SharedBlueprint(BlueprintBlock):
                     "description": "Executes a shared blueprint from the component tree.",
                     "category": "Logic",
                     "toolkit": "blueprints",
+                    "featureFlags": ["shared_blueprints"],
                     "fields": {
                         "payload": {
                             "name": "Payload",
