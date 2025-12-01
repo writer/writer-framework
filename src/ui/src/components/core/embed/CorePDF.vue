@@ -35,7 +35,7 @@
 					text-layer
 					:highlight-text="highlights"
 					:highlight-options="highlightOptions"
-					@highlight="(e) => onHighlight(e)"
+					@highlight="onHighlight"
 					@loaded="onLoaded"
 				/>
 			</div>
@@ -107,9 +107,18 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { inject, ref, watch, computed, onMounted, useTemplateRef } from "vue";
+import {
+	inject,
+	ref,
+	watch,
+	computed,
+	onMounted,
+	useTemplateRef,
+	shallowRef,
+} from "vue";
 import injectionKeys from "@/injectionKeys";
 import "@tato30/vue-pdf/style.css";
+import type { HighlightEventPayload, HighlightOptions } from "@tato30/vue-pdf";
 
 type MatchType = { str: string; page: number; index: number };
 
@@ -117,23 +126,26 @@ const fields = inject(injectionKeys.evaluatedFields, {});
 
 let pdf, pages, VuePDF;
 
-const highlights = computed(() => {
-	return fields.highlights.value;
-});
-const highlightOptions = ref({
+const highlights = computed<string[]>(() =>
+	fields.highlights.value.filter(Boolean),
+);
+const highlightOptions = shallowRef<HighlightOptions>({
 	completeWords: false,
+
 	ignoreCase: true,
 });
 const scale = ref(1);
 const page = ref(1);
-const matches = ref<MatchType[]>([]);
+const matches = shallowRef<MatchType[]>([]);
 const currentMatch = ref(0);
 const rootEl = useTemplateRef("rootEl");
 const viewerEl = useTemplateRef("viewerEl");
 const loading = ref(false);
 
 const pagesLoaded = ref(0);
-const highlightsList = ref([]);
+const highlightsList = shallowRef<
+	Pick<HighlightEventPayload, "matches" | "page">[]
+>([]);
 
 function isEncodedFile(input: unknown): input is EncodedFile {
 	return (
@@ -210,45 +222,42 @@ onMounted(async () => {
 	reload();
 });
 
-const reload = () => {
+function reload() {
 	loading.value = true;
 	pagesLoaded.value = 0;
 	highlightsList.value = [];
 	matches.value = [];
-};
+}
 
-const onHighlight = (value) => {
-	highlightsList.value = [...highlightsList.value, value].sort((a, b) => {
-		return a.page - b.page;
-	});
-};
+function onHighlight(value: HighlightEventPayload) {
+	highlightsList.value = [
+		...highlightsList.value,
+		{ matches: value.matches, page: value.page },
+	];
+}
 
-const onLoaded = (e) => {
+function onLoaded(e) {
 	pagesLoaded.value++;
-};
+}
 
-const buildMatches = () => {
+function buildMatches() {
 	matches.value = highlightsList.value
-		.reduce(
-			(acc, item) => [
-				...acc,
-				...item.matches.map((m: MatchType, idx: number) => ({
-					page: item.page,
-					str: m.str,
-					index: idx,
-				})),
-			],
-			[],
-		)
-		.sort((a, b) => {
-			if (a.page === b.page) {
-				return a.index - b.index;
-			}
-			return a.page - b.page;
-		});
-};
+		.reduce<MatchType[]>((acc, item) => {
+			const items = item.matches.map((m, idx: number) => ({
+				page: item.page,
+				str: m.str,
+				index: idx,
+			}));
+			acc.push(...items);
 
-const renderingComplete = () => {
+			return acc;
+		}, [])
+		.sort((a, b) =>
+			a.page === b.page ? a.index - b.index : a.page - b.page,
+		);
+}
+
+function renderingComplete() {
 	buildMatches();
 	if (currentMatch.value) {
 		gotoHighlight(currentMatch.value);
@@ -256,9 +265,9 @@ const renderingComplete = () => {
 	if (fields.selectedMatch.value) {
 		currentMatch.value = fields.selectedMatch.value;
 	}
-};
+}
 
-const scroll = (event) => {
+function scroll(event) {
 	const c = event.target.getBoundingClientRect();
 	const r = [...event.target.children]
 		.filter((child) => child.className.includes("page"))
@@ -272,9 +281,9 @@ const scroll = (event) => {
 	if (r) {
 		page.value = Number(r.getAttribute("page"));
 	}
-};
+}
 
-const calcScrollPosition = (targetEl: HTMLElement, parentEl: HTMLElement) => {
+function calcScrollPosition(targetEl: HTMLElement, parentEl: HTMLElement) {
 	let offsetTop = 0;
 	let el = targetEl;
 	while (el && el !== parentEl) {
@@ -282,9 +291,9 @@ const calcScrollPosition = (targetEl: HTMLElement, parentEl: HTMLElement) => {
 		el = el.offsetParent as HTMLElement;
 	}
 	return offsetTop;
-};
+}
 
-const gotoHighlight = (matchIdx: number) => {
+function gotoHighlight(matchIdx: number) {
 	if (matchIdx < 1 || matchIdx > matches.value.length) {
 		return;
 	}
@@ -294,41 +303,43 @@ const gotoHighlight = (matchIdx: number) => {
 		`div[page='${match.page}'] span.highlight`,
 	);
 	const matchEl = matchEls[match.index];
+	if (!(matchEl instanceof HTMLElement)) return;
 	// scrollIntoView is breaking pdf viewer
 	viewerEl.value.scrollTop = calcScrollPosition(matchEl, viewerEl.value);
-};
+}
 
 const gotoPage = (page: number) => {
 	if (page < 1 || page > pages?.value) {
 		return;
 	}
 	const pageEl = rootEl.value.querySelector("div[page='" + page + "']");
+	if (!(pageEl instanceof HTMLElement)) return;
 	viewerEl.value.scrollTop = calcScrollPosition(pageEl, viewerEl.value);
 };
 
-const incrementMatchIdx = () => {
+function incrementMatchIdx() {
 	if (currentMatch.value < matches.value.length) {
 		currentMatch.value = currentMatch.value + 1;
 	} else {
 		currentMatch.value = 1;
 	}
-};
+}
 
-const decrementMatchIdx = () => {
+function decrementMatchIdx() {
 	if (currentMatch.value > 1) {
 		currentMatch.value = currentMatch.value - 1;
 	} else {
 		currentMatch.value = matches.value.length;
 	}
-};
+}
 
-const incrementScale = () => {
+function incrementScale() {
 	scale.value = scale.value < 2 ? scale.value + 0.1 : scale.value;
-};
+}
 
-const decrementScale = () => {
+function decrementScale() {
 	scale.value = scale.value > 0.25 ? scale.value - 0.1 : scale.value;
-};
+}
 
 watch(pagesLoaded, () => {
 	if (pagesLoaded.value === pages?.value) {
@@ -349,15 +360,11 @@ watch([highlightsList, pagesLoaded], () => {
 	}
 });
 
-watch(scale, () => {
-	reload();
-});
+watch(scale, reload);
 
-watch(fields.source, () => {
-	reload();
-});
+watch(fields.source, reload);
 
-watch(fields.highlights, () => {
+watch(highlights, () => {
 	highlightsList.value = [];
 	matches.value = [];
 });
