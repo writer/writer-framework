@@ -5,12 +5,46 @@
 		placeholder="Component tree"
 		:search-count="searchResultCount"
 	>
-		<div>
+		<div v-if="rootComponentId == 'root'">
 			<BuilderSidebarComponentTreeBranch
 				class="rootBranch"
 				:component-id="rootComponentId"
 				:query="query"
 			/>
+		</div>
+
+		<div v-else-if="rootComponentId == 'blueprints_root'" class="sections">
+			<div
+				v-for="section in blueprintSections"
+				:key="section.key"
+				class="section"
+			>
+				<div class="section__header">
+					<span class="section__title">{{ section.title }}</span>
+					<WdsButton
+						variant="neutral"
+						size="smallIcon"
+						:data-automation-action="section.addAction"
+						@click="section.onAdd"
+					>
+						<WdsIcon name="plus" />
+					</WdsButton>
+				</div>
+				<div class="section__content">
+					<BuilderSidebarComponentTreeBranch
+						v-for="blueprint in section.items"
+						:key="blueprint.id"
+						:component-id="blueprint.id"
+						:query="query"
+					/>
+					<div
+						v-if="section.items.length === 0"
+						class="section__empty"
+					>
+						{{ section.emptyText }}
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<template #footer>
@@ -29,7 +63,7 @@
 					v-if="rootComponentId == 'blueprints_root'"
 					variant="special"
 					size="small"
-					data-automation-action="add-blueprint"
+					data-automation-action="add-blueprint-footer"
 					@click="addBlueprint"
 				>
 					<WdsIcon name="plus" />
@@ -41,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, nextTick, ref } from "vue";
+import { computed, inject, nextTick, ref } from "vue";
 import BuilderSidebarPanel from "./BuilderSidebarPanel.vue";
 import injectionKeys from "@/injectionKeys";
 import BuilderSidebarComponentTreeBranch from "./BuilderSidebarComponentTreeBranch.vue";
@@ -56,7 +90,11 @@ const wfbm = inject(injectionKeys.builderManager);
 const query = ref("");
 
 const tracking = useWriterTracking(wf);
-const { createAndInsertComponent } = useComponentActions(wf, wfbm, tracking);
+const { createAndInsertComponent, setContentValue } = useComponentActions(
+	wf,
+	wfbm,
+	tracking,
+);
 
 const rootComponentId = wfbm.activeRootId;
 
@@ -65,6 +103,44 @@ const { searchResultCount } = useComponentsTreeSearchResults(
 	query,
 	rootComponentId,
 );
+
+const allBlueprints = computed(() => {
+	return wf.getComponents("blueprints_root", { sortedByPosition: true });
+});
+
+const regularBlueprints = computed(() => {
+	return allBlueprints.value.filter((c) => !c.content?.isSharedBlueprint);
+});
+
+const sharedBlueprintItems = computed(() => {
+	return allBlueprints.value.filter((c) => c.content?.isSharedBlueprint);
+});
+
+const blueprintSections = computed(() => {
+	const sections = [
+		{
+			key: "blueprints",
+			title: "Blueprints",
+			items: regularBlueprints.value,
+			addAction: "add-blueprint",
+			onAdd: addBlueprint,
+			emptyText: "No blueprints yet",
+		},
+	];
+
+	if (wf.featureFlags.value?.includes("shared_blueprints")) {
+		sections.push({
+			key: "shared-blueprints",
+			title: "Shared Blueprints",
+			items: sharedBlueprintItems.value,
+			addAction: "add-shared-blueprint",
+			onAdd: addSharedBlueprint,
+			emptyText: "No shared blueprints yet",
+		});
+	}
+
+	return sections;
+});
 
 async function addPage() {
 	const pageId = createAndInsertComponent("page", "root");
@@ -83,6 +159,18 @@ async function addBlueprint() {
 	await nextTick();
 	wfbm.setSelection(pageId);
 	tracking.track("blueprints_new_added");
+}
+
+async function addSharedBlueprint() {
+	const pageId = createAndInsertComponent(
+		"blueprints_blueprint",
+		"blueprints_root",
+	);
+	setContentValue(pageId, "isSharedBlueprint", true);
+	wf.setActivePageId(pageId);
+	await nextTick();
+	wfbm.setSelection(pageId);
+	tracking.track("blueprints_shared_added");
 }
 </script>
 
@@ -124,5 +212,43 @@ async function addBlueprint() {
 	justify-content: center;
 	border-top: 1px solid var(--builderSeparatorColor);
 	background: var(--builderBackgroundColor);
+}
+
+.sections {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.section {
+	display: flex;
+	flex-direction: column;
+}
+
+.section__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 16px;
+	border-bottom: 1px solid var(--builderSeparatorColor);
+}
+
+.section__title {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--builderSecondaryTextColor);
+}
+
+.section__content {
+	padding: 8px 0;
+}
+
+.section__empty {
+	padding: 8px 16px;
+	font-size: 12px;
+	color: var(--builderSecondaryTextColor);
+	font-style: italic;
 }
 </style>

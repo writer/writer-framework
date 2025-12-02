@@ -14,6 +14,7 @@ export function useComponentsTreeSearch(
 
 		const matchingFields = Object.values(component.content).filter(
 			(fieldContent) =>
+				typeof fieldContent === "string" &&
 				fieldContent.toLocaleLowerCase().includes(query.value),
 		);
 		if (matchingFields.length > 0) return true;

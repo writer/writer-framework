@@ -12,6 +12,7 @@ from writer.blocks.parsejson import ParseJSON
 from writer.blocks.returnvalue import ReturnValue
 from writer.blocks.runblueprint import RunBlueprint
 from writer.blocks.setstate import SetState
+from writer.blocks.sharedblueprint import SharedBlueprint
 from writer.blocks.uieventtrigger import UIEventTrigger
 from writer.blocks.writeraddchatmessage import WriterAddChatMessage
 from writer.blocks.writeraddtokg import WriterAddToKG
@@ -63,3 +64,4 @@ WriterVision.register("blueprints_writervision")
 WriterWebSearch.register("blueprints_writerwebsearch")
 WriterKeyValueStorage.register("blueprints_writerkeyvaluestorage")
 WriterChatReplyWithToolConfig.register("blueprints_writerchatreplywithtoolconfig")
+SharedBlueprint.register("blueprints_shared")

@@ -30,14 +30,24 @@ const isCandidacyConfirmed: Ref<boolean> = ref(false);
 let candidacyStartTime: number = null;
 let insertionPosition: number = null;
 
+export type DragInfo = {
+	draggedType: string;
+	draggedId: string;
+	sourceBlueprintId: string | undefined;
+};
+
 export function useDragDropComponent(wf: Core) {
-	function getComponentInfoFromDrag(ev: DragEvent) {
-		const mimeString: string = ev.dataTransfer.types[0];
-		const matchGroups = mimeString?.match(dragDropMimeRegex)?.groups;
-		if (!matchGroups) return;
+	function getComponentInfoFromDrag(ev: DragEvent): DragInfo | undefined {
+		const mimeString = ev.dataTransfer.types[0];
+		const match = mimeString?.match(dragDropMimeRegex);
+		if (!match?.groups) return;
+
+		const { componentType, componentId } = match.groups;
 		return {
-			draggedType: matchGroups.componentType,
-			draggedId: matchGroups.componentId,
+			draggedType: componentType,
+			draggedId: componentType === "blueprints_shared" ? "" : componentId,
+			// For blueprints_shared, componentId contains the sourceBlueprintId
+			sourceBlueprintId: componentType === "blueprints_shared" ? componentId : undefined,
 		};
 	}
 
@@ -53,20 +63,33 @@ export function useDragDropComponent(wf: Core) {
 
 	function dropComponent(ev: DragEvent) {
 		const dragInfo = getComponentInfoFromDrag(ev);
-		if (!dragInfo) return;
+		if (!dragInfo) {
+			return;
+		}
 		const { draggedType, draggedId } = dragInfo;
+
 		const dropTargetId = getIdFromElement(ev.target as HTMLElement);
 		const parentId = findSuitableParent(
 			dropTargetId,
 			draggedId,
 			draggedType,
 		);
-		if (!parentId) return;
+		if (!parentId) {
+			return;
+		}
+
+		// For shared blueprints, use the sourceBlueprintId from the MIME type
+		let dragContent: Record<string, unknown> = {};
+		if (draggedType === "blueprints_shared" && dragInfo.sourceBlueprintId) {
+			dragContent = { sourceBlueprintId: dragInfo.sourceBlueprintId };
+		}
+
 		const dropData = {
 			draggedType,
 			draggedId: draggedId,
 			parentId: candidateId.value,
 			position: insertionPosition,
+			dragContent,
 		};
 		removeInsertionCandidacy(ev);
 		return dropData;
