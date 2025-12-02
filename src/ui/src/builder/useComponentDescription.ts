@@ -1,7 +1,22 @@
 import { generateCore } from "@/core";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
-import { Component } from "@/writerTypes";
+import { Component, Core } from "@/writerTypes";
 import { computed, ComputedRef, unref } from "vue";
+
+/**
+ * Gets the display name for a shared blueprint by looking up its source blueprint.
+ * Returns the source blueprint's key (name), or null if not found.
+ */
+export function getSourceBlueprintName(
+	wf: Core,
+	component: Component,
+): string | null {
+	if (component?.type !== "shared_blueprint") return null;
+	const sourceBlueprintId = component.content?.sourceBlueprintId;
+	if (!sourceBlueprintId) return null;
+	const sourceBlueprint = wf.getComponentById(sourceBlueprintId);
+	return sourceBlueprint?.content?.key || null;
+}
 
 export function useComponentDescription(
 	wf: ReturnType<typeof generateCore>,
@@ -12,12 +27,16 @@ export function useComponentDescription(
 	);
 
 	const name = computed(() => {
-		const { type, content } = unref(component);
+		const c = unref(component);
+		const { type, content } = c;
 		if (type == "html" && content?.["element"]) {
 			return content?.["element"];
 		}
 		if (type == "blueprints_blueprint") {
 			return content?.["key"] || "Blueprint";
+		}
+		if (type == "shared_blueprint") {
+			return getSourceBlueprintName(wf, c) || "Shared Blueprint";
 		}
 		return def.value?.name ?? `Unknown (${type})`;
 	});

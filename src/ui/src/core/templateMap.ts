@@ -1,4 +1,5 @@
 import type { Component as VueComponent } from "vue";
+import { reactive } from "vue";
 // Maps Writer Framework component types to renderable Vue components
 // content
 import CoreDataframe from "../components/core/content/CoreDataframe.vue";
@@ -151,7 +152,7 @@ const templateMap: TemplateMap = {
 	note: CoreNote,
 };
 
-const abstractTemplateMap: Record<string, AbstractTemplate> = {};
+const abstractTemplateMap = reactive<Record<string, AbstractTemplate>>({});
 
 // eslint-disable-next-line no-undef
 if (WRITER_LIVE_CCT === "yes") {
