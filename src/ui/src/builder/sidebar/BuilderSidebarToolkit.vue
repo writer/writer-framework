@@ -103,6 +103,8 @@ import { Component } from "@/writerTypes";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useToasts } from "../useToast";
+import { useComponentActions } from "../useComponentActions";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const { pushToast } = useToasts();
 
@@ -116,6 +118,8 @@ function showAutogen() {
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+const tracking = useWriterTracking(wf);
+const { removeComponentsSubtree } = useComponentActions(wf, wfbm, tracking);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
 const query = ref("");
 
@@ -312,8 +316,8 @@ function handleDeleteSharedBlueprint(
 	}
 
 	try {
-		// Delete the blueprint component directly from the component tree
-		wf.deleteComponent(blueprintId);
+		// Use removeComponentsSubtree for proper cleanup of dependencies and connections
+		removeComponentsSubtree(blueprintId);
 		pushToast({
 			type: "success",
 			message: `Shared blueprint '${blueprintName}' deleted.`,
