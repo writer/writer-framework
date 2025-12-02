@@ -45,9 +45,9 @@ export function useDragDropComponent(wf: Core) {
 		const { componentType, componentId } = match.groups;
 		return {
 			draggedType: componentType,
-			draggedId: componentType === "shared_blueprint" ? "" : componentId,
-			// For shared_blueprint, componentId contains the sourceBlueprintId
-			sourceBlueprintId: componentType === "shared_blueprint" ? componentId : undefined,
+			draggedId: componentType === "blueprints_shared" ? "" : componentId,
+			// For blueprints_shared, componentId contains the sourceBlueprintId
+			sourceBlueprintId: componentType === "blueprints_shared" ? componentId : undefined,
 		};
 	}
 
@@ -80,7 +80,7 @@ export function useDragDropComponent(wf: Core) {
 
 		// For shared blueprints, use the sourceBlueprintId from the MIME type
 		let dragContent: Record<string, unknown> = {};
-		if (draggedType === "shared_blueprint" && dragInfo.sourceBlueprintId) {
+		if (draggedType === "blueprints_shared" && dragInfo.sourceBlueprintId) {
 			dragContent = { sourceBlueprintId: dragInfo.sourceBlueprintId };
 		}
 

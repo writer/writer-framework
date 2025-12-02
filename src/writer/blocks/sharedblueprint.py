@@ -5,15 +5,9 @@ Shared blueprints execute stored blueprint components by loading them from the c
 The component's content.sourceBlueprintId field references the source blueprint.
 """
 
-from typing import TYPE_CHECKING, Dict
-
-import writer.core_ui
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
-
-if TYPE_CHECKING:
-    from writer.blueprints import BlueprintRunner
 
 
 class SharedBlueprint(BlueprintBlock):
@@ -62,18 +56,11 @@ class SharedBlueprint(BlueprintBlock):
             ),
         )
 
-    def __init__(
-        self,
-        component: writer.core_ui.Component,
-        runner: "BlueprintRunner",
-        execution_environment: Dict,
-    ):
-        super().__init__(component, runner, execution_environment)
-        self.source_blueprint_id = component.content.get("sourceBlueprintId", "")
-
     def run(self):
         """Execute the source blueprint's components."""
-        if not self.source_blueprint_id:
+        source_blueprint_id = self.component.content.get("sourceBlueprintId", "")
+
+        if not source_blueprint_id:
             raise ValueError("No source blueprint ID specified")
 
         try:
@@ -82,12 +69,12 @@ class SharedBlueprint(BlueprintBlock):
 
             # Get blueprint name for title (matching run_blueprint_by_key pattern)
             source_blueprint = self.runner.session.session_component_tree.get_component(
-                self.source_blueprint_id
+                source_blueprint_id
             )
             blueprint_name = source_blueprint.content.get("key", "Shared Blueprint") if source_blueprint else "Shared Blueprint"
 
             return_value = self.runner.run_blueprint(
-                self.source_blueprint_id,
+                source_blueprint_id,
                 expanded_execution_environment,
                 title=f"Shared blueprint execution ({blueprint_name})"
             )

@@ -225,7 +225,7 @@ function getRelevantToolsInCategory(categoryId: string) {
 			const description =
 				blueprint.content?.description || "A shared blueprint";
 			return {
-				type: `shared_blueprint:${blueprint.id}`,
+				type: `blueprints_shared:${blueprint.id}`,
 				name,
 				description,
 				category: "Shared Blueprints",
@@ -281,7 +281,7 @@ function handleDragStart(
 	wfbm.setSelection(null);
 	// Embed sourceBlueprintId in the MIME type for shared blueprints
 	const mimeType = sourceBlueprintId
-		? `application/json;writer=shared_blueprint,${sourceBlueprintId}`
+		? `application/json;writer=blueprints_shared,${sourceBlueprintId}`
 		: `application/json;writer=${type},`;
 	ev.dataTransfer.setData(mimeType, "{}");
 }

@@ -170,7 +170,7 @@ async function addSharedBlueprint() {
 	wf.setActivePageId(pageId);
 	await nextTick();
 	wfbm.setSelection(pageId);
-	tracking.track("shared_blueprint_added");
+	tracking.track("blueprints_shared_added");
 }
 </script>
 

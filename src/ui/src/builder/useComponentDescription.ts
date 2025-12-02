@@ -11,7 +11,7 @@ export function getSourceBlueprintName(
 	wf: Core,
 	component: Component,
 ): string | null {
-	if (component?.type !== "shared_blueprint") return null;
+	if (component?.type !== "blueprints_shared") return null;
 	const sourceBlueprintId = component.content?.sourceBlueprintId;
 	if (!sourceBlueprintId) return null;
 	const sourceBlueprint = wf.getComponentById(sourceBlueprintId);
@@ -35,7 +35,7 @@ export function useComponentDescription(
 		if (type == "blueprints_blueprint") {
 			return content?.["key"] || "Blueprint";
 		}
-		if (type == "shared_blueprint") {
+		if (type == "blueprints_shared") {
 			return getSourceBlueprintName(wf, c) || "Shared Blueprint";
 		}
 		return def.value?.name ?? `Unknown (${type})`;
