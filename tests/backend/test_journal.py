@@ -41,28 +41,36 @@ class TestJournal:
             },
             "blockOutputs": {
                 "qfqpqmjdpzuu8fe9": {
-                    "result": {"proposedSessionId": None},
-                    "outcome": "trigger",
                     "component": {
                         "type": "blueprints_apitrigger",
                         "id": "qfqpqmjdpzuu8fe9",
                         "title": "API alias",
                         "category": "Triggers",
                     },
-                    "startedAt": ANY,
-                    "executionTimeInSeconds": ANY,
+                    "executions": [
+                        {
+                            "result": {"proposedSessionId": None},
+                            "outcome": "trigger",
+                            "startedAt": ANY,
+                            "executionTimeInSeconds": ANY,
+                        }
+                    ],
                 },
                 "pa448833kc2pis3a": {
-                    "result": "AAA",
-                    "outcome": "success",
                     "component": {
                         "type": "blueprints_logmessage",
                         "id": "pa448833kc2pis3a",
                         "title": "Log message",
                         "category": "Other",
                     },
-                    "startedAt": ANY,
-                    "executionTimeInSeconds": ANY,
+                    "executions": [
+                        {
+                            "result": "AAA",
+                            "outcome": "success",
+                            "startedAt": ANY,
+                            "executionTimeInSeconds": ANY,
+                        }
+                    ],
                 },
             },
             "isRunable": True,
