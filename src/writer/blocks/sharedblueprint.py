@@ -9,6 +9,7 @@ from writer.abstract import register_abstract_template
 from writer.blocks.base_block import BlueprintBlock
 from writer.ss_types import AbstractTemplate
 
+
 class SharedBlueprint(BlueprintBlock):
     """
     Shared blueprint that executes components from a source blueprint in the component tree.
