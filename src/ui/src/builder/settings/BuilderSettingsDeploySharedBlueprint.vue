@@ -63,7 +63,7 @@ import { DEFAULT_ORG_ID } from "@/constants/sharedBlueprints";
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { pushToast } = useToasts();
-const { setContentValue } = useComponentActions(wf, wfbm);
+const { setContentValue, extractBlueprintComponents } = useComponentActions(wf, wfbm);
 const tracking = useWriterTracking(wf);
 const { writerApi } = useWriterApi();
 
@@ -133,8 +133,8 @@ async function handleDeploy() {
 
 	isDeploying.value = true;
 	try {
-		// Extract components from backend
-		const extracted = await writerApi.extractSharedBlueprint(props.blueprintId);
+		// Extract components from frontend
+		const components = extractBlueprintComponents(props.blueprintId);
 
 		// Get existing snippet ID if this is an update
 		const existingSnippetId =
@@ -143,8 +143,8 @@ async function handleDeploy() {
 		const data = await writerApi.publishSharedBlueprint(orgId, {
 			title: form.value.name.trim(),
 			description: form.value.description.trim(),
-			components: extracted.components,
-			metadata: extracted.metadata,
+			components: components,
+			metadata: {},
 			existingSnippetId,
 		});
 

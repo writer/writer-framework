@@ -401,42 +401,6 @@ export class WriterApi {
 		);
 	}
 
-	async extractSharedBlueprint(
-		blueprintId: string,
-	): Promise<{ components: unknown[]; metadata: object }> {
-		const url = new URL(`/api/shared-blueprints/extract`, this.#baseUrl);
-		const res = await fetch(url, {
-			...this.#requestInitBase,
-			method: "POST",
-			body: JSON.stringify({ blueprint_id: blueprintId }),
-		});
-		if (!res.ok) {
-			const errorText = await res.text();
-			throw Error(errorText);
-		}
-		return res.json();
-	}
-
-	async installSharedBlueprint(data: {
-		blueprintId: string;
-		title: string;
-		version: number;
-		description?: string;
-		components: unknown[];
-	}): Promise<{ blueprintId: string }> {
-		const url = new URL(`/api/shared-blueprints/install`, this.#baseUrl);
-		const res = await fetch(url, {
-			...this.#requestInitBase,
-			method: "POST",
-			body: JSON.stringify(data),
-		});
-		if (!res.ok) {
-			const errorText = await res.text();
-			throw Error(errorText);
-		}
-		return res.json();
-	}
-
 	async publishSharedBlueprint(
 		orgId: number,
 		data: {

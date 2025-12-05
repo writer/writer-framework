@@ -33,7 +33,9 @@ import { useToasts } from "../useToast";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import injectionKeys from "@/injectionKeys";
 import { useWriterApi } from "@/composables/useWriterApi";
+import { useComponentActions } from "@/builder/useComponentActions";
 import { DEFAULT_ORG_ID } from "@/constants/sharedBlueprints";
+import type { Component } from "@/writerTypes";
 
 const props = defineProps<{
 	block: {
@@ -53,6 +55,7 @@ const wfbm = inject(injectionKeys.builderManager);
 const { pushToast } = useToasts();
 const tracking = useWriterTracking(wf);
 const { writerApi } = useWriterApi();
+const { installSharedBlueprint } = useComponentActions(wf, wfbm);
 const isInstalling = ref(false);
 
 async function handleInstall() {
@@ -64,20 +67,11 @@ async function handleInstall() {
 		// Fetch blueprint from be.agent-storage
 		const blueprint = await writerApi.getSharedBlueprint(orgId, props.block.id);
 
-		// Install blueprint via backend
-		const components = blueprint.version.components as Array<{
-			id: string;
-			type: string;
-			content: unknown;
-			parentId?: string;
-			outs?: Array<{
-				outId: string;
-				toNodeId: string;
-			}>;
-		}>;
+		// Install blueprint
+		const components = blueprint.version.components as Component[];
 
-		const result = await writerApi.installSharedBlueprint({
-			blueprintId: blueprint.id,
+		const blueprintId = installSharedBlueprint({
+			id: blueprint.id,
 			title: blueprint.title,
 			version: blueprint.version.version,
 			description: blueprint.version.description || undefined,
@@ -88,7 +82,6 @@ async function handleInstall() {
 			type: "success",
 			message: `Blueprint "${props.block.title}" installed successfully`,
 		});
-		tracking.track("blueprints_shared_installed");
 
 		emit("installed");
 	} catch (error) {
