@@ -38,7 +38,7 @@ For comprehensive guides, tutorials, and API reference, visit the [official docu
 
 ## Contributing
 
-see [CONTRIBUTING.md](CONTRIBUTING.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## About Writer
 
