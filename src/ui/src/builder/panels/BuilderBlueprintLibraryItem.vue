@@ -91,7 +91,7 @@ onMounted(async () => {
 	} catch {
 		// In local dev, backend uses LOCAL_DEV_USER_ID
 		// Fallback to constant if we can't fetch the user profile
-		currentUserId.value = LOCAL_DEV_USER_ID;
+		currentUserId.value = import.meta.env.DEV ? LOCAL_DEV_USER_ID : null;
 	}
 });
 
