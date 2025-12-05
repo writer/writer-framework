@@ -373,12 +373,17 @@ class WriterChatReplyWithToolConfig(WriterBlock):
 
             msg = ""
             if not use_streaming:
-                reply = conversation.complete(tools=tools)
+                reply = self._retry_on_auth_error(
+                    lambda: conversation.complete(tools=tools)
+                )
                 msg = reply.get("content") or ""
                 conversation += reply
                 self._set_state(conversation_state_element, conversation)
             else:
-                for chunk in conversation.stream_complete(tools=tools):
+                chunks = self._retry_stream_on_auth_error(
+                    lambda: conversation.stream_complete(tools=tools)
+                )
+                for chunk in chunks:
                     if chunk.get("content") is None:
                         chunk["content"] = ""
                     msg += chunk.get("content")

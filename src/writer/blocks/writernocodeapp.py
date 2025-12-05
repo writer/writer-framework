@@ -54,7 +54,9 @@ class WriterNoCodeApp(WriterBlock):
             # if model_id:
             #     config["model"] = model_id
 
-            result = writer.ai.apps.generate_content(application_id, app_inputs).strip()
+            result = self._retry_on_auth_error(
+                lambda: writer.ai.apps.generate_content(application_id, app_inputs).strip()
+            )
             self.result = result
             self.outcome = "success"
         except BaseException as e:

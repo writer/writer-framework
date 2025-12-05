@@ -147,7 +147,9 @@ class WriterWebSearch(WriterBlock):
             if exclude_domains:
                 params["exclude_domains"] = exclude_domains
             
-            response = client.tools.web_search(**params)
+            response = self._retry_on_auth_error(
+                lambda: client.tools.web_search(**params)
+            )
             
             # Extract the answer and sources from the response
             result = {

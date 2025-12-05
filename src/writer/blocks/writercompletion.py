@@ -65,7 +65,9 @@ class WriterCompletion(WriterBlock):
             model_id = self._get_field("modelId", False, default_field_value=DEFAULT_MODEL)
             max_tokens = int(self._get_field("max_tokens", False, "1024"))
             config = {"temperature": temperature, "model": model_id, "max_tokens": max_tokens}
-            result = writer.ai.complete(prompt, config).strip()
+            result = self._retry_on_auth_error(
+                lambda: writer.ai.complete(prompt, config).strip()
+            )
             self.result = result
             self.outcome = "success"
         except BaseException as e:

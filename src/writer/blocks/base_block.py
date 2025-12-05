@@ -1,7 +1,9 @@
-from typing import TYPE_CHECKING, Any, Dict, Optional, Type
+import logging
+import time
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Type
 
 import httpx
-from writerai import DefaultHttpxClient, Writer
+from writerai import AuthenticationError, DefaultHttpxClient, Writer
 
 import writer.core_ui
 import writer.evaluator
@@ -363,6 +365,65 @@ class WriterBlock(BlueprintBlock):
 
     def create_logger(self, env_storage_key: Optional[str] = "api_calls"):
         return super().create_logger(env_storage_key=env_storage_key)
+
+    def _retry_on_auth_error(self, operation: Callable[[], Any], max_retries: int = 5) -> Any:
+        """
+        Retry an operation on AuthenticationError with exponential backoff.
+        
+        :param operation: A callable that performs the Writer API operation
+        :param max_retries: Maximum number of retry attempts (default: 5)
+        :return: The result of the operation
+        :raises AuthenticationError: If all retries are exhausted
+        """
+        logger = logging.getLogger('writer')
+        for attempt in range(max_retries):
+            try:
+                return operation()
+            except AuthenticationError as e:
+                if attempt < max_retries - 1:
+                    delay = 0.5 * (2 ** attempt)  # 0.5s, 1s, 2s, 4s, 8s
+                    logger.warning(
+                        f"AuthenticationError on attempt {attempt + 1}/{max_retries}, "
+                        f"retrying in {delay}s: {e}"
+                    )
+                    time.sleep(delay)
+                else:
+                    logger.error(f"AuthenticationError after {max_retries} attempts: {e}")
+                    raise
+
+    def _retry_stream_on_auth_error(
+        self, 
+        stream_operation: Callable[[], Any], 
+        max_retries: int = 5
+    ) -> Any:
+        """
+        Retry a streaming operation on AuthenticationError with exponential backoff.
+        Collects all chunks before returning to enable retries.
+        
+        :param stream_operation: A callable that returns a generator/iterator
+        :param max_retries: Maximum number of retry attempts (default: 5)
+        :return: List of chunks from the stream
+        :raises AuthenticationError: If all retries are exhausted
+        """
+        logger = logging.getLogger('writer')
+        for attempt in range(max_retries):
+            try:
+                chunks = []
+                stream = stream_operation()
+                for chunk in stream:
+                    chunks.append(chunk)
+                return chunks
+            except AuthenticationError as e:
+                if attempt < max_retries - 1:
+                    delay = 0.5 * (2 ** attempt)  # 0.5s, 1s, 2s, 4s, 8s
+                    logger.warning(
+                        f"AuthenticationError during stream on attempt {attempt + 1}/{max_retries}, "
+                        f"retrying in {delay}s: {e}"
+                    )
+                    time.sleep(delay)
+                else:
+                    logger.error(f"AuthenticationError after {max_retries} stream attempts: {e}")
+                    raise
 
     @property
     def writer_sdk_client(self) -> Writer:

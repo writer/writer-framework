@@ -96,7 +96,9 @@ CONTENT:
                 "content": prompt,
             }
 
-            msg = conversation.complete(response_format=response_format, config=config)
+            msg = self._retry_on_auth_error(
+                lambda: conversation.complete(response_format=response_format, config=config)
+            )
             raw_content = msg.get("content")
             if not raw_content:
                 self.outcome = "error"

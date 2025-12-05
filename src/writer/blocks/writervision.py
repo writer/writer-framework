@@ -121,10 +121,12 @@ class WriterVision(WriterBlock):
                         )
 
             client = self.writer_sdk_client
-            response = client.vision.analyze(
-                prompt=prompt,
-                model=model_id,
-                variables=images
+            response = self._retry_on_auth_error(
+                lambda: client.vision.analyze(
+                    prompt=prompt,
+                    model=model_id,
+                    variables=images
+                )
             )
 
             if not response:
