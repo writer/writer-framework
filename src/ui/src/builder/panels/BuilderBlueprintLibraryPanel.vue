@@ -58,6 +58,8 @@ import WdsTextInput from "@/wds/WdsTextInput.vue";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "../useToast";
 import { useDebouncer } from "@/composables/useDebouncer";
+import { useWriterApi } from "@/composables/useWriterApi";
+import { DEFAULT_ORG_ID } from "@/constants/sharedBlueprints";
 
 const props = defineProps<{
 	modelValue: boolean;
@@ -69,6 +71,7 @@ const emit = defineEmits<{
 
 const wf = inject(injectionKeys.core);
 const { pushToast } = useToasts();
+const { writerApi } = useWriterApi();
 
 const isOpen = computed({
 	get: () => props.modelValue,
@@ -96,21 +99,24 @@ const isLoading = ref(false);
 async function loadBlueprints() {
 	if (!isBlueprintLibraryEnabled.value) return;
 
+	// Use default orgId for local development when writerOrgId is not available
+	const orgId = wf.writerOrgId.value || DEFAULT_ORG_ID;
+
 	isLoading.value = true;
 	try {
-		const params = new URLSearchParams();
-		if (searchQuery.value) {
-			params.append("search", searchQuery.value);
-		}
-
-		const response = await fetch(
-			`/api/block-library/blocks?${params.toString()}`,
+		const results = await writerApi.listSharedBlueprints(
+			orgId,
+			searchQuery.value || undefined,
 		);
-		if (!response.ok) {
-			throw new Error("Failed to load blueprints");
-		}
 
-		blueprints.value = await response.json();
+		// Transform to match frontend format
+		blueprints.value = results.map((bp) => ({
+			id: bp.id,
+			title: bp.title,
+			description: bp.description,
+			category: bp.category || "Shared Blueprints",
+			version_number: bp.version_number,
+		}));
 	} catch (error) {
 		pushToast({
 			type: "error",

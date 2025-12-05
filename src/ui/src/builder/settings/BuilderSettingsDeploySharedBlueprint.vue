@@ -57,12 +57,15 @@ import injectionKeys from "@/injectionKeys";
 import { useToasts } from "@/builder/useToast";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { useWriterApi } from "@/composables/useWriterApi";
+import { DEFAULT_ORG_ID } from "@/constants/sharedBlueprints";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { pushToast } = useToasts();
 const { setContentValue } = useComponentActions(wf, wfbm);
 const tracking = useWriterTracking(wf);
+const { writerApi } = useWriterApi();
 
 const props = defineProps<{
 	modelValue: boolean;
@@ -125,26 +128,25 @@ async function handleDeploy() {
 		return;
 	}
 
+	// Use default orgId for local development when writerOrgId is not available
+	const orgId = wf.writerOrgId.value || DEFAULT_ORG_ID;
+
 	isDeploying.value = true;
 	try {
-		const response = await fetch("/api/shared-blueprints/deploy", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				blueprint_id: props.blueprintId,
-				name: form.value.name.trim(),
-				description: form.value.description.trim(),
-			}),
+		// Extract components from backend
+		const extracted = await writerApi.extractSharedBlueprint(props.blueprintId);
+
+		// Get existing snippet ID if this is an update
+		const existingSnippetId =
+			blueprint.value?.content?.publishedSnippetId || null;
+
+		const data = await writerApi.publishSharedBlueprint(orgId, {
+			title: form.value.name.trim(),
+			description: form.value.description.trim(),
+			components: extracted.components,
+			metadata: extracted.metadata,
+			existingSnippetId,
 		});
-
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.detail || "Failed to publish blueprint");
-		}
-
-		const data = await response.json();
 
 		// Update blueprint's published snippet ID, version, and description
 		setContentValue(
@@ -152,7 +154,7 @@ async function handleDeploy() {
 			"publishedSnippetId",
 			data.snippet_id,
 		);
-		setContentValue(props.blueprintId, "deployedVersion", data.version);
+		setContentValue(props.blueprintId, "deployedVersion", String(data.version));
 		setContentValue(
 			props.blueprintId,
 			"deployedDescription",
@@ -163,7 +165,7 @@ async function handleDeploy() {
 			type: "success",
 			message: `Blueprint "${form.value.name.trim()}" published (v${data.version})`,
 		});
-		tracking.track("shared_blueprint_published");
+		tracking.track("blueprints_shared_published");
 
 		resetForm();
 		isOpen.value = false;

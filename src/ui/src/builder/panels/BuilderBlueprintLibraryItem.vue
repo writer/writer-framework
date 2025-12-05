@@ -26,12 +26,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject } from "vue";
+import { ref, inject, nextTick } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { useToasts } from "../useToast";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import injectionKeys from "@/injectionKeys";
+import { useWriterApi } from "@/composables/useWriterApi";
+import { DEFAULT_ORG_ID } from "@/constants/sharedBlueprints";
 
 const props = defineProps<{
 	block: {
@@ -47,46 +49,48 @@ const emit = defineEmits<{
 }>();
 
 const wf = inject(injectionKeys.core);
+const wfbm = inject(injectionKeys.builderManager);
 const { pushToast } = useToasts();
 const tracking = useWriterTracking(wf);
+const { writerApi } = useWriterApi();
 const isInstalling = ref(false);
 
 async function handleInstall() {
+	// Use default orgId for local development when writerOrgId is not available
+	const orgId = wf.writerOrgId.value || DEFAULT_ORG_ID;
+
 	isInstalling.value = true;
 	try {
-		const response = await fetch(
-			`/api/block-library/blocks/${props.block.id}/install`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			},
-		);
+		// Fetch blueprint from be.agent-storage
+		const blueprint = await writerApi.getSharedBlueprint(orgId, props.block.id);
 
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.detail || "Failed to install blueprint");
-		}
+		// Install blueprint via backend
+		const components = blueprint.version.components as Array<{
+			id: string;
+			type: string;
+			content: unknown;
+			parentId?: string;
+			outs?: Array<{
+				outId: string;
+				toNodeId: string;
+			}>;
+		}>;
+
+		const result = await writerApi.installSharedBlueprint({
+			blueprintId: blueprint.id,
+			title: blueprint.title,
+			version: blueprint.version.version,
+			description: blueprint.version.description || undefined,
+			components,
+		});
 
 		pushToast({
 			type: "success",
 			message: `Blueprint "${props.block.title}" installed successfully`,
 		});
-		tracking.track("shared_blueprint_installed");
+		tracking.track("blueprints_shared_installed");
 
 		emit("installed");
-
-		// Reinitialize session to pick up the new blueprint (similar to file save)
-		try {
-			await wf.init();
-		} catch (_error) {
-			pushToast({
-				type: "error",
-				message:
-					"Blueprint installed but failed to reload. Please refresh the page.",
-			});
-		}
 	} catch (error) {
 		pushToast({
 			type: "error",

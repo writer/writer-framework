@@ -391,6 +391,181 @@ export class WriterApi {
 		}
 		return res.text();
 	}
+
+	// Shared blueprints
+
+	#getAgentStorageBaseUrl(): string {
+		return (
+			import.meta.env.VITE_AGENT_STORAGE_URL ||
+			this.#baseUrl
+		);
+	}
+
+	async extractSharedBlueprint(
+		blueprintId: string,
+	): Promise<{ components: unknown[]; metadata: object }> {
+		const url = new URL(`/api/shared-blueprints/extract`, this.#baseUrl);
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: "POST",
+			body: JSON.stringify({ blueprint_id: blueprintId }),
+		});
+		if (!res.ok) {
+			const errorText = await res.text();
+			throw Error(errorText);
+		}
+		return res.json();
+	}
+
+	async installSharedBlueprint(data: {
+		blueprintId: string;
+		title: string;
+		version: number;
+		description?: string;
+		components: unknown[];
+	}): Promise<{ blueprintId: string }> {
+		const url = new URL(`/api/shared-blueprints/install`, this.#baseUrl);
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: "POST",
+			body: JSON.stringify(data),
+		});
+		if (!res.ok) {
+			const errorText = await res.text();
+			throw Error(errorText);
+		}
+		return res.json();
+	}
+
+	async publishSharedBlueprint(
+		orgId: number,
+		data: {
+			title: string;
+			description: string;
+			components: unknown;
+			metadata: {
+				name?: string;
+				stateInputs?: string[];
+				stateOutputs?: string[];
+				vaultKeys?: string[];
+				dependencies?: unknown[];
+				author?: string;
+			};
+			existingSnippetId?: string | null;
+		},
+	): Promise<{ snippet_id: string; version: number }> {
+		const baseUrl = this.#getAgentStorageBaseUrl();
+		const url = new URL(
+			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints`,
+			baseUrl,
+		);
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: "POST",
+			body: JSON.stringify({
+				title: data.title,
+				description: data.description,
+				components: data.components,
+				metadata: data.metadata,
+				existing_snippet_id: data.existingSnippetId || null,
+			}),
+		});
+
+		if (!res.ok) {
+			const errorText = await res.text();
+			let errorDetail: string;
+			try {
+				const errorJson = JSON.parse(errorText);
+				errorDetail = errorJson.detail || errorText;
+			} catch {
+				errorDetail = errorText;
+			}
+			throw Error(errorDetail);
+		}
+
+		return res.json();
+	}
+
+	async listSharedBlueprints(
+		orgId: number,
+		search?: string,
+	): Promise<
+		Array<{
+			id: string;
+			title: string;
+			description: string;
+			category: string;
+			version_number: number;
+		}>
+	> {
+		const baseUrl = this.#getAgentStorageBaseUrl();
+		const url = new URL(
+			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints`,
+			baseUrl,
+		);
+
+		if (search) {
+			url.searchParams.append("search", search);
+		}
+
+		const res = await fetch(url, this.#requestInitBase);
+
+		if (!res.ok) {
+			const errorText = await res.text();
+			let errorDetail: string;
+			try {
+				const errorJson = JSON.parse(errorText);
+				errorDetail = errorJson.detail || errorText;
+			} catch {
+				errorDetail = errorText;
+			}
+			throw Error(errorDetail);
+		}
+
+		return res.json();
+	}
+
+	async getSharedBlueprint(
+		orgId: number,
+		blueprintId: string,
+	): Promise<{
+		id: string;
+		title: string;
+		visibility: string;
+		orgId: string;
+		version: {
+			version: number;
+			description: string | null;
+			components: unknown;
+			metadata: unknown;
+			createdAt: string;
+		};
+		createdAt: string;
+		updatedAt: string;
+	}> {
+		const baseUrl = this.#getAgentStorageBaseUrl();
+		const url = new URL(
+			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints/${blueprintId}`,
+			baseUrl,
+		);
+
+		const res = await fetch(url, this.#requestInitBase);
+
+		if (!res.ok) {
+			const errorText = await res.text();
+			let errorDetail: string;
+			try {
+				const errorJson = JSON.parse(errorText);
+				errorDetail = errorJson.detail || errorText;
+			} catch {
+				errorDetail = errorText;
+			}
+			throw Error(errorDetail);
+		}
+
+		return res.json();
+	}
 }
 
 export type WriterApiUser = Pick<
