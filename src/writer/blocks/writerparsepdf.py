@@ -60,9 +60,11 @@ class WriterParsePDFByFileID(WriterBlock):
 
             client = writer.ai.WriterAIManager.acquire_client()
 
-            response = client.tools.parse_pdf(
-                file_uuid,
-                format="markdown" if markdown_input else "text"
+            response = self._retry_on_auth_error(
+                lambda: client.tools.parse_pdf(
+                    file_uuid,
+                    format="markdown" if markdown_input else "text"
+                )
             )
 
             self.result = response.content

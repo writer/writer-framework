@@ -96,14 +96,17 @@ class WriterAskGraphQuestion(WriterBlock):
 
             answer_so_far = ""
 
-            response = client.graphs.question(
-                graph_ids=graph_ids,
-                question=question,
-                stream=use_streaming,
-                subqueries=subqueries
-            )
             if use_streaming:
-                for chunk in response:
+                def stream_operation():
+                    return client.graphs.question(
+                        graph_ids=graph_ids,
+                        question=question,
+                        stream=True,
+                        subqueries=subqueries
+                    )
+                
+                response_chunks = self._retry_stream_on_auth_error(stream_operation)
+                for chunk in response_chunks:
                     try:
                         delta = chunk.model_extra.get("answer", "")
                         answer_so_far += delta
@@ -112,6 +115,14 @@ class WriterAskGraphQuestion(WriterBlock):
                         logging.error(
                             "Could not parse stream chunk from graph.question")
             else:
+                response = self._retry_on_auth_error(
+                    lambda: client.graphs.question(
+                        graph_ids=graph_ids,
+                        question=question,
+                        stream=False,
+                        subqueries=subqueries
+                    )
+                )
                 answer_so_far = response.answer
                 self._set_state(state_element, answer_so_far)
 
