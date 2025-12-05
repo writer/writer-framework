@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, nextTick, computed, onMounted } from "vue";
+import { ref, inject, computed, onMounted } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { useToasts } from "../useToast";
@@ -44,7 +44,10 @@ import { useWriterTracking } from "@/composables/useWriterTracking";
 import injectionKeys from "@/injectionKeys";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { useComponentActions } from "@/builder/useComponentActions";
-import { DEFAULT_ORG_ID, LOCAL_DEV_USER_ID } from "@/constants/sharedBlueprints";
+import {
+	DEFAULT_ORG_ID,
+	LOCAL_DEV_USER_ID,
+} from "@/constants/sharedBlueprints";
 import { fetchWriterApiCurrentUserProfile } from "@/composables/useWriterApiUser";
 import type { Component } from "@/writerTypes";
 
@@ -75,7 +78,10 @@ const currentUserId = ref<number | null>(null);
 
 // Check if current user is the creator
 const showDeleteButton = computed(() => {
-	return currentUserId.value !== null && props.block.createdBy === currentUserId.value;
+	return (
+		currentUserId.value !== null &&
+		props.block.createdBy === currentUserId.value
+	);
 });
 
 onMounted(async () => {
@@ -96,12 +102,15 @@ async function handleInstall() {
 	isInstalling.value = true;
 	try {
 		// Fetch blueprint from be.agent-storage
-		const blueprint = await writerApi.getSharedBlueprint(orgId, props.block.id);
+		const blueprint = await writerApi.getSharedBlueprint(
+			orgId,
+			props.block.id,
+		);
 
 		// Install blueprint
 		const components = blueprint.version.components as Component[];
 
-		const blueprintId = installSharedBlueprint({
+		const _blueprintId = installSharedBlueprint({
 			id: blueprint.id,
 			title: blueprint.title,
 			version: blueprint.version.version,

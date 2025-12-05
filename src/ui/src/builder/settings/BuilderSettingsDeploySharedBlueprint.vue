@@ -63,7 +63,10 @@ import { DEFAULT_ORG_ID } from "@/constants/sharedBlueprints";
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { pushToast } = useToasts();
-const { setContentValue, extractBlueprintComponents } = useComponentActions(wf, wfbm);
+const { setContentValue, extractBlueprintComponents } = useComponentActions(
+	wf,
+	wfbm,
+);
 const tracking = useWriterTracking(wf);
 const { writerApi } = useWriterApi();
 
@@ -154,7 +157,11 @@ async function handleDeploy() {
 			"publishedSnippetId",
 			data.snippet_id,
 		);
-		setContentValue(props.blueprintId, "deployedVersion", String(data.version));
+		setContentValue(
+			props.blueprintId,
+			"deployedVersion",
+			String(data.version),
+		);
 		setContentValue(
 			props.blueprintId,
 			"deployedDescription",
