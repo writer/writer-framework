@@ -43,6 +43,7 @@
 						v-for="blueprint in blueprints"
 						:key="blueprint.id"
 						:block="blueprint"
+						@deleted="loadBlueprints"
 					/>
 				</div>
 			</div>
@@ -92,6 +93,7 @@ const blueprints = ref<
 		description: string;
 		category: string;
 		version_number: number;
+		createdBy: number;
 	}>
 >([]);
 const isLoading = ref(false);
@@ -116,6 +118,7 @@ async function loadBlueprints() {
 			description: bp.description,
 			category: bp.category || "Shared Blueprints",
 			version_number: bp.version_number,
+			createdBy: bp.createdBy,
 		}));
 	} catch (error) {
 		pushToast({

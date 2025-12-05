@@ -435,18 +435,7 @@ export class WriterApi {
 				existing_snippet_id: data.existingSnippetId || null,
 			}),
 		});
-
-		if (!res.ok) {
-			const errorText = await res.text();
-			let errorDetail: string;
-			try {
-				const errorJson = JSON.parse(errorText);
-				errorDetail = errorJson.detail || errorText;
-			} catch {
-				errorDetail = errorText;
-			}
-			throw Error(errorDetail);
-		}
+		if (!res.ok) throw Error(await res.text());
 
 		return res.json();
 	}
@@ -461,6 +450,7 @@ export class WriterApi {
 			description: string;
 			category: string;
 			version_number: number;
+			createdBy: number;
 		}>
 	> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
@@ -474,18 +464,7 @@ export class WriterApi {
 		}
 
 		const res = await fetch(url, this.#requestInitBase);
-
-		if (!res.ok) {
-			const errorText = await res.text();
-			let errorDetail: string;
-			try {
-				const errorJson = JSON.parse(errorText);
-				errorDetail = errorJson.detail || errorText;
-			} catch {
-				errorDetail = errorText;
-			}
-			throw Error(errorDetail);
-		}
+		if (!res.ok) throw Error(await res.text());
 
 		return res.json();
 	}
@@ -498,6 +477,7 @@ export class WriterApi {
 		title: string;
 		visibility: string;
 		orgId: string;
+		createdBy: number;
 		version: {
 			version: number;
 			description: string | null;
@@ -515,18 +495,26 @@ export class WriterApi {
 		);
 
 		const res = await fetch(url, this.#requestInitBase);
+		if (!res.ok) throw Error(await res.text());
 
-		if (!res.ok) {
-			const errorText = await res.text();
-			let errorDetail: string;
-			try {
-				const errorJson = JSON.parse(errorText);
-				errorDetail = errorJson.detail || errorText;
-			} catch {
-				errorDetail = errorText;
-			}
-			throw Error(errorDetail);
-		}
+		return res.json();
+	}
+
+	async deleteSharedBlueprint(
+		orgId: number,
+		blueprintId: string,
+	): Promise<{ success: boolean }> {
+		const baseUrl = this.#getAgentStorageBaseUrl();
+		const url = new URL(
+			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints/${blueprintId}`,
+			baseUrl,
+		);
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: "DELETE",
+		});
+		if (!res.ok) throw Error(await res.text());
 
 		return res.json();
 	}

@@ -4,3 +4,9 @@
  */
 export const DEFAULT_ORG_ID = 72564;
 
+/**
+ * Default user ID used in local development when authentication is not available.
+ * This matches the development mode behavior in be.agent-storage.
+ */
+export const LOCAL_DEV_USER_ID = 1;
+
