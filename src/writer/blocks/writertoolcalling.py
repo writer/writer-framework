@@ -227,9 +227,7 @@ class WriterToolCalling(WriterBlock):
 
             for i in range(max_iterations):
                 config = {"model": model_id, "temperature": 0.1}
-                msg = self._retry_on_auth_error(
-                    lambda: conversation.complete(tools=tools, config=config)
-                )
+                msg = conversation.complete(tools=tools, config=config)
                 conversation += msg
                 if self.is_complete:
                     # According to the protocol, after disclose_reasoning with status="DONE",

@@ -94,30 +94,20 @@ class WriterAddToKG(WriterBlock):
             for raw_file in raw_files:
                 prepared_files.append(self._get_prepared_file(raw_file))
                 
-            graph = self._retry_on_auth_error(
-                lambda: writer.ai.retrieve_graph(graph_id)
-            )
+            graph = writer.ai.retrieve_graph(graph_id)
             
             # Add files to the graph
             for prepared_file in prepared_files:
-                file = self._retry_on_auth_error(
-                    lambda: writer.ai.upload_file(
-                        prepared_file.get("data"),
-                        prepared_file.get("type"),
-                        prepared_file.get("name")
-                    )
-                )
-                self._retry_on_auth_error(
-                    lambda: graph.add_file(file)
-                )
+                file = writer.ai.upload_file(prepared_file.get("data"),
+                                             prepared_file.get("type"),
+                                             prepared_file.get("name"))
+                graph.add_file(file)
             
             # Add URLs to the graph using SDK 2.3.0 feature
             for url in urls:
                 if not isinstance(url, str):
                     raise WriterConfigurationError(f"URL must be a string, got {type(url)}")
-                self._retry_on_auth_error(
-                    lambda: graph.add_url(url)
-                )
+                graph.add_url(url)
 
             self.outcome = "success"
         except BaseException as e:
