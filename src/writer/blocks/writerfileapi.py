@@ -63,13 +63,11 @@ class WriterUploadFile(WriterBlock):
 
                 client = WriterAIManager.acquire_client()
 
-                file = self._retry_on_auth_error(
-                    lambda: client.files.upload(
-                        content=data,
-                        content_type=file_type,
-                        content_disposition=content_disposition
+                file = client.files.upload(
+                    content=data,
+                    content_type=file_type,
+                    content_disposition=content_disposition
                     )
-                )
 
                 outputs.append({
                     "id": file.id,

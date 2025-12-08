@@ -81,9 +81,7 @@ class WriterStructuredOutput(WriterBlock):
                 "content": prompt,
             }
             config = { "model": model_id, "max_tokens": max_tokens }
-            msg = self._retry_on_auth_error(
-                lambda: conversation.complete(response_format=response_format, config=config)
-            )
+            msg = conversation.complete(response_format=response_format, config=config)
             conversation += msg
 
             raw_content = msg.get("content")
