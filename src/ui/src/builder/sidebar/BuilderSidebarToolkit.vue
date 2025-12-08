@@ -125,6 +125,7 @@ import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useToasts } from "../useToast";
 import { useComponentActions } from "../useComponentActions";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { isSharedBlueprint } from "@/utils/sharedBlueprint";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
 const BuilderBlueprintLibraryPanel = defineAsyncComponentWithLoader({
@@ -173,7 +174,7 @@ const sharedBlueprintsFromTree = computed(() => {
 	const allBlueprints = wf.getComponents("blueprints_root", {
 		sortedByPosition: true,
 	});
-	return allBlueprints.filter((c) => c.content?.isSharedBlueprint === true);
+	return allBlueprints.filter((c) => isSharedBlueprint(c));
 });
 
 // Block types that should not be available when editing a shared blueprint
@@ -190,7 +191,7 @@ const isEditingSharedBlueprint = computed(() => {
 	const activePageId = wf.activePageId.value;
 	if (!activePageId) return false;
 	const activePage = wf.getComponentById(activePageId);
-	return activePage?.content?.isSharedBlueprint === true;
+	return isSharedBlueprint(activePage);
 });
 
 const displayedCategories = [

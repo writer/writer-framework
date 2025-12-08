@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useBlueprintRun } from "@/composables/useBlueprintRun";
+import { isSharedBlueprint as isSharedBlueprintComponent } from "@/utils/sharedBlueprint";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsButtonSplit from "@/wds/WdsButtonSplit.vue";
@@ -33,7 +34,7 @@ const isBlueprintLibraryEnabled = computed(
 // Check if the current blueprint is a shared blueprint
 const isSharedBlueprint = computed(() => {
 	const blueprint = wf.getComponentById(blueprintComponentId);
-	return blueprint?.content?.isSharedBlueprint === true;
+	return isSharedBlueprintComponent(blueprint);
 });
 
 const triggerComponents = computed(() =>

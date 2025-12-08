@@ -4,6 +4,7 @@ import { Core, BuilderManager, Component, ComponentMap } from "@/writerTypes";
 import { useComponentClipboard } from "./useComponentClipboard";
 import { COMPONENT_TYPES_ROOT } from "@/constants/component";
 import { getComponentPage } from "@/composables/useComponentPage";
+import { SHARED_BLUEPRINT_FLAG_VALUE } from "@/utils/sharedBlueprint";
 
 export function useComponentActions(
 	wf: Core,
@@ -1169,7 +1170,7 @@ export function useComponentActions(
 			{
 				content: {
 					key: blueprintData.title,
-					isSharedBlueprint: true as any,
+					isSharedBlueprint: SHARED_BLUEPRINT_FLAG_VALUE,
 					sourceBlueprintId: blueprintData.id,
 					deployedVersion: String(blueprintData.version),
 					deployedDescription: blueprintData.description,

@@ -84,6 +84,7 @@ import WdsIcon from "@/wds/WdsIcon.vue";
 import { useComponentActions } from "../useComponentActions";
 import { useComponentsTreeSearchResults } from "./composables/useComponentsTreeSearch";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { isSharedBlueprint, SHARED_BLUEPRINT_FLAG_VALUE } from "@/utils/sharedBlueprint";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -109,11 +110,11 @@ const allBlueprints = computed(() => {
 });
 
 const regularBlueprints = computed(() => {
-	return allBlueprints.value.filter((c) => !c.content?.isSharedBlueprint);
+	return allBlueprints.value.filter((c) => !isSharedBlueprint(c));
 });
 
 const sharedBlueprintItems = computed(() => {
-	return allBlueprints.value.filter((c) => c.content?.isSharedBlueprint);
+	return allBlueprints.value.filter((c) => isSharedBlueprint(c));
 });
 
 const blueprintSections = computed(() => {
@@ -166,7 +167,7 @@ async function addSharedBlueprint() {
 		"blueprints_blueprint",
 		"blueprints_root",
 	);
-	setContentValue(pageId, "isSharedBlueprint", true);
+	setContentValue(pageId, "isSharedBlueprint", SHARED_BLUEPRINT_FLAG_VALUE);
 	wf.setActivePageId(pageId);
 	await nextTick();
 	wfbm.setSelection(pageId);
