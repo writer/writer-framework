@@ -85,7 +85,8 @@ async function handleInstall() {
 	if (!orgId) {
 		pushToast({
 			type: "error",
-			message: "Organization ID is required. Please set up your environment variable.",
+			message:
+				"Organization ID is required. Please set up your environment variable.",
 		});
 		return;
 	}
@@ -130,7 +131,8 @@ async function handleDelete() {
 	if (!orgId) {
 		pushToast({
 			type: "error",
-			message: "Organization ID is required. Please set up your environment variable.",
+			message:
+				"Organization ID is required. Please set up your environment variable.",
 		});
 		return;
 	}

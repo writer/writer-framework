@@ -92,7 +92,8 @@ async function loadBlueprints() {
 	if (!orgId) {
 		pushToast({
 			type: "error",
-			message: "Organization ID is required. Please set up your environment variable.",
+			message:
+				"Organization ID is required. Please set up your environment variable.",
 		});
 		isLoading.value = false;
 		return;

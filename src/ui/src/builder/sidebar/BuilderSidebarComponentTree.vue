@@ -84,7 +84,10 @@ import WdsIcon from "@/wds/WdsIcon.vue";
 import { useComponentActions } from "../useComponentActions";
 import { useComponentsTreeSearchResults } from "./composables/useComponentsTreeSearch";
 import { useWriterTracking } from "@/composables/useWriterTracking";
-import { isSharedBlueprint, SHARED_BLUEPRINT_FLAG_VALUE } from "@/utils/sharedBlueprint";
+import {
+	isSharedBlueprint,
+	SHARED_BLUEPRINT_FLAG_VALUE,
+} from "@/utils/sharedBlueprint";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
