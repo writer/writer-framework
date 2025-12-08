@@ -112,7 +112,7 @@
 		<BlueprintToolbar
 			class="blueprintsToolbar"
 			@autogen-click="showAutogen"
-			@deploy="showDeploy"
+			@deploy="isDeployModalShown = true"
 		/>
 		<WdsModal v-if="isAutogenModalShown">
 			<BlueprintsAutogen
@@ -253,9 +253,6 @@ function showAutogen() {
 }
 
 const isDeployModalShown = ref(false);
-function showDeploy() {
-	isDeployModalShown.value = true;
-}
 
 const rootEl = useTemplateRef("rootEl");
 const nodeContainerEl = useTemplateRef("nodeContainerEl");

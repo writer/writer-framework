@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, computed, onMounted } from "vue";
+import { ref, inject, computed } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { useToasts } from "../useToast";
@@ -44,11 +44,7 @@ import { useWriterTracking } from "@/composables/useWriterTracking";
 import injectionKeys from "@/injectionKeys";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { useComponentActions } from "@/builder/useComponentActions";
-import {
-	DEFAULT_ORG_ID,
-	LOCAL_DEV_USER_ID,
-} from "@/constants/sharedBlueprints";
-import { fetchWriterApiCurrentUserProfile } from "@/composables/useWriterApiUser";
+import { useWriterApiCurrentUserProfile } from "@/composables/useWriterApiUser";
 import type { Component } from "@/writerTypes";
 
 const props = defineProps<{
@@ -74,30 +70,25 @@ const { writerApi } = useWriterApi();
 const { installSharedBlueprint } = useComponentActions(wf, wfbm);
 const isInstalling = ref(false);
 const isDeleting = ref(false);
-const currentUserId = ref<number | null>(null);
+const { user: currentUser } = useWriterApiCurrentUserProfile();
 
 // Check if current user is the creator
 const showDeleteButton = computed(() => {
 	return (
-		currentUserId.value !== null &&
-		props.block.createdBy === currentUserId.value
+		currentUser.value !== undefined &&
+		props.block.createdBy === currentUser.value.id
 	);
 });
 
-onMounted(async () => {
-	try {
-		const user = await fetchWriterApiCurrentUserProfile();
-		currentUserId.value = user.id;
-	} catch {
-		// In local dev, backend uses LOCAL_DEV_USER_ID
-		// Fallback to constant if we can't fetch the user profile
-		currentUserId.value = import.meta.env.DEV ? LOCAL_DEV_USER_ID : null;
-	}
-});
-
 async function handleInstall() {
-	// Use default orgId for local development when writerOrgId is not available
-	const orgId = wf.writerOrgId.value || DEFAULT_ORG_ID;
+	const orgId = wf.writerOrgId.value;
+	if (!orgId) {
+		pushToast({
+			type: "error",
+			message: "Organization ID is required. Please set up your environment variable.",
+		});
+		return;
+	}
 
 	isInstalling.value = true;
 	try {
@@ -135,6 +126,15 @@ async function handleInstall() {
 }
 
 async function handleDelete() {
+	const orgId = wf.writerOrgId.value;
+	if (!orgId) {
+		pushToast({
+			type: "error",
+			message: "Organization ID is required. Please set up your environment variable.",
+		});
+		return;
+	}
+
 	const confirmed = confirm(
 		`Are you sure you want to delete "${props.block.title}"? This will permanently remove it from the shared blueprint library.`,
 	);
@@ -142,7 +142,6 @@ async function handleDelete() {
 
 	isDeleting.value = true;
 	try {
-		const orgId = wf.writerOrgId.value || DEFAULT_ORG_ID;
 		await writerApi.deleteSharedBlueprint(orgId, props.block.id);
 
 		pushToast({

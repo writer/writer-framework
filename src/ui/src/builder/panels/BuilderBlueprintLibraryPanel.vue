@@ -18,12 +18,10 @@
 			</div>
 
 			<div class="BuilderBlueprintLibraryPanel__content">
-				<div
+				<WdsSkeletonLoader
 					v-if="isLoading"
 					class="BuilderBlueprintLibraryPanel__loading"
-				>
-					<p>Loading blueprints...</p>
-				</div>
+				/>
 
 				<div
 					v-else-if="blueprints.length === 0"
@@ -56,28 +54,17 @@ import { ref, computed, watch, inject } from "vue";
 import WdsModal from "@/wds/WdsModal.vue";
 import BuilderBlueprintLibraryItem from "./BuilderBlueprintLibraryItem.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
+import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "../useToast";
 import { useDebouncer } from "@/composables/useDebouncer";
 import { useWriterApi } from "@/composables/useWriterApi";
-import { DEFAULT_ORG_ID } from "@/constants/sharedBlueprints";
 
-const props = defineProps<{
-	modelValue: boolean;
-}>();
-
-const emit = defineEmits<{
-	"update:modelValue": [value: boolean];
-}>();
+const isOpen = defineModel({ type: Boolean });
 
 const wf = inject(injectionKeys.core);
 const { pushToast } = useToasts();
 const { writerApi } = useWriterApi();
-
-const isOpen = computed({
-	get: () => props.modelValue,
-	set: (value) => emit("update:modelValue", value),
-});
 
 const isBlueprintLibraryEnabled = computed(
 	() =>
@@ -101,8 +88,15 @@ const isLoading = ref(false);
 async function loadBlueprints() {
 	if (!isBlueprintLibraryEnabled.value) return;
 
-	// Use default orgId for local development when writerOrgId is not available
-	const orgId = wf.writerOrgId.value || DEFAULT_ORG_ID;
+	const orgId = wf.writerOrgId.value;
+	if (!orgId) {
+		pushToast({
+			type: "error",
+			message: "Organization ID is required. Please set up your environment variable.",
+		});
+		isLoading.value = false;
+		return;
+	}
 
 	isLoading.value = true;
 	try {
@@ -132,9 +126,7 @@ async function loadBlueprints() {
 
 const debouncedLoadBlueprints = useDebouncer(loadBlueprints, 300);
 
-watch([searchQuery], () => {
-	debouncedLoadBlueprints();
-});
+watch(searchQuery, debouncedLoadBlueprints);
 
 function handleClose() {
 	isOpen.value = false;

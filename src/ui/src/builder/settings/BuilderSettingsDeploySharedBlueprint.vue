@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, inject } from "vue";
+import { ref, computed, watch, inject, shallowRef } from "vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
@@ -58,7 +58,12 @@ import { useToasts } from "@/builder/useToast";
 import { useComponentActions } from "@/builder/useComponentActions";
 import { useWriterTracking } from "@/composables/useWriterTracking";
 import { useWriterApi } from "@/composables/useWriterApi";
-import { DEFAULT_ORG_ID } from "@/constants/sharedBlueprints";
+
+const props = defineProps<{
+	blueprintId: string;
+}>();
+
+const isOpen = defineModel({ type: Boolean });
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -69,20 +74,6 @@ const { setContentValue, extractBlueprintComponents } = useComponentActions(
 );
 const tracking = useWriterTracking(wf);
 const { writerApi } = useWriterApi();
-
-const props = defineProps<{
-	modelValue: boolean;
-	blueprintId: string;
-}>();
-
-const emit = defineEmits<{
-	"update:modelValue": [value: boolean];
-}>();
-
-const isOpen = computed({
-	get: () => props.modelValue,
-	set: (value) => emit("update:modelValue", value),
-});
 
 const blueprint = computed(() => wf.getComponentById(props.blueprintId));
 
@@ -103,20 +94,21 @@ const form = ref({
 	description: "",
 });
 
-const errors = ref<Record<string, string>>({});
+const errors = shallowRef<Record<string, string>>({});
 const isDeploying = ref(false);
 
 function validateForm(): boolean {
-	errors.value = {};
+	const newErrors: Record<string, string> = {};
 
 	if (!form.value.name.trim()) {
-		errors.value.name = "Name is required";
+		newErrors.name = "Name is required";
 	}
 	if (!form.value.description.trim()) {
-		errors.value.description = "Description is required";
+		newErrors.description = "Description is required";
 	}
 
-	return Object.keys(errors.value).length === 0;
+	errors.value = newErrors;
+	return Object.keys(newErrors).length === 0;
 }
 
 // Sync name changes back to blueprint key
@@ -131,8 +123,14 @@ async function handleDeploy() {
 		return;
 	}
 
-	// Use default orgId for local development when writerOrgId is not available
-	const orgId = wf.writerOrgId.value || DEFAULT_ORG_ID;
+	const orgId = wf.writerOrgId.value;
+	if (!orgId) {
+		pushToast({
+			type: "error",
+			message: "Organization ID is required. Please set up your environment variable.",
+		});
+		return;
+	}
 
 	isDeploying.value = true;
 	try {
@@ -215,9 +213,7 @@ const modalActions = computed<ModalAction[]>(() => {
 	return [
 		{
 			desc: "Cancel",
-			fn: () => {
-				handleClose();
-			},
+			fn: handleClose,
 		},
 		{
 			desc: isDeploying.value ? "Publishing..." : "Publish",

@@ -444,14 +444,17 @@ export class WriterApi {
 		orgId: number,
 		search?: string,
 	): Promise<
-		Array<{
-			id: string;
-			title: string;
-			description: string;
-			category: string;
-			version_number: number;
-			createdBy: number;
-		}>
+		Array<
+			Pick<
+				WriterApiSharedBlueprint,
+				| "id"
+				| "title"
+				| "description"
+				| "category"
+				| "version_number"
+				| "createdBy"
+			>
+		>
 	> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
 		const url = new URL(
@@ -472,22 +475,7 @@ export class WriterApi {
 	async getSharedBlueprint(
 		orgId: number,
 		blueprintId: string,
-	): Promise<{
-		id: string;
-		title: string;
-		visibility: string;
-		orgId: string;
-		createdBy: number;
-		version: {
-			version: number;
-			description: string | null;
-			components: unknown;
-			metadata: unknown;
-			createdAt: string;
-		};
-		createdAt: string;
-		updatedAt: string;
-	}> {
+	): Promise<WriterApiSharedBlueprint> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
 		const url = new URL(
 			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints/${blueprintId}`,
@@ -503,7 +491,7 @@ export class WriterApi {
 	async deleteSharedBlueprint(
 		orgId: number,
 		blueprintId: string,
-	): Promise<{ success: boolean }> {
+	): Promise<void> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
 		const url = new URL(
 			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints/${blueprintId}`,
@@ -515,8 +503,6 @@ export class WriterApi {
 			method: "DELETE",
 		});
 		if (!res.ok) throw Error(await res.text());
-
-		return res.json();
 	}
 }
 
@@ -524,6 +510,26 @@ export type WriterApiUser = Pick<
 	WriterApiUserProfile,
 	"id" | "avatar" | "firstName" | "lastName" | "email"
 >;
+
+export type WriterApiSharedBlueprint = {
+	id: string;
+	title: string;
+	description: string;
+	category: string;
+	version_number: number;
+	visibility: string;
+	orgId: string;
+	createdBy: number;
+	version: {
+		version: number;
+		description: string | null;
+		components: unknown;
+		metadata: unknown;
+		createdAt: string;
+	};
+	createdAt: string;
+	updatedAt: string;
+};
 
 type WriterApiBlamable = {
 	createdBy: number;

@@ -1143,11 +1143,11 @@ export function useComponentActions(
 		const subtree = getFlatComponentSubtree(blueprintId);
 		return subtree
 			.slice(1) // exclude the blueprint container itself
-			.filter((c) => c.type !== "note")
-			.filter((c) => {
-				const definition = wf.getComponentDefinition(c.type);
-				return definition?.category !== "Internal";
-			});
+			.filter(
+				(c) =>
+					c.type !== "note" &&
+					wf.getComponentDefinition(c.type)?.category !== "Internal",
+			);
 	}
 
 	/**
