@@ -1062,7 +1062,10 @@ def catch_guardrail_error(func: Callable[..., R]) -> Callable[..., R]:
             if not errors:
                 raise
 
-            guardrail_info = parsed.get("extras", {}).get("guardrail_info")
+            extras = parsed.get("extras")
+            if extras is None:
+                raise
+            guardrail_info = extras.get("guardrail_info")
             if guardrail_info is None:
                 raise
 
