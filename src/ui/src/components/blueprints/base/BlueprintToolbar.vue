@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useBlueprintRun } from "@/composables/useBlueprintRun";
+import { isSharedBlueprint as isSharedBlueprintComponent } from "@/utils/sharedBlueprint";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import WdsButtonSplit from "@/wds/WdsButtonSplit.vue";
@@ -7,8 +8,9 @@ import injectionKeys from "@/injectionKeys";
 import { computed, inject, shallowRef, toRaw, useTemplateRef } from "vue";
 import BlueprintToolbarBlocksDropdown from "./BlueprintToolbarBlocksDropdown.vue";
 
-defineEmits({
+const emit = defineEmits({
 	autogenClick: () => true,
+	deploy: () => true,
 });
 
 const wf = inject(injectionKeys.core);
@@ -22,6 +24,18 @@ const {
 	stop: handleStop,
 	isRunning,
 } = useBlueprintRun(wf, wfbm, blueprintComponentId);
+
+const isBlueprintLibraryEnabled = computed(
+	() =>
+		Array.isArray(wf.featureFlags.value) &&
+		wf.featureFlags.value.includes("blueprint_library"),
+);
+
+// Check if the current blueprint is a shared blueprint
+const isSharedBlueprint = computed(() => {
+	const blueprint = wf.getComponentById(blueprintComponentId);
+	return isSharedBlueprintComponent(blueprint);
+});
 
 const triggerComponents = computed(() =>
 	wf
@@ -66,9 +80,20 @@ async function runBlueprint(componentId?: string) {
 			data-automation-action="run-autogen"
 			data-writer-tooltip="Autogen"
 			data-writer-tooltip-placement="bottom"
-			@click="$emit('autogenClick')"
+			@click="emit('autogenClick')"
 		>
 			<WdsIcon name="wand-sparkles" />
+		</WdsButton>
+		<WdsButton
+			v-if="isBlueprintLibraryEnabled && isSharedBlueprint"
+			variant="special"
+			data-automation-action="publish-shared-blueprint"
+			data-writer-tooltip="Publish this shared blueprint"
+			data-writer-tooltip-placement="bottom"
+			@click="emit('deploy')"
+		>
+			<WdsIcon name="rocket" />
+			Publish blueprint
 		</WdsButton>
 		<WdsButtonSplit
 			v-if="triggerComponents.length && !isRunning"

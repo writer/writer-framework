@@ -41,7 +41,7 @@
 			class="BuilderSettings__titleBar"
 		>
 			<p class="BuilderSettings__titleBar__title">
-				{{ componentDefinition.name }}
+				{{ displayName }}
 			</p>
 			<div class="BuilderSettings__titleBar__actions">
 				<WdsButton
@@ -110,6 +110,7 @@ import BuilderSettingsAddComponentModal from "./BuilderSettingsAddComponentModal
 import { useComponentInformation } from "@/composables/useComponentInformation";
 import { useBlueprintComponentResultId } from "@/composables/useBlueprintComponentResultId";
 import { useElementClientHeight } from "@/composables/useComponentClientHeight";
+import { getSourceBlueprintName } from "@/builder/useComponentDescription";
 
 const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
@@ -127,6 +128,15 @@ const { component, definition: componentDefinition } = useComponentInformation(
 	ssbm.firstSelectedId,
 );
 const resultId = useBlueprintComponentResultId(component, componentDefinition);
+
+const displayName = computed(() => {
+	if (!component.value) return "Unknown";
+	return (
+		getSourceBlueprintName(wf, component.value) ||
+		componentDefinition.value?.name ||
+		"Unknown"
+	);
+});
 
 const { copy, copied: isComponentIdCopied } = useClipboard();
 

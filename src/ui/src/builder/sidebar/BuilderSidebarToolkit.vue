@@ -17,7 +17,23 @@
 			:key="categoryId"
 			class="category"
 		>
-			<div class="header">{{ categoryId }}</div>
+			<div class="header">
+				<span>{{ categoryId }}</span>
+				<!-- Blueprint Library button for Shared Blueprints category -->
+				<button
+					v-if="
+						categoryId === 'Shared Blueprints' &&
+						rootComponentId == 'blueprints_root' &&
+						isBlueprintLibraryEnabled
+					"
+					class="header__library-btn"
+					data-writer-tooltip="Blueprint Library"
+					data-writer-tooltip-placement="right"
+					@click="showBlueprintLibrary"
+				>
+					<WdsIcon name="layout-grid" />
+				</button>
+			</div>
 			<div class="tools">
 				<div
 					v-for="tool in tools"
@@ -86,6 +102,10 @@
 			</div>
 		</template>
 	</BuilderSidebarPanel>
+	<BuilderBlueprintLibraryPanel
+		v-if="isBlueprintLibraryEnabled"
+		v-model="isBlueprintLibraryModalShown"
+	/>
 </template>
 
 <script setup lang="ts">
@@ -105,6 +125,12 @@ import { convertAbsolutePathtoFullURL } from "@/utils/url";
 import { useToasts } from "../useToast";
 import { useComponentActions } from "../useComponentActions";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { isSharedBlueprint } from "@/utils/sharedBlueprint";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+
+const BuilderBlueprintLibraryPanel = defineAsyncComponentWithLoader({
+	loader: () => import("../panels/BuilderBlueprintLibraryPanel.vue"),
+});
 
 const { pushToast } = useToasts();
 
@@ -114,6 +140,11 @@ const isAutogenModalShown = inject(
 );
 function showAutogen() {
 	isAutogenModalShown.value = true;
+}
+
+const isBlueprintLibraryModalShown = ref(false);
+function showBlueprintLibrary() {
+	isBlueprintLibraryModalShown.value = true;
 }
 
 const wf = inject(injectionKeys.core);
@@ -129,6 +160,12 @@ const isSharedBlueprintsEnabled = computed(
 		wf.featureFlags.value.includes("shared_blueprints"),
 );
 
+const isBlueprintLibraryEnabled = computed(
+	() =>
+		Array.isArray(wf.featureFlags.value) &&
+		wf.featureFlags.value.includes("blueprint_library"),
+);
+
 const rootComponentId = wfbm.activeRootId;
 
 // Get shared blueprints directly from component tree
@@ -137,7 +174,7 @@ const sharedBlueprintsFromTree = computed(() => {
 	const allBlueprints = wf.getComponents("blueprints_root", {
 		sortedByPosition: true,
 	});
-	return allBlueprints.filter((c) => c.content?.isSharedBlueprint === true);
+	return allBlueprints.filter((c) => isSharedBlueprint(c));
 });
 
 // Block types that should not be available when editing a shared blueprint
@@ -154,7 +191,7 @@ const isEditingSharedBlueprint = computed(() => {
 	const activePageId = wf.activePageId.value;
 	if (!activePageId) return false;
 	const activePage = wf.getComponentById(activePageId);
-	return activePage?.content?.isSharedBlueprint === true;
+	return isSharedBlueprint(activePage);
 });
 
 const displayedCategories = [
@@ -355,6 +392,9 @@ watch(activeToolkit, () => {
 }
 
 .category .header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 12px; /* 100% */
@@ -362,6 +402,34 @@ watch(activeToolkit, () => {
 	text-transform: uppercase;
 	color: var(--builderSecondaryTextColor);
 	margin-bottom: 8px;
+}
+
+.header__library-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	color: var(--builderSecondaryTextColor);
+	border-radius: 4px;
+	opacity: 0.7;
+	transition:
+		opacity 0.2s,
+		background 0.2s;
+}
+
+.header__library-btn:hover {
+	opacity: 1;
+	background: var(--builderSubtleSeparatorColor);
+}
+
+.header__library-btn :deep(svg) {
+	width: 14px;
+	height: 14px;
 }
 
 .tools {

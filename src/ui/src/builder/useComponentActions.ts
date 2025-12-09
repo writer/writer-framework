@@ -4,6 +4,7 @@ import { Core, BuilderManager, Component, ComponentMap } from "@/writerTypes";
 import { useComponentClipboard } from "./useComponentClipboard";
 import { COMPONENT_TYPES_ROOT } from "@/constants/component";
 import { getComponentPage } from "@/composables/useComponentPage";
+import { SHARED_BLUEPRINT_FLAG_VALUE } from "@/utils/sharedBlueprint";
 
 export function useComponentActions(
 	wf: Core,
@@ -1134,6 +1135,91 @@ export function useComponentActions(
 		return page.id;
 	}
 
+	/**
+	 * Extracts components from a blueprint for publishing.
+	 * Excludes the blueprint container itself, notes, and internal components.
+	 */
+	function extractBlueprintComponents(blueprintId: Component["id"]): Component[] {
+		const subtree = getFlatComponentSubtree(blueprintId);
+		return subtree
+			.slice(1) // exclude the blueprint container itself
+			.filter(
+				(c) =>
+					c.type !== "note" &&
+					wf.getComponentDefinition(c.type)?.category !== "Internal",
+			);
+	}
+
+	/**
+	 * Installs a shared blueprint from be.agent-storage into the component tree.
+	 * Creates a new blueprint container and adds all child components with regenerated IDs.
+	 */
+	function installSharedBlueprint(blueprintData: {
+		id: string;
+		title: string;
+		version: number;
+		description?: string;
+		components: Component[];
+	}): Component["id"] {
+		// Create blueprint container
+		const blueprintId = generateNewComponentId();
+		const blueprint = createComponent(
+			"blueprints_blueprint",
+			"blueprints_root",
+			undefined,
+			{
+				content: {
+					key: blueprintData.title,
+					isSharedBlueprint: SHARED_BLUEPRINT_FLAG_VALUE,
+					sourceBlueprintId: blueprintData.id,
+					deployedVersion: String(blueprintData.version),
+					deployedDescription: blueprintData.description,
+				},
+			},
+		);
+		blueprint.id = blueprintId;
+
+		// Regenerate IDs for child components
+		const childSubtree = getNewSubtreeWithRegeneratedIds(blueprintData.components);
+
+		// Update root children to point to new blueprint
+		// Components whose parentId doesn't exist in the subtree are root children
+		const componentIds = new Set(childSubtree.map((c) => c.id));
+		childSubtree.forEach((c) => {
+			if (!c.parentId || !componentIds.has(c.parentId)) {
+				c.parentId = blueprintId;
+			}
+		});
+
+		// Validate that the subtree can be ingested
+		if (!isSubtreeIngestable([blueprint, ...childSubtree])) {
+			throw Error("Cannot install blueprint: components are not compatible");
+		}
+
+		// Add all components in a transaction
+		const transactionId = `install-shared-blueprint-${blueprintId}`;
+		ssbm.openMutationTransaction(transactionId, `Install shared blueprint`);
+
+		// Add blueprint container first
+		wf.addComponent(blueprint);
+		ssbm.registerPostMutation(blueprint);
+
+		// Add all child components
+		childSubtree.forEach((c) => {
+			wf.addComponent(c);
+			ssbm.registerPostMutation(c);
+		});
+
+		ssbm.closeMutationTransaction(transactionId);
+		wf.sendComponentUpdate();
+
+		tracking?.track("blueprints_shared_installed", {
+			blueprintId: blueprintData.id,
+		});
+
+		return blueprintId;
+	}
+
 	return {
 		generateNewComponentId,
 		moveComponent,
@@ -1177,5 +1263,7 @@ export function useComponentActions(
 		moveComponentInsideNextSibling,
 		moveComponentToParent,
 		selectChild,
+		extractBlueprintComponents,
+		installSharedBlueprint,
 	};
 }

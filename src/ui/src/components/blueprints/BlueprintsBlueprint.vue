@@ -112,12 +112,17 @@
 		<BlueprintToolbar
 			class="blueprintsToolbar"
 			@autogen-click="showAutogen"
+			@deploy="isDeployModalShown = true"
 		/>
 		<WdsModal v-if="isAutogenModalShown">
 			<BlueprintsAutogen
 				@block-generation="handleBlockGeneration"
 			></BlueprintsAutogen>
 		</WdsModal>
+		<BuilderSettingsDeploySharedBlueprint
+			v-model="isDeployModalShown"
+			:blueprint-id="blueprintComponentId"
+		/>
 		<BlueprintNavigator
 			v-if="nodeContainerEl"
 			:node-container-el="nodeContainerEl"
@@ -228,6 +233,11 @@ const BlueprintToolbar = defineAsyncComponentWithLoader({
 	loadingComponentProps: { width: "250px", height: "40px" },
 });
 
+const BuilderSettingsDeploySharedBlueprint = defineAsyncComponentWithLoader({
+	loader: () =>
+		import("@/builder/settings/BuilderSettingsDeploySharedBlueprint.vue"),
+});
+
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const notesManager = inject(injectionKeys.notesManager);
@@ -241,6 +251,8 @@ const isAutogenModalShown = inject(
 function showAutogen() {
 	isAutogenModalShown.value = true;
 }
+
+const isDeployModalShown = ref(false);
 
 const rootEl = useTemplateRef("rootEl");
 const nodeContainerEl = useTemplateRef("nodeContainerEl");

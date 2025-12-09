@@ -39,7 +39,9 @@ type WriterTrackingEventName =
 	| "blueprints_logs_trace_opened"
 	| "blueprints_new_added"
 	| "blueprints_block_output_copied"
-	| "blueprints_shared_added";
+	| "blueprints_shared_added"
+	| "blueprints_shared_published"
+	| "blueprints_shared_installed";
 
 type EventProperties = {
 	[key: string]: unknown;
