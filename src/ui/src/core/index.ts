@@ -421,11 +421,18 @@ export function generateCore() {
 
 			if (ev.code == 1008) {
 				syncHealth.value = "offline";
+				// 1008: Policy Violation
+				// Connection established correctly but closed due to invalid session.
+				// Do not attempt to reconnect, the session will remain invalid. Initialise a new session.
+
 				logger.error("Invalid session. Reinitialising...");
+
+				// Take care of pending event resolutions and fail them.
 				await initSession();
 				return;
 			}
 
+			// Connection lost due to some other reason. Try to reconnect.
 			const WEBSOCKET_CODE_UPDATE_CODE = 4001;
 			const NORMAL_CLOSE_CODE = 1000;
 
@@ -901,7 +908,6 @@ export function generateCore() {
 				throw error;
 			}
 
-			// Track metrics
 			const duration = performance.now() - startTime;
 			const { recordDistribution, incrementMetric, METRIC_NAMES } =
 				await import("@/observability/frontendMetrics");
