@@ -11,7 +11,6 @@ let ldClient: LDClient | null = null;
 let isInitialized = false;
 let initializationError: Error | null = null;
 
-// Track global error handlers to prevent duplicate registration
 let globalErrorHandler: ((event: ErrorEvent) => void) | null = null;
 let globalRejectionHandler: ((event: PromiseRejectionEvent) => void) | null =
 	null;
@@ -211,7 +210,6 @@ export async function initializeLaunchDarkly(
 				return false;
 			};
 
-			// Remove existing handlers before adding new ones to prevent duplicates
 			if (globalErrorHandler) {
 				window.removeEventListener("error", globalErrorHandler);
 			}
@@ -222,7 +220,6 @@ export async function initializeLaunchDarkly(
 				);
 			}
 
-			// Create and store new handlers
 			globalErrorHandler = async (event: ErrorEvent) => {
 				await captureErrorToLD(
 					event.error || new Error(event.message),
