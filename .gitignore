@@ -1,6 +1,7 @@
 **/.venv/
 **/.winvenv/
 **/.vscode/
+**/.idea/
 *.pyc
 **/__pycache__
 **/.mypy_cache

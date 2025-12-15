@@ -62,6 +62,7 @@ export function generateCore() {
 		  }
 		| undefined
 	>();
+	const logger = useLogger();
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
 	const sourceFiles = shallowRef<SourceFiles>({
@@ -159,6 +160,50 @@ export function generateCore() {
 		writerApplication.value = initData.writerApplication;
 		loadAbstractTemplates(initData.abstractTemplates);
 
+		try {
+			const { getLaunchDarklyClientId } = await import(
+				"@/utils/launchDarklyUtils"
+			);
+			const {
+				initializeLaunchDarkly,
+				buildLDContext,
+				setupFlagChangeListener,
+			} = await import("@/core/launchDarklyClient");
+
+			const clientId = getLaunchDarklyClientId();
+
+			if (clientId) {
+				const context = buildLDContext(
+					sessionId,
+					mode.value,
+					writerApplication.value,
+				);
+
+				initializeLaunchDarkly(context, clientId)
+					.then(async () => {
+						setupFlagChangeListener((activeFlags) => {
+							try {
+								featureFlags.value = activeFlags;
+								setActiveFeatureFlags(activeFlags);
+							} catch (e) {
+								logger.error(
+									"Error updating feature flags from LaunchDarkly",
+									e,
+								);
+							}
+						});
+					})
+					.catch((error) => {
+						logger.warn(
+							"LaunchDarkly initialization failed in initSession",
+							error,
+						);
+					});
+			}
+		} catch (error) {
+			logger.error("Unexpected error initializing LaunchDarkly", error);
+		}
+
 		// Only returned for edit (Builder) mode
 
 		userFunctions.value = initData.userFunctions;
@@ -250,9 +295,24 @@ export function generateCore() {
 		url.protocol = url.protocol.replace("http", "ws");
 		webSocket = new WebSocket(url.href);
 
-		webSocket.onopen = () => {
+		const wsConnectStartTime = performance.now();
+		webSocket.onopen = async () => {
 			syncHealth.value = "connected";
 			logger.log("WebSocket connected. Initialising stream...");
+			const { recordDistribution, incrementMetric, METRIC_NAMES } =
+				await import("@/observability/frontendMetrics");
+			const connectDuration = performance.now() - wsConnectStartTime;
+			recordDistribution(
+				METRIC_NAMES.WEBSOCKET_CONNECT_DURATION,
+				connectDuration,
+				{
+					tags: { mode: mode.value || "unknown" },
+					unit: "ms",
+				},
+			);
+			incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTED, {
+				tags: { mode: mode.value || "unknown" },
+			});
 			sendFrontendMessage("streamInit", { sessionId });
 
 			if (pendingComponentUpdate) {
@@ -337,6 +397,12 @@ export function generateCore() {
 				}
 			} catch (error) {
 				logger.error("Error parsing WebSocket message:", error);
+				const { incrementMetric, METRIC_NAMES } = await import(
+					"@/observability/frontendMetrics"
+				);
+				incrementMetric(METRIC_NAMES.WEBSOCKET_INVALID_MESSAGE, {
+					tags: { mode: mode.value || "unknown" },
+				});
 				return;
 			}
 			try {
@@ -349,41 +415,62 @@ export function generateCore() {
 		webSocket.onclose = async (ev: CloseEvent) => {
 			webSocket = null;
 
+			const { incrementMetric, METRIC_NAMES } = await import(
+				"@/observability/frontendMetrics"
+			);
+
 			if (ev.code == 1008) {
 				syncHealth.value = "offline";
-				// 1008: Policy Violation
-				// Connection established correctly but closed due to invalid session.
-				// Do not attempt to reconnect, the session will remain invalid. Initialise a new session.
-
 				logger.error("Invalid session. Reinitialising...");
-
-				// Take care of pending event resolutions and fail them.
 				await initSession();
 				return;
 			}
 
-			// Connection lost due to some other reason. Try to reconnect.
-
 			const WEBSOCKET_CODE_UPDATE_CODE = 4001;
+			const NORMAL_CLOSE_CODE = 1000;
 
 			if (ev.code == WEBSOCKET_CODE_UPDATE_CODE) {
 				syncHealth.value = "suspended";
 				logger.info(
 					"WebSocket closed due to code update. Attempting to reconnect...",
 				);
-			} else {
+			} else if (ev.code !== NORMAL_CLOSE_CODE) {
 				syncHealth.value = "offline";
 				logger.error(
 					`WebSocket closed with code ${ev.code}. Attempting to reconnect...`,
 				);
+				if (ev.code === 1006) {
+					incrementMetric(METRIC_NAMES.WEBSOCKET_ABNORMAL_CLOSE, {
+						tags: {
+							mode: mode.value || "unknown",
+							code: ev.code.toString(),
+						},
+					});
+				} else {
+					incrementMetric(
+						METRIC_NAMES.WEBSOCKET_UNEXPECTED_DISCONNECT,
+						{
+							tags: {
+								mode: mode.value || "unknown",
+								code: ev.code.toString(),
+							},
+						},
+					);
+				}
 			}
 
 			setTimeout(async () => {
 				try {
 					await startSync();
 					logger.info("Reconnected.");
+					incrementMetric(METRIC_NAMES.WEBSOCKET_RECONNECTED, {
+						tags: { mode: mode.value || "unknown" },
+					});
 				} catch {
 					logger.error("Couldn't reconnect.");
+					incrementMetric(METRIC_NAMES.WEBSOCKET_RECONNECT_FAILED, {
+						tags: { mode: mode.value || "unknown" },
+					});
 				}
 			}, RECONNECT_DELAY_MS);
 		};
@@ -392,7 +479,16 @@ export function generateCore() {
 			webSocket.addEventListener("open", () => resolve(), { once: true });
 			webSocket.addEventListener(
 				"close",
-				() => {
+				async (ev) => {
+					const { incrementMetric, METRIC_NAMES } = await import(
+						"@/observability/frontendMetrics"
+					);
+					incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTION_FAILURE, {
+						tags: {
+							mode: mode.value || "unknown",
+							code: ev.code.toString(),
+						},
+					});
 					reject(
 						new Error(
 							"WebSocket connection closed before establishing.",
@@ -401,13 +497,48 @@ export function generateCore() {
 				},
 				{ once: true },
 			);
+			webSocket.addEventListener(
+				"error",
+				async () => {
+					const { incrementMetric, METRIC_NAMES } = await import(
+						"@/observability/frontendMetrics"
+					);
+					incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTION_FAILURE, {
+						tags: { mode: mode.value || "unknown" },
+					});
+				},
+				{ once: true },
+			);
 		});
 	}
 
 	function stopSync(closeCode: number = 1000): void {
 		if (!webSocket) return;
-		webSocket.onclose = () => {};
-		webSocket.close(closeCode);
+		webSocket.onclose = (ev) => {
+			if (ev.code !== 1000) {
+				import("@/observability/frontendMetrics").then(
+					({ incrementMetric, METRIC_NAMES }) => {
+						incrementMetric(METRIC_NAMES.WEBSOCKET_CLOSE_ERROR, {
+							tags: {
+								mode: mode.value || "unknown",
+								code: ev.code.toString(),
+							},
+						});
+					},
+				);
+			}
+		};
+		try {
+			webSocket.close(closeCode);
+		} catch {
+			import("@/observability/frontendMetrics").then(
+				({ incrementMetric, METRIC_NAMES }) => {
+					incrementMetric(METRIC_NAMES.WEBSOCKET_CLOSE_ERROR, {
+						tags: { mode: mode.value || "unknown" },
+					});
+				},
+			);
+		}
 		syncHealth.value = "offline";
 	}
 
@@ -731,6 +862,7 @@ export function generateCore() {
 		}
 		const logger = useLogger();
 		const trackingId = frontendMessageCounter++;
+		const startTime = performance.now();
 		try {
 			if (callback || track) {
 				frontendMessageMap.value.set(trackingId, {
@@ -757,9 +889,49 @@ export function generateCore() {
 			if (webSocket.readyState !== WebSocket.OPEN) {
 				throw "Connection lost.";
 			}
-			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
+			try {
+				webSocket.send(JSON.stringify(wsData, bigIntReplacer));
+			} catch (error) {
+				const { incrementMetric, METRIC_NAMES } = await import(
+					"@/observability/frontendMetrics"
+				);
+				incrementMetric(METRIC_NAMES.WEBSOCKET_MESSAGE_SEND_ERROR, {
+					tags: { type, mode: mode.value || "unknown" },
+				});
+				throw error;
+			}
+
+			// Track metrics
+			const duration = performance.now() - startTime;
+			const { recordDistribution, incrementMetric, METRIC_NAMES } =
+				await import("@/observability/frontendMetrics");
+			recordDistribution(
+				METRIC_NAMES.FRONTEND_MESSAGE_DURATION,
+				duration,
+				{
+					tags: { type, mode: mode.value || "unknown" },
+					unit: "ms",
+				},
+			);
+			incrementMetric(METRIC_NAMES.FRONTEND_MESSAGE_SENT, {
+				tags: { type, mode: mode.value || "unknown" },
+			});
 		} catch (error) {
 			logger.error("sendFrontendMessage error", error);
+			const { trackError, incrementMetric, METRIC_NAMES } = await import(
+				"@/observability/frontendMetrics"
+			);
+			trackError(
+				error instanceof Error ? error : new Error(String(error)),
+				"frontend_message_error",
+				{
+					type,
+					mode: mode.value || "unknown",
+				},
+			);
+			incrementMetric(METRIC_NAMES.FRONTEND_MESSAGE_ERROR, {
+				tags: { type, mode: mode.value || "unknown" },
+			});
 			callback?.({ ok: false });
 		}
 	}

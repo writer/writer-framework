@@ -11,7 +11,15 @@ export default defineConfig({
 	includeWriterComponentPath: false,
 	define: {
 		WRITER_LIVE_CCT: JSON.stringify("no"),
-		WRITER_FRAMEWORK_VERSION: JSON.stringify(process.env.WRITER_FRAMEWORK_VERSION || ""),
+		WRITER_FRAMEWORK_VERSION: JSON.stringify(
+			process.env.WRITER_FRAMEWORK_VERSION || "",
+		),
+		LAUNCHDARKLY_CLIENT_ID: JSON.stringify(
+			process.env.LAUNCHDARKLY_CLIENT_ID || "",
+		),
+		LAUNCHDARKLY_ENVIRONMENT: JSON.stringify(
+			process.env.LAUNCHDARKLY_ENVIRONMENT || "Development",
+		),
 	},
 	css: {
 		postcss: {
@@ -26,6 +34,7 @@ export default defineConfig({
 	build: {
 		outDir: "../writer/static",
 		emptyOutDir: true,
+		sourcemap: true, // Generate sourcemaps for LaunchDarkly error tracking
 	},
 	resolve: {
 		alias: {

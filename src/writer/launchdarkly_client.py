@@ -1,0 +1,234 @@
+import logging
+from typing import Dict, Optional, Any
+
+from writer.launchdarkly_utils import (
+    LaunchDarklyEnvironment,
+    get_launchdarkly_sdk_key,
+    get_launchdarkly_environment,
+    is_launchdarkly_enabled,
+)
+
+logger = logging.getLogger(__name__)
+
+try:
+    from launchdarkly.client import LDClient, Config, Context
+    from launchdarkly.observability import ObservabilityPlugin, ObservabilityConfig
+
+    LD_AVAILABLE = True
+    OBSERVABILITY_AVAILABLE = True
+except ImportError:
+    LD_AVAILABLE = False
+    OBSERVABILITY_AVAILABLE = False
+    LDClient = None
+    Config = None
+    Context = None
+    ObservabilityPlugin = None
+    ObservabilityConfig = None
+
+
+class LaunchDarklyClient:
+    _client: Optional["LDClient"] = None
+    _initialization_error: Optional[Exception] = None
+
+    @classmethod
+    def get_client(cls) -> Optional["LDClient"]:
+        if not LD_AVAILABLE:
+            return None
+
+        if cls._client is not None:
+            return cls._client
+
+        if cls._initialization_error is not None:
+            return None
+
+        if not is_launchdarkly_enabled():
+            return None
+
+        if not OBSERVABILITY_AVAILABLE or ObservabilityPlugin is None or ObservabilityConfig is None:
+            logger.error(
+                "LaunchDarkly Observability plugin is required but not available. "
+                "Please ensure launchdarkly-server-sdk includes observability support."
+            )
+            return None
+
+        try:
+            sdk_key = get_launchdarkly_sdk_key()
+            if not sdk_key:
+                logger.warning("[LaunchDarkly] No SDK key available, skipping initialization")
+                return None
+
+            environment = get_launchdarkly_environment()
+            from writer import VERSION
+            service_version = VERSION
+
+            observability_config = ObservabilityConfig(
+                service_name="writer-framework",
+                service_version=service_version,
+                environment=environment,
+            )
+            plugin = ObservabilityPlugin(observability_config)
+
+            try:
+                config = Config(sdk_key, plugins=[plugin])
+            except TypeError:
+                logger.error("[LaunchDarkly] SDK version does not support plugins parameter")
+                raise RuntimeError(
+                    "LaunchDarkly SDK version does not support plugins parameter. "
+                    "Observability plugin is required. Please upgrade to SDK 9.0+."
+                )
+
+            cls._client = LDClient(config)
+
+            if hasattr(cls._client, "set_tag"):
+                try:
+                    cls._client.set_tag("environment", environment)
+                except Exception:
+                    pass
+
+            if not cls._client.wait_until_ready(timeout=5):
+                raise TimeoutError("LaunchDarkly client initialization timeout")
+
+            logger.info(f"LaunchDarkly client initialized successfully (environment: {environment})")
+            return cls._client
+
+        except Exception as e:
+            cls._initialization_error = e
+            logger.warning(
+                f"LaunchDarkly initialization failed: {e}",
+                exc_info=True
+            )
+            return None
+
+    @classmethod
+    def is_available(cls) -> bool:
+        return cls.get_client() is not None
+
+    @classmethod
+    def close(cls) -> None:
+        if cls._client is not None:
+            try:
+                cls._client.close()
+                logger.info("LaunchDarkly client closed successfully")
+            except Exception as e:
+                logger.warning(f"Error closing LaunchDarkly client: {e}", exc_info=True)
+            finally:
+                cls._client = None
+                cls._initialization_error = None
+
+    @classmethod
+    def build_context(
+        cls,
+        session_id: str,
+        mode: Optional[str] = None,
+        writer_application: Optional[Dict[str, Any]] = None,
+    ) -> Optional["Context"]:
+        if not LD_AVAILABLE or Context is None:
+            return None
+
+        try:
+            org_id = None
+            if writer_application and writer_application.get("organizationId"):
+                try:
+                    org_id = int(writer_application["organizationId"])
+                except (ValueError, TypeError):
+                    pass
+
+            context_builder = Context.builder("user", session_id)
+
+            if org_id is not None:
+                context_builder.set("organizationId", org_id)
+
+            if mode:
+                context_builder.set("mode", mode)
+
+            if writer_application and writer_application.get("id"):
+                context_builder.set("writerApplicationId", writer_application["id"])
+
+            return context_builder.build()
+
+        except Exception as e:
+            logger.warning(
+                f"Failed to build LaunchDarkly context: {e}",
+                exc_info=True
+            )
+            return None
+
+    @classmethod
+    def evaluate_flag(
+        cls,
+        flag_key: str,
+        context: Optional["Context"],
+        default: bool = False,
+    ) -> bool:
+        if context is None:
+            return default
+
+        try:
+            client = cls.get_client()
+            if client is None:
+                return default
+
+            return client.variation(flag_key, context, default)
+
+        except Exception as e:
+            logger.warning(
+                f"LaunchDarkly flag evaluation failed for '{flag_key}': {e}",
+                exc_info=True
+            )
+            return default
+
+    @classmethod
+    def evaluate_all_flags(
+        cls,
+        context: Optional["Context"],
+        flag_keys: Optional[list[str]] = None,
+    ) -> Dict[str, bool]:
+        if context is None:
+            return {}
+
+        try:
+            client = cls.get_client()
+            if client is None:
+                return {}
+
+            if flag_keys is None:
+                from writer.core import Config
+                flag_keys = Config.feature_flags or []
+
+            if not flag_keys:
+                return {}
+
+            return {
+                key: cls.evaluate_flag(key, context, False)
+                for key in flag_keys
+            }
+
+        except Exception as e:
+            logger.warning(
+                f"LaunchDarkly bulk flag evaluation failed: {e}",
+                exc_info=True
+            )
+            return {}
+
+    @classmethod
+    def capture_error(
+        cls,
+        error: Exception,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        try:
+            client = cls.get_client()
+            if client is None:
+                return
+
+            if hasattr(client, "observe") and hasattr(client.observe, "record_exception"):
+                client.observe.record_exception(error)
+            elif hasattr(client, "_observability") and hasattr(client._observability, "record_exception"):
+                client._observability.record_exception(error)
+            else:
+                logger.debug("LaunchDarkly client does not support error recording")
+        except Exception as e:
+            logger.warning(
+                f"Failed to capture error to LaunchDarkly: {e}",
+                exc_info=True
+            )

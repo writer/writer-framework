@@ -101,11 +101,38 @@ jobs:
             - name: Update version before publishing
               run: |
                 poetry version ${{ steps.set_version.outputs.version }}
+
+            - name: Install npm dependencies
+              run: npm ci
+
+            - name: Build UI with version
+              run: |
+                WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} npm run ui:build
+              env:
+                WRITER_FRAMEWORK_VERSION: ${{ steps.set_version.outputs.version }}
+
+            - name: Install LaunchDarkly CLI
+              run: npm install -g @launchdarkly/ldcli
+              continue-on-error: true
+
+            - name: Upload sourcemaps to LaunchDarkly
+              shell: bash
+              env:
+                LAUNCHDARKLY_ACCESS_TOKEN: ${{ secrets.LAUNCHDARKLY_ACCESS_TOKEN }}
+                RELEASE_VERSION: ${{ steps.set_version.outputs.version }}
+                BASE_PATH: /static
+                PROJECT: writer-framework
+              run: |
+                npm run --if-present ld:upload-sourcemaps || echo "⚠️  Sourcemap upload skipped (LAUNCHDARKLY_ACCESS_TOKEN not set or script failed)"
+              continue-on-error: true
+
+            - name: Publish to PyPI
+              run: |
                 poetry install --with build
                 WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred install.ci
                 WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred publish.pypi
               env:
-                  PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+                PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
             - name: Create and push tag for RC (only dev)
               if: github.ref_name == 'dev'
