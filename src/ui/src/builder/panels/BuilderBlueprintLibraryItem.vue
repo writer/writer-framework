@@ -13,16 +13,6 @@
 		</p>
 		<div class="BuilderBlueprintLibraryItem__actions">
 			<WdsButton
-				v-if="showDeleteButton"
-				variant="neutral"
-				size="small"
-				:disabled="isDeleting"
-				@click="handleDelete"
-			>
-				<WdsIcon name="trash-2" />
-				{{ isDeleting ? "Deleting..." : "Delete" }}
-			</WdsButton>
-			<WdsButton
 				variant="primary"
 				size="small"
 				:disabled="isInstalling"
@@ -36,15 +26,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, computed } from "vue";
+import { ref, inject } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
 import { useToasts } from "../useToast";
-import { useWriterTracking } from "@/composables/useWriterTracking";
 import injectionKeys from "@/injectionKeys";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { useComponentActions } from "@/builder/useComponentActions";
-import { useWriterApiCurrentUserProfile } from "@/composables/useWriterApiUser";
 import type { Component } from "@/writerTypes";
 
 const props = defineProps<{
@@ -53,32 +41,19 @@ const props = defineProps<{
 		title: string;
 		description: string;
 		version_number: number;
-		createdBy: number;
 	};
 }>();
 
 const emit = defineEmits<{
 	installed: [];
-	deleted: [];
 }>();
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { pushToast } = useToasts();
-const tracking = useWriterTracking(wf);
 const { writerApi } = useWriterApi();
 const { installSharedBlueprint } = useComponentActions(wf, wfbm);
 const isInstalling = ref(false);
-const isDeleting = ref(false);
-const { user: currentUser } = useWriterApiCurrentUserProfile();
-
-// Check if current user is the creator
-const showDeleteButton = computed(() => {
-	return (
-		currentUser.value !== undefined &&
-		props.block.createdBy === currentUser.value.id
-	);
-});
 
 async function handleInstall() {
 	const orgId = wf.writerOrgId.value;
@@ -123,46 +98,6 @@ async function handleInstall() {
 		});
 	} finally {
 		isInstalling.value = false;
-	}
-}
-
-async function handleDelete() {
-	const orgId = wf.writerOrgId.value;
-	if (!orgId) {
-		pushToast({
-			type: "error",
-			message:
-				"Organization ID is required. Please set up your environment variable.",
-		});
-		return;
-	}
-
-	const confirmed = confirm(
-		`Are you sure you want to delete "${props.block.title}"? This will permanently remove it from the shared blueprint library.`,
-	);
-	if (!confirmed) return;
-
-	isDeleting.value = true;
-	try {
-		await writerApi.deleteSharedBlueprint(orgId, props.block.id);
-
-		pushToast({
-			type: "success",
-			message: `Blueprint "${props.block.title}" deleted successfully`,
-		});
-
-		tracking.track("blueprints_block_deleted", {
-			blueprintId: props.block.id,
-		});
-
-		emit("deleted");
-	} catch (error) {
-		pushToast({
-			type: "error",
-			message: `Failed to delete blueprint: ${error instanceof Error ? error.message : String(error)}`,
-		});
-	} finally {
-		isDeleting.value = false;
 	}
 }
 </script>
