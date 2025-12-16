@@ -87,8 +87,8 @@ async function handleInstall() {
 		if (appId) {
 			writerApi
 				.trackBlueprintInstallation(orgId, props.block.id, appId)
-				.catch((err) => {
-					console.warn("Failed to track blueprint installation:", err);
+				.catch(() => {
+					// Silently ignore tracking failures - doesn't affect user experience
 				});
 		}
 
