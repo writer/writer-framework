@@ -31,6 +31,7 @@ import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
+import { useObservabilityMetric } from "@/composables/useObservabilityMetric";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
 import { RECONNECT_DELAY_MS } from "@/constants/retry";
 import {
@@ -88,6 +89,22 @@ export function generateCore() {
 
 	const activePageId = ref<Component["id"] | undefined>();
 
+	let observabilityMetricInstance: ReturnType<
+		typeof useObservabilityMetric
+	> | null = null;
+
+	function getOrCreateObservabilityMetric() {
+		if (!observabilityMetricInstance) {
+			const coreLike = {
+				mode,
+				writerApplication,
+				featureFlags,
+			} as any;
+			observabilityMetricInstance = useObservabilityMetric(coreLike);
+		}
+		return observabilityMetricInstance;
+	}
+
 	const writerOrgId = computed(
 		() => Number(writerApplication.value?.organizationId) || undefined,
 	);
@@ -108,6 +125,38 @@ export function generateCore() {
 		await initSession();
 		sendKeepAliveMessage();
 		if (mode.value != "edit") return;
+	}
+
+	/**
+	 * Load LaunchDarkly client and initialize observability.
+	 * This function ensures that useConfigJs has been called before
+	 * attempting to get the LaunchDarkly client ID.
+	 *
+	 * @param sessionId - The session ID to use for LaunchDarkly context
+	 */
+	async function loadLaunchDarkly(sessionId: string | null): Promise<void> {
+		const observabilityMetric = getOrCreateObservabilityMetric();
+
+		try {
+			await observabilityMetric.initialize(sessionId);
+
+			const { setupFlagChangeListener } = await import(
+				"@/core/launchDarklyClient"
+			);
+			setupFlagChangeListener((activeFlags) => {
+				try {
+					featureFlags.value = activeFlags;
+					setActiveFeatureFlags(activeFlags);
+				} catch (e) {
+					logger.error(
+						"Error updating feature flags from LaunchDarkly",
+						e,
+					);
+				}
+			});
+		} catch (error) {
+			logger.error("Unexpected error initializing LaunchDarkly", error);
+		}
 	}
 
 	/**
@@ -160,49 +209,7 @@ export function generateCore() {
 		writerApplication.value = initData.writerApplication;
 		loadAbstractTemplates(initData.abstractTemplates);
 
-		try {
-			const { getLaunchDarklyClientId } = await import(
-				"@/utils/launchDarklyUtils"
-			);
-			const {
-				initializeLaunchDarkly,
-				buildLDContext,
-				setupFlagChangeListener,
-			} = await import("@/core/launchDarklyClient");
-
-			const clientId = getLaunchDarklyClientId();
-
-			if (clientId) {
-				const context = buildLDContext(
-					sessionId,
-					mode.value,
-					writerApplication.value,
-				);
-
-				initializeLaunchDarkly(context, clientId)
-					.then(async () => {
-						setupFlagChangeListener((activeFlags) => {
-							try {
-								featureFlags.value = activeFlags;
-								setActiveFeatureFlags(activeFlags);
-							} catch (e) {
-								logger.error(
-									"Error updating feature flags from LaunchDarkly",
-									e,
-								);
-							}
-						});
-					})
-					.catch((error) => {
-						logger.warn(
-							"LaunchDarkly initialization failed in initSession",
-							error,
-						);
-					});
-			}
-		} catch (error) {
-			logger.error("Unexpected error initializing LaunchDarkly", error);
-		}
+		await loadLaunchDarkly(sessionId);
 
 		// Only returned for edit (Builder) mode
 
@@ -299,20 +306,10 @@ export function generateCore() {
 		webSocket.onopen = async () => {
 			syncHealth.value = "connected";
 			logger.log("WebSocket connected. Initialising stream...");
-			const { recordDistribution, incrementMetric, METRIC_NAMES } =
-				await import("@/observability/frontendMetrics");
-			const connectDuration = performance.now() - wsConnectStartTime;
-			recordDistribution(
-				METRIC_NAMES.WEBSOCKET_CONNECT_DURATION,
-				connectDuration,
-				{
-					tags: { mode: mode.value || "unknown" },
-					unit: "ms",
-				},
-			);
-			incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTED, {
-				tags: { mode: mode.value || "unknown" },
-			});
+
+			const observabilityMetric = getOrCreateObservabilityMetric();
+			observabilityMetric.updateSocketDuration(wsConnectStartTime);
+
 			sendFrontendMessage("streamInit", { sessionId });
 
 			if (pendingComponentUpdate) {

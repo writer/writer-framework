@@ -34,7 +34,7 @@ export default defineConfig({
 	build: {
 		outDir: "../writer/static",
 		emptyOutDir: true,
-		sourcemap: true, // Generate sourcemaps for LaunchDarkly error tracking
+		sourcemap: true,
 	},
 	resolve: {
 		alias: {
