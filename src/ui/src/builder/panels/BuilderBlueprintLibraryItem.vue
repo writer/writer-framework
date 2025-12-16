@@ -81,6 +81,16 @@ async function handleInstall() {
 			components,
 		});
 
+		// Track installation (fire-and-forget, don't block UX)
+		const appId = wf.writerAppId.value;
+		if (appId) {
+			writerApi
+				.trackBlueprintInstallation(orgId, props.block.id, appId)
+				.catch((err) => {
+					console.warn("Failed to track blueprint installation:", err);
+				});
+		}
+
 		pushToast({
 			type: "success",
 			message: `Blueprint "${props.block.title}" installed successfully`,
