@@ -415,9 +415,8 @@ export class WriterApi {
 				dependencies?: unknown[];
 				author?: string;
 			};
-			existingSnippetId?: string | null;
 		},
-	): Promise<{ snippet_id: string; version: number }> {
+	): Promise<{ snippet_id: string }> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
 		const url = new URL(
 			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints`,
@@ -432,7 +431,6 @@ export class WriterApi {
 				description: data.description,
 				components: data.components,
 				metadata: data.metadata,
-				existing_snippet_id: data.existingSnippetId || null,
 			}),
 		});
 		if (!res.ok) throw Error(await res.text());
@@ -447,12 +445,7 @@ export class WriterApi {
 		Array<
 			Pick<
 				WriterApiSharedBlueprint,
-				| "id"
-				| "title"
-				| "description"
-				| "category"
-				| "version_number"
-				| "createdBy"
+				"id" | "title" | "description" | "category" | "createdBy"
 			>
 		>
 	> {
@@ -516,17 +509,11 @@ export type WriterApiSharedBlueprint = {
 	title: string;
 	description: string;
 	category: string;
-	version_number: number;
 	visibility: string;
 	orgId: string;
 	createdBy: number;
-	version: {
-		version: number;
-		description: string | null;
-		components: unknown;
-		metadata: unknown;
-		createdAt: string;
-	};
+	components: unknown;
+	metadata: unknown;
 	createdAt: string;
 	updatedAt: string;
 };

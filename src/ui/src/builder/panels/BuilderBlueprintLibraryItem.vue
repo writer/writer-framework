@@ -4,9 +4,6 @@
 			<h3 class="BuilderBlueprintLibraryItem__title">
 				{{ block.title }}
 			</h3>
-			<span class="BuilderBlueprintLibraryItem__version"
-				>v{{ block.version_number }}</span
-			>
 		</div>
 		<p class="BuilderBlueprintLibraryItem__description">
 			{{ block.description }}
@@ -40,7 +37,7 @@ const props = defineProps<{
 		id: string;
 		title: string;
 		description: string;
-		version_number: number;
+		createdBy: number;
 	};
 }>();
 
@@ -75,13 +72,12 @@ async function handleInstall() {
 		);
 
 		// Install blueprint
-		const components = blueprint.version.components as Component[];
+		const components = blueprint.components as Component[];
 
 		const _blueprintId = installSharedBlueprint({
 			id: blueprint.id,
 			title: blueprint.title,
-			version: blueprint.version.version,
-			description: blueprint.version.description || undefined,
+			description: blueprint.description || undefined,
 			components,
 		});
 
@@ -130,12 +126,6 @@ async function handleInstall() {
 	font-weight: 600;
 	margin: 0;
 	flex: 1;
-}
-
-.BuilderBlueprintLibraryItem__version {
-	font-size: 12px;
-	color: var(--builderSecondaryTextColor);
-	white-space: nowrap;
 }
 
 .BuilderBlueprintLibraryItem__description {

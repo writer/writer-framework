@@ -7,22 +7,6 @@
 		@close="handleClose"
 	>
 		<div class="DeploySharedBlueprint">
-			<!-- Version info -->
-			<div
-				v-if="currentVersion"
-				class="DeploySharedBlueprint__versionInfo"
-			>
-				<WdsIcon name="package" />
-				<span
-					>Currently published:
-					<strong>v{{ currentVersion }}</strong></span
-				>
-			</div>
-			<div v-else class="DeploySharedBlueprint__versionInfo">
-				<WdsIcon name="package" />
-				<span>Not yet published</span>
-			</div>
-
 			<WdsFieldWrapper label="Name" required>
 				<WdsTextInput
 					v-model="form.name"
@@ -52,7 +36,6 @@ import { ref, computed, watch, inject, shallowRef } from "vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsFieldWrapper from "@/wds/WdsFieldWrapper.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
-import WdsIcon from "@/wds/WdsIcon.vue";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "@/builder/useToast";
 import { useComponentActions } from "@/builder/useComponentActions";
@@ -76,10 +59,6 @@ const tracking = useWriterTracking(wf);
 const { writerApi } = useWriterApi();
 
 const blueprint = computed(() => wf.getComponentById(props.blueprintId));
-
-const currentVersion = computed(
-	() => blueprint.value?.content?.deployedVersion || null,
-);
 
 const blueprintName = computed(
 	() => blueprint.value?.content?.key || "Shared Blueprint",
@@ -138,28 +117,18 @@ async function handleDeploy() {
 		// Extract components from frontend
 		const components = extractBlueprintComponents(props.blueprintId);
 
-		// Get existing snippet ID if this is an update
-		const existingSnippetId =
-			blueprint.value?.content?.publishedSnippetId || null;
-
 		const data = await writerApi.publishSharedBlueprint(orgId, {
 			title: form.value.name.trim(),
 			description: form.value.description.trim(),
 			components: components,
 			metadata: {},
-			existingSnippetId,
 		});
 
-		// Update blueprint's published snippet ID, version, and description
+		// Update blueprint's published snippet ID and description
 		setContentValue(
 			props.blueprintId,
 			"publishedSnippetId",
 			data.snippet_id,
-		);
-		setContentValue(
-			props.blueprintId,
-			"deployedVersion",
-			String(data.version),
 		);
 		setContentValue(
 			props.blueprintId,
@@ -169,7 +138,7 @@ async function handleDeploy() {
 
 		pushToast({
 			type: "success",
-			message: `Blueprint "${form.value.name.trim()}" published (v${data.version})`,
+			message: `Blueprint "${form.value.name.trim()}" published successfully`,
 		});
 		tracking.track("blueprints_shared_published");
 
@@ -238,17 +207,6 @@ watch(isOpen, (newValue) => {
 	flex-direction: column;
 	gap: 16px;
 	padding: 16px;
-}
-
-.DeploySharedBlueprint__versionInfo {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 12px;
-	background: var(--builderSubtleBackgroundColor, #f8fafc);
-	border-radius: 8px;
-	font-size: 13px;
-	color: var(--builderSecondaryTextColor);
 }
 
 .DeploySharedBlueprint__textarea {

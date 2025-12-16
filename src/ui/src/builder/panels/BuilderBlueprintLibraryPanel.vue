@@ -78,7 +78,7 @@ const blueprints = ref<
 		title: string;
 		description: string;
 		category: string;
-		version_number: number;
+		createdBy: number;
 	}>
 >([]);
 const isLoading = ref(false);
@@ -110,7 +110,7 @@ async function loadBlueprints() {
 			title: bp.title,
 			description: bp.description,
 			category: bp.category || "Shared Blueprints",
-			version_number: bp.version_number,
+			createdBy: bp.createdBy,
 		}));
 	} catch (error) {
 		pushToast({
