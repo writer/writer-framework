@@ -18,6 +18,13 @@ export function useObservabilityMetric(wf: Core) {
 	let isLaunchDarklyInitialized = false;
 
 	async function initialize(sessionId: string | null): Promise<void> {
+		if (!wf.isWriterCloudApp.value) {
+			logger.log(
+				"Skipping LaunchDarkly initialization - not a Writer Cloud App",
+			);
+			return;
+		}
+
 		try {
 			await loadConfigJs();
 
@@ -52,6 +59,10 @@ export function useObservabilityMetric(wf: Core) {
 	}
 
 	function updateSocketDuration(connectStartTime: number): void {
+		if (!wf.isWriterCloudApp.value) {
+			return;
+		}
+
 		if (typeof performance === "undefined") {
 			return;
 		}

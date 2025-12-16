@@ -6,11 +6,6 @@ export function useConfigJs(wf: Core) {
 	const logger = useLogger();
 
 	async function loadConfigJs(): Promise<void> {
-		if (!wf.isWriterCloudApp.value) {
-			logger.log("Skipping config.js load - not a Writer Cloud App");
-			return;
-		}
-
 		if (
 			typeof window !== "undefined" &&
 			(window as { __WRITER_APP_CONFIG__?: unknown })
@@ -27,7 +22,11 @@ export function useConfigJs(wf: Core) {
 			script.textContent = configJsContent;
 			document.head.appendChild(script);
 		} catch (err) {
-			logger.warn("Failed to load config.js via WriterApi ", err);
+			if (wf.isWriterCloudApp.value) {
+				logger.warn("Failed to load config.js via WriterApi ", err);
+			} else {
+				logger.log("config.js not available (not a Writer Cloud App)");
+			}
 		}
 	}
 

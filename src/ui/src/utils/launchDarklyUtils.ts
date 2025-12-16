@@ -1,9 +1,4 @@
-/// <reference types="../../vite-env" />
-
 export type LaunchDarklyEnvironment = "Development" | "Production" | "Test";
-
-declare const LAUNCHDARKLY_CLIENT_ID: string | null;
-declare const LAUNCHDARKLY_ENVIRONMENT: LaunchDarklyEnvironment;
 
 export const LAUNCHDARKLY_ENV_DEVELOPMENT: LaunchDarklyEnvironment =
 	"Development";
@@ -37,15 +32,6 @@ export function getLaunchDarklyClientId(): string | undefined {
 		}
 	}
 
-	const envClientId = LAUNCHDARKLY_CLIENT_ID;
-	if (
-		envClientId &&
-		typeof envClientId === "string" &&
-		envClientId.trim() !== ""
-	) {
-		return envClientId;
-	}
-
 	return undefined;
 }
 
@@ -61,18 +47,6 @@ export function getLaunchDarklyEnvironment(): LaunchDarklyEnvironment {
 			) {
 				return env;
 			}
-		}
-	}
-
-	const envEnvironment = LAUNCHDARKLY_ENVIRONMENT;
-	if (
-		envEnvironment &&
-		typeof envEnvironment === "string" &&
-		envEnvironment.trim() !== ""
-	) {
-		const env = envEnvironment.trim() as LaunchDarklyEnvironment;
-		if (LAUNCHDARKLY_ENVIRONMENTS.includes(env)) {
-			return env;
 		}
 	}
 
