@@ -521,6 +521,40 @@ export class WriterApi {
 
 		return res.json();
 	}
+
+	async proposeGlobalBlueprint(data: {
+		title: string;
+		description: string;
+		components: unknown;
+		metadata: {
+			name?: string;
+			stateInputs?: string[];
+			stateOutputs?: string[];
+			vaultKeys?: string[];
+			dependencies?: unknown[];
+			author?: string;
+		};
+	}): Promise<{ pr_url: string; branch_name: string; blueprint_id: string }> {
+		const baseUrl = this.#getAgentStorageBaseUrl();
+		const url = new URL(
+			`/api/agent-storage/v1/global-blueprints/propose`,
+			baseUrl,
+		);
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: "POST",
+			body: JSON.stringify({
+				title: data.title,
+				description: data.description,
+				components: data.components,
+				metadata: data.metadata,
+			}),
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
 }
 
 export type WriterApiUser = Pick<
