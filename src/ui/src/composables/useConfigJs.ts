@@ -1,8 +1,8 @@
 import { useLogger } from "./useLogger.js";
 import { useWriterApi } from "./useWriterApi.js";
-import type { Core } from "@/writerTypes";
+import type { ObservableCore } from "./useObservabilityMetric.js";
 
-export function useConfigJs(wf: Core) {
+export function useConfigJs(wf: ObservableCore) {
 	const logger = useLogger();
 
 	async function loadConfigJs(): Promise<void> {

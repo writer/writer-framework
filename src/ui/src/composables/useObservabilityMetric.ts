@@ -1,6 +1,6 @@
+import type { ComputedRef, Ref } from "vue";
 import { useLogger } from "./useLogger";
 import { useConfigJs } from "./useConfigJs";
-import type { Core } from "@/writerTypes";
 import { getLaunchDarklyClientId } from "@/utils/launchDarklyUtils";
 import {
 	buildLDContext,
@@ -12,7 +12,21 @@ import {
 	recordDistribution,
 } from "@/observability/frontendMetrics";
 
-export function useObservabilityMetric(wf: Core) {
+export interface ObservableCore {
+	mode: Ref<"run" | "edit" | null>;
+	writerApplication: Ref<
+		| {
+				id: string;
+				organizationId: string;
+				apiKey?: string;
+				baseUrl?: string;
+		  }
+		| undefined
+	>;
+	isWriterCloudApp: ComputedRef<boolean>;
+}
+
+export function useObservabilityMetric(wf: ObservableCore) {
 	const logger = useLogger();
 	const { loadConfigJs } = useConfigJs(wf);
 	let isLaunchDarklyInitialized = false;

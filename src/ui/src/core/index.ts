@@ -31,7 +31,10 @@ import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
-import { useObservabilityMetric } from "@/composables/useObservabilityMetric";
+import {
+	useObservabilityMetric,
+	type ObservableCore,
+} from "@/composables/useObservabilityMetric";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
 import { RECONNECT_DELAY_MS } from "@/constants/retry";
 import {
@@ -101,17 +104,16 @@ export function generateCore() {
 
 	function getOrCreateObservabilityMetric() {
 		if (!observabilityMetricInstance) {
-			const coreLike = {
+			const coreLike: ObservableCore = {
 				mode,
 				writerApplication,
-				featureFlags,
 				isWriterCloudApp: computed(() =>
 					Boolean(
 						writerApplication.value?.id ||
 							writerApplication.value?.organizationId,
 					),
 				),
-			} as any;
+			};
 			observabilityMetricInstance = useObservabilityMetric(coreLike);
 		}
 		return observabilityMetricInstance;
