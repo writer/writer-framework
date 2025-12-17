@@ -1,8 +1,8 @@
-import { ObservabilityRegistry } from "./base";
+import { observabilityRegistry } from "./base";
 import { LaunchDarklyAdapter } from "./launchDarklyAdapter";
 
 export type { ObservabilityProvider } from "./base";
-export { ObservabilityRegistry } from "./base";
+export { ObservabilityRegistry, observabilityRegistry } from "./base";
 export { LaunchDarklyAdapter } from "./launchDarklyAdapter";
 export {
 	trackError,
@@ -26,7 +26,7 @@ export {
 	flushMetricQueue,
 } from "./frontendMetrics";
 
-export const observabilityRegistry = new ObservabilityRegistry();
+// Re-export the singleton instance (created in base.ts to avoid circular dependencies)
 
 try {
 	observabilityRegistry.register("launchdarkly", new LaunchDarklyAdapter());

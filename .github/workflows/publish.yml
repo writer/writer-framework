@@ -1,183 +1,181 @@
 name: publish
 
 on:
-    push:
-        branches:
-            - 'dev'
-        tags:
-            - 'writer-framework-[0-9]+.[0-9]+.[0-9]+'
-    workflow_dispatch:
-        inputs:
-            commit_sha:
-                description: 'Commit SHA to publish'
-                required: true
-            version:
-                description: 'Version to publish (optional, overrides calculated version)'
-                required: false
+  push:
+    branches:
+      - "dev"
+    tags:
+      - "writer-framework-[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: "Commit SHA to publish"
+        required: true
+      version:
+        description: "Version to publish (optional, overrides calculated version)"
+        required: false
 
 concurrency:
-    group: publish-writer-framework
-    cancel-in-progress: false
+  group: publish-writer-framework
+  cancel-in-progress: false
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        outputs:
-            version: ${{ steps.set_version.outputs.version }}
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
 
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
-                fetch-tags: true
-                ref: ${{ github.event.inputs.commit_sha || github.ref_name }}
-
-            - name: Set up Python
-              uses: actions/setup-python@v5
-              with:
-                cache: 'poetry'
-
-            - name: Install dependencies
-              run: pip install poetry requests packaging semver
-
-            - name: Determine next RC version
-              id: bump_version
-              if: github.ref_name == 'dev'
-              run: |
-                python - <<'EOF'
-                import os, re, requests, subprocess, semver, packaging.version
-
-                data = requests.get(f"https://pypi.org/pypi/writer/json", timeout=10).json()
-                releases = sorted(
-                    (v for v in data["releases"] if not packaging.version.parse(v).is_prerelease),
-                    key=packaging.version.parse
-                )
-                latest = releases[-1]
-                print("Latest stable:", latest)
-
-                log = subprocess.check_output(
-                    ["git", "log", f"writer-framework-{latest}..HEAD", "--pretty=%s"],
-                    text=True
-                )
-                base = semver.VersionInfo.parse(latest)
-                new_version = base.bump_minor() if re.search(r"^feat:", log, re.M) else base.bump_patch()
-                rc_prefix = str(new_version)
-
-                rc_versions = [v for v in data["releases"] if v.startswith(rc_prefix) and "rc" in v]
-                rc_numbers = [int(re.search(r"rc(\d+)", v).group(1)) for v in rc_versions]
-                rc_num = max(rc_numbers) + 1 if rc_numbers else 1
-                final = f"{rc_prefix}rc{rc_num}"
-                print("Next RC:", final)
-                with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-                    f.write(f"version={final}\n")
-                EOF
-
-            - name: Use Node.js
-              uses: actions/setup-node@v4
-              with:
-                node-version: "22.x"
-                cache: npm
-            
-            - name: Determine final version
-              id: set_version
-              run: |
-                # Determine version based on workflow inputs or tags
-                if [ -n "${{ github.event.inputs.version }}" ]; then
-                  VERSION="${{ github.event.inputs.version }}"
-                elif [ "${GITHUB_REF_NAME}" = "dev" ]; then
-                  VERSION="${{ steps.bump_version.outputs.version }}"
-                elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
-                  TAG_NAME="${GITHUB_REF#refs/tags/}"
-                  VERSION="${TAG_NAME#writer-framework-}"
-                else
-                  echo "Unable to determine version"
-                  exit 1
-                fi
-
-                echo "Final version: $VERSION"
-                echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-            - name: Update version before publishing
-              run: |
-                poetry version ${{ steps.set_version.outputs.version }}
-
-            - name: Install npm dependencies
-              run: npm ci
-
-            - name: Build UI with version
-              run: |
-                WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} npm run ui:build
-              env:
-                WRITER_FRAMEWORK_VERSION: ${{ steps.set_version.outputs.version }}
-
-            - name: Install LaunchDarkly CLI
-              run: npm install -g @launchdarkly/ldcli
-              continue-on-error: true
-
-            - name: Upload sourcemaps to LaunchDarkly
-              shell: bash
-              env:
-                LAUNCHDARKLY_ACCESS_TOKEN: ${{ secrets.LAUNCHDARKLY_ACCESS_TOKEN }}
-                RELEASE_VERSION: ${{ steps.set_version.outputs.version }}
-                BASE_PATH: /static
-                PROJECT: writer-framework
-              run: |
-                npm run --if-present ld:upload-sourcemaps || echo "⚠️  Sourcemap upload skipped (LAUNCHDARKLY_ACCESS_TOKEN not set or script failed)"
-              continue-on-error: true
-
-            - name: Publish to PyPI
-              run: |
-                poetry install --with build
-                WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred install.ci
-                WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred publish.pypi
-              env:
-                PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-
-            - name: Create and push tag for RC (only dev)
-              if: github.ref_name == 'dev'
-              run: |
-                  TAG="writer-framework-${{ steps.bump_version.outputs.version }}"
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
-                  git tag -a "$TAG" -m "Release $TAG"
-                  git push origin "$TAG"
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    wait-for-pypi:
-        needs: build
-        if: github.ref_name == 'dev'
-        runs-on: ubuntu-latest
-        steps:
-            - name: Wait for PyPI propagation
-              run: |
-                VERSION=${{ needs.build.outputs.version }}
-                echo "Waiting for writer==$VERSION to be available..."
-
-                MAX_RETRIES=20
-                SLEEP_SECONDS=15
-                COUNT=0
-
-                # check inside docker to avoid hitting the same mirror
-                until docker run --rm python:3.11 pip install --no-deps "writer==$VERSION"; do
-                    COUNT=$((COUNT + 1))
-                    if [ $COUNT -ge $MAX_RETRIES ]; then
-                        echo "Timeout waiting for PyPI propagation. Version $VERSION still not available."
-                        exit 0
-                    fi
-                    echo "Version $VERSION not yet available, retrying in $SLEEP_SECONDS seconds..."
-                    sleep $SLEEP_SECONDS
-                done
-
-                echo "Version $VERSION is now available"
-
-    trigger-agent-manager:
-        needs: [build, wait-for-pypi]
-        if: github.ref_name == 'dev'
-        uses: ./.github/workflows/trigger-workflow.yml
+    steps:
+      - uses: actions/checkout@v4
         with:
-            event_type: framework_updated
-            extra_payload: '{"tag": "writer-framework-${{ needs.build.outputs.version }}", "version": "${{ needs.build.outputs.version }}"}'
-        secrets:
-          AGENT_MANAGER_PAT: ${{ secrets.AGENT_MANAGER_PAT }}
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.event.inputs.commit_sha || github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          cache: "poetry"
+
+      - name: Install dependencies
+        run: pip install poetry requests packaging semver
+
+      - name: Determine next RC version
+        id: bump_version
+        if: github.ref_name == 'dev'
+        run: |
+          python - <<'EOF'
+          import os, re, requests, subprocess, semver, packaging.version
+
+          data = requests.get(f"https://pypi.org/pypi/writer/json", timeout=10).json()
+          releases = sorted(
+              (v for v in data["releases"] if not packaging.version.parse(v).is_prerelease),
+              key=packaging.version.parse
+          )
+          latest = releases[-1]
+          print("Latest stable:", latest)
+
+          log = subprocess.check_output(
+              ["git", "log", f"writer-framework-{latest}..HEAD", "--pretty=%s"],
+              text=True
+          )
+          base = semver.VersionInfo.parse(latest)
+          new_version = base.bump_minor() if re.search(r"^feat:", log, re.M) else base.bump_patch()
+          rc_prefix = str(new_version)
+
+          rc_versions = [v for v in data["releases"] if v.startswith(rc_prefix) and "rc" in v]
+          rc_numbers = [int(re.search(r"rc(\d+)", v).group(1)) for v in rc_versions]
+          rc_num = max(rc_numbers) + 1 if rc_numbers else 1
+          final = f"{rc_prefix}rc{rc_num}"
+          print("Next RC:", final)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"version={final}\n")
+          EOF
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: npm
+
+      - name: Determine final version
+        id: set_version
+        run: |
+          # Determine version based on workflow inputs or tags
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [ "${GITHUB_REF_NAME}" = "dev" ]; then
+            VERSION="${{ steps.bump_version.outputs.version }}"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+            VERSION="${TAG_NAME#writer-framework-}"
+          else
+            echo "Unable to determine version"
+            exit 1
+          fi
+
+          echo "Final version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Update version before publishing
+        run: |
+          poetry version ${{ steps.set_version.outputs.version }}
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build UI with version
+        run: |
+          WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} npm run ui:build
+
+      - name: Install LaunchDarkly CLI
+        run: npm install -g @launchdarkly/ldcli
+        continue-on-error: true
+
+      - name: Upload sourcemaps to LaunchDarkly
+        shell: bash
+        env:
+          LAUNCHDARKLY_ACCESS_TOKEN: ${{ secrets.LAUNCHDARKLY_ACCESS_TOKEN }}
+          RELEASE_VERSION: ${{ steps.set_version.outputs.version }}
+          BASE_PATH: /static
+          PROJECT: writer-framework
+        run: |
+          npm run --if-present ld:upload-sourcemaps || echo "⚠️  Sourcemap upload skipped (LAUNCHDARKLY_ACCESS_TOKEN not set or script failed)"
+        continue-on-error: true
+
+      - name: Publish to PyPI
+        run: |
+          poetry install --with build
+          WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred install.ci
+          WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred publish.pypi
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+      - name: Create and push tag for RC (only dev)
+        if: github.ref_name == 'dev'
+        run: |
+          TAG="writer-framework-${{ steps.bump_version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  wait-for-pypi:
+    needs: build
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for PyPI propagation
+        run: |
+          VERSION=${{ needs.build.outputs.version }}
+          echo "Waiting for writer==$VERSION to be available..."
+
+          MAX_RETRIES=20
+          SLEEP_SECONDS=15
+          COUNT=0
+
+          # check inside docker to avoid hitting the same mirror
+          until docker run --rm python:3.11 pip install --no-deps "writer==$VERSION"; do
+              COUNT=$((COUNT + 1))
+              if [ $COUNT -ge $MAX_RETRIES ]; then
+                  echo "Timeout waiting for PyPI propagation. Version $VERSION still not available."
+                  exit 0
+              fi
+              echo "Version $VERSION not yet available, retrying in $SLEEP_SECONDS seconds..."
+              sleep $SLEEP_SECONDS
+          done
+
+          echo "Version $VERSION is now available"
+
+  trigger-agent-manager:
+    needs: [build, wait-for-pypi]
+    if: github.ref_name == 'dev'
+    uses: ./.github/workflows/trigger-workflow.yml
+    with:
+      event_type: framework_updated
+      extra_payload: '{"tag": "writer-framework-${{ needs.build.outputs.version }}", "version": "${{ needs.build.outputs.version }}"}'
+    secrets:
+      AGENT_MANAGER_PAT: ${{ secrets.AGENT_MANAGER_PAT }}

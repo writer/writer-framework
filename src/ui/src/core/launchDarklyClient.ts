@@ -35,9 +35,11 @@ export function buildLDContext(
 		  }
 		| undefined,
 ): LaunchDarklyContext {
-	const orgId = writerApplication?.organizationId
-		? Number(writerApplication.organizationId)
-		: undefined;
+	let orgId: number | undefined;
+	if (writerApplication?.organizationId) {
+		const parsed = Number(writerApplication.organizationId);
+		orgId = Number.isFinite(parsed) ? parsed : undefined;
+	}
 
 	let contextKey: string;
 	if (sessionId) {
@@ -149,13 +151,14 @@ export async function initializeLaunchDarkly(
 			plugins: plugins as never,
 		});
 
-		await ldClient
-			.waitForInitialization(LAUNCH_DARKLY_INIT_TIMEOUT)
-			.catch(() => {
-				throw new Error("LaunchDarkly initialization timeout");
-			});
+		try {
+			await ldClient.waitForInitialization(LAUNCH_DARKLY_INIT_TIMEOUT);
+		} catch (_timeoutError) {
+			throw new Error("LaunchDarkly initialization timeout");
+		}
 
 		isInitialized = true;
+		initializationError = null; // Clear error on successful initialization
 
 		try {
 			const { observabilityRegistry, flushMetricQueue } = await import(
@@ -183,6 +186,13 @@ export async function initializeLaunchDarkly(
 						source: "launchdarkly-sdk",
 						type: "sdk_error",
 					});
+					logger.log(
+						"[LaunchDarkly] Captured SDK error to observability",
+						{
+							error: errorObj.message,
+							source: "launchdarkly-sdk",
+						},
+					);
 				}
 			} catch {
 				// Ignore if observability not available
@@ -202,6 +212,13 @@ export async function initializeLaunchDarkly(
 						observabilityRegistry.getInitializedProvider();
 					if (provider?.captureException) {
 						provider.captureException(error, context);
+						logger.log(
+							"[LaunchDarkly] Captured error to observability",
+							{
+								error: error.message,
+								source: context?.source,
+							},
+						);
 						return true;
 					}
 				} catch {
@@ -286,9 +303,18 @@ export function setupFlagChangeListener(
 	try {
 		ldClient.on("change", (settings) => {
 			try {
-				const activeFlags = Object.keys(settings).filter(
-					(k) => settings[k],
-				);
+				const activeFlags = Object.keys(settings).filter((k) => {
+					const flagValue = settings[k];
+					// Handle both direct values and objects with 'current' property
+					const value =
+						flagValue &&
+						typeof flagValue === "object" &&
+						"current" in flagValue
+							? (flagValue as { current: unknown }).current
+							: flagValue;
+					// Consider flag active if value is defined and truthy
+					return value !== undefined && Boolean(value);
+				});
 				onFlagsChange(activeFlags);
 			} catch (e) {
 				logger.error("LaunchDarkly flag change handler error", e);

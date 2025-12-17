@@ -99,10 +99,32 @@ export function generateCore() {
 				mode,
 				writerApplication,
 				featureFlags,
+				isWriterCloudApp: computed(() =>
+					Boolean(
+						writerApplication.value?.id ||
+							writerApplication.value?.organizationId,
+					),
+				),
 			} as any;
 			observabilityMetricInstance = useObservabilityMetric(coreLike);
 		}
 		return observabilityMetricInstance;
+	}
+
+	// Helper function to get metrics functions (avoids repeated dynamic imports)
+	async function getMetricsFunctions() {
+		const {
+			incrementMetric,
+			recordDistribution,
+			trackError,
+			METRIC_NAMES,
+		} = await import("@/observability/frontendMetrics");
+		return {
+			incrementMetric,
+			recordDistribution,
+			trackError,
+			METRIC_NAMES,
+		};
 	}
 
 	const writerOrgId = computed(
@@ -394,9 +416,8 @@ export function generateCore() {
 				}
 			} catch (error) {
 				logger.error("Error parsing WebSocket message:", error);
-				const { incrementMetric, METRIC_NAMES } = await import(
-					"@/observability/frontendMetrics"
-				);
+				const { incrementMetric, METRIC_NAMES } =
+					await getMetricsFunctions();
 				incrementMetric(METRIC_NAMES.WEBSOCKET_INVALID_MESSAGE, {
 					tags: { mode: mode.value || "unknown" },
 				});
@@ -412,9 +433,8 @@ export function generateCore() {
 		webSocket.onclose = async (ev: CloseEvent) => {
 			webSocket = null;
 
-			const { incrementMetric, METRIC_NAMES } = await import(
-				"@/observability/frontendMetrics"
-			);
+			const { incrementMetric, METRIC_NAMES } =
+				await getMetricsFunctions();
 
 			if (ev.code == 1008) {
 				syncHealth.value = "offline";
@@ -484,9 +504,8 @@ export function generateCore() {
 			webSocket.addEventListener(
 				"close",
 				async (ev) => {
-					const { incrementMetric, METRIC_NAMES } = await import(
-						"@/observability/frontendMetrics"
-					);
+					const { incrementMetric, METRIC_NAMES } =
+						await getMetricsFunctions();
 					incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTION_FAILURE, {
 						tags: {
 							mode: mode.value || "unknown",
@@ -504,9 +523,8 @@ export function generateCore() {
 			webSocket.addEventListener(
 				"error",
 				async () => {
-					const { incrementMetric, METRIC_NAMES } = await import(
-						"@/observability/frontendMetrics"
-					);
+					const { incrementMetric, METRIC_NAMES } =
+						await getMetricsFunctions();
 					incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTION_FAILURE, {
 						tags: { mode: mode.value || "unknown" },
 					});
@@ -896,9 +914,8 @@ export function generateCore() {
 			try {
 				webSocket.send(JSON.stringify(wsData, bigIntReplacer));
 			} catch (error) {
-				const { incrementMetric, METRIC_NAMES } = await import(
-					"@/observability/frontendMetrics"
-				);
+				const { incrementMetric, METRIC_NAMES } =
+					await getMetricsFunctions();
 				incrementMetric(METRIC_NAMES.WEBSOCKET_MESSAGE_SEND_ERROR, {
 					tags: { type, mode: mode.value || "unknown" },
 				});
@@ -907,7 +924,7 @@ export function generateCore() {
 
 			const duration = performance.now() - startTime;
 			const { recordDistribution, incrementMetric, METRIC_NAMES } =
-				await import("@/observability/frontendMetrics");
+				await getMetricsFunctions();
 			recordDistribution(
 				METRIC_NAMES.FRONTEND_MESSAGE_DURATION,
 				duration,
@@ -921,9 +938,8 @@ export function generateCore() {
 			});
 		} catch (error) {
 			logger.error("sendFrontendMessage error", error);
-			const { trackError, incrementMetric, METRIC_NAMES } = await import(
-				"@/observability/frontendMetrics"
-			);
+			const { trackError, incrementMetric, METRIC_NAMES } =
+				await getMetricsFunctions();
 			trackError(
 				error instanceof Error ? error : new Error(String(error)),
 				"frontend_message_error",

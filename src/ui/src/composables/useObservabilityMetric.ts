@@ -18,22 +18,30 @@ export function useObservabilityMetric(wf: Core) {
 	let isLaunchDarklyInitialized = false;
 
 	async function initialize(sessionId: string | null): Promise<void> {
-		if (!wf.isWriterCloudApp.value) {
-			logger.log(
-				"Skipping LaunchDarkly initialization - not a Writer Cloud App",
-			);
-			return;
-		}
-
 		try {
-			await loadConfigJs();
+			try {
+				await loadConfigJs();
+			} catch (configError) {
+				logger.warn(
+					"Failed to load config.js, LaunchDarkly initialization:",
+					configError,
+				);
+
+				return;
+			}
 
 			const clientId = getLaunchDarklyClientId();
 
 			if (!clientId) {
-				logger.log(
-					"LaunchDarkly client ID not available, skipping initialization",
-				);
+				if (!wf.isWriterCloudApp.value) {
+					logger.log(
+						"Skipping LaunchDarkly initialization - not a Writer Cloud App and no client ID in config",
+					);
+				} else {
+					logger.log(
+						"LaunchDarkly client ID not available, skipping initialization",
+					);
+				}
 				return;
 			}
 

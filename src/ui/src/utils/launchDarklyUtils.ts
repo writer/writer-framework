@@ -1,61 +1,27 @@
 export type LaunchDarklyEnvironment = "Development" | "Production" | "Test";
 
-export const LAUNCHDARKLY_ENV_DEVELOPMENT: LaunchDarklyEnvironment =
-	"Development";
-export const LAUNCHDARKLY_ENV_PRODUCTION: LaunchDarklyEnvironment =
-	"Production";
-export const LAUNCHDARKLY_ENV_TEST: LaunchDarklyEnvironment = "Test";
-
-export const LAUNCHDARKLY_ENVIRONMENTS: readonly LaunchDarklyEnvironment[] = [
-	LAUNCHDARKLY_ENV_DEVELOPMENT,
-	LAUNCHDARKLY_ENV_PRODUCTION,
-	LAUNCHDARKLY_ENV_TEST,
-] as const;
-
-export const LAUNCHDARKLY_ENV_DEFAULT: LaunchDarklyEnvironment =
+const LAUNCHDARKLY_ENV_DEVELOPMENT: LaunchDarklyEnvironment = "Development";
+const LAUNCHDARKLY_ENV_PRODUCTION: LaunchDarklyEnvironment = "Production";
+const LAUNCHDARKLY_ENV_TEST: LaunchDarklyEnvironment = "Test";
+const LAUNCHDARKLY_ENV_DEFAULT: LaunchDarklyEnvironment =
 	LAUNCHDARKLY_ENV_DEVELOPMENT;
-
-interface WriterAppConfig {
-	launchDarklyClientId?: string;
-	launchDarklyEnvironment?: string;
-}
-
-interface WindowWithConfig extends Window {
-	__WRITER_APP_CONFIG__?: WriterAppConfig;
-}
 
 export function getLaunchDarklyClientId(): string | undefined {
 	if (typeof window !== "undefined") {
-		const config = (window as WindowWithConfig).__WRITER_APP_CONFIG__;
-		if (config?.launchDarklyClientId) {
-			return config.launchDarklyClientId;
-		}
+		const config = window.__WRITER_APP_CONFIG__;
+		return config?.LAUNCH_DARKLY;
 	}
 
 	return undefined;
 }
 
 export function getLaunchDarklyEnvironment(): LaunchDarklyEnvironment {
-	if (typeof window !== "undefined") {
-		const config = (window as WindowWithConfig).__WRITER_APP_CONFIG__;
-		if (config?.launchDarklyEnvironment) {
-			const env = config.launchDarklyEnvironment;
-			if (
-				env === LAUNCHDARKLY_ENV_DEVELOPMENT ||
-				env === LAUNCHDARKLY_ENV_PRODUCTION ||
-				env === LAUNCHDARKLY_ENV_TEST
-			) {
-				return env;
-			}
-		}
-	}
-
 	const viteMode = import.meta.env.MODE;
 	if (viteMode) {
-		if (viteMode === "development" || viteMode === "dev") {
+		if (["development", "dev"].includes(viteMode)) {
 			return LAUNCHDARKLY_ENV_DEVELOPMENT;
 		}
-		if (viteMode === "production" || viteMode === "prod") {
+		if (["production", "prod"].includes(viteMode)) {
 			return LAUNCHDARKLY_ENV_PRODUCTION;
 		}
 		if (viteMode === "test") {
@@ -64,10 +30,6 @@ export function getLaunchDarklyEnvironment(): LaunchDarklyEnvironment {
 	}
 
 	return LAUNCHDARKLY_ENV_DEFAULT;
-}
-
-export function isLaunchDarklyEnabled(): boolean {
-	return getLaunchDarklyClientId() !== undefined;
 }
 
 function getFlagOverride(
@@ -111,7 +73,7 @@ function getFlagOverride(
 }
 
 /* eslint-disable no-console */
-export function safeFlagEvaluation<T>(
+function safeFlagEvaluation<T>(
 	flagKey: string,
 	evaluationFunc: () => T,
 	defaultValue: T,
@@ -138,13 +100,21 @@ export function evaluateFlagWithOverride<T>(
 ): T {
 	const override = getFlagOverride(flagKey);
 	if (override !== undefined) {
-		if (logOverride) {
-			console.debug(`Using override for flag '${flagKey}':`, override);
+		if (typeof override === typeof defaultValue) {
+			if (logOverride) {
+				console.debug(
+					`Using override for flag '${flagKey}':`,
+					override,
+				);
+			}
+			return override as T;
+		} else {
+			console.warn(
+				`Flag override type mismatch for '${flagKey}': expected ${typeof defaultValue}, got ${typeof override}`,
+			);
 		}
-		return override as T;
 	}
 
 	return safeFlagEvaluation(flagKey, evaluationFunc, defaultValue);
 }
 /* eslint-enable no-console */
-

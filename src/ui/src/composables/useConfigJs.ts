@@ -6,11 +6,7 @@ export function useConfigJs(wf: Core) {
 	const logger = useLogger();
 
 	async function loadConfigJs(): Promise<void> {
-		if (
-			typeof window !== "undefined" &&
-			(window as { __WRITER_APP_CONFIG__?: unknown })
-				.__WRITER_APP_CONFIG__
-		) {
+		if (typeof window !== "undefined" && window.__WRITER_APP_CONFIG__) {
 			return;
 		}
 

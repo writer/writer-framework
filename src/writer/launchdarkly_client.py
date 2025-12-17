@@ -11,11 +11,23 @@ from writer.launchdarkly_utils import (
 logger = logging.getLogger(__name__)
 
 try:
-    from launchdarkly.client import LDClient, Config, Context
-    from launchdarkly.observability import ObservabilityPlugin, ObservabilityConfig
+    from ldclient import LDClient
+    from ldclient.config import Config
+    from ldclient import Context
+    try:
+        from ldclient.observability import ObservabilityPlugin, ObservabilityConfig
+        OBSERVABILITY_AVAILABLE = True
+    except ImportError:
+        # Fallback for older SDK versions or if observability is in a different location
+        try:
+            from launchdarkly.observability import ObservabilityPlugin, ObservabilityConfig
+            OBSERVABILITY_AVAILABLE = True
+        except ImportError:
+            OBSERVABILITY_AVAILABLE = False
+            ObservabilityPlugin = None
+            ObservabilityConfig = None
 
     LD_AVAILABLE = True
-    OBSERVABILITY_AVAILABLE = True
 except ImportError:
     LD_AVAILABLE = False
     OBSERVABILITY_AVAILABLE = False
@@ -74,7 +86,7 @@ class LaunchDarklyClient:
                 logger.error("[LaunchDarkly] SDK version does not support plugins parameter")
                 raise RuntimeError(
                     "LaunchDarkly SDK version does not support plugins parameter. "
-                    "Observability plugin is required. Please upgrade to SDK 9.0+."
+                    "Observability plugin is required. Please upgrade to SDK 9.12.0+."
                 )
 
             cls._client = LDClient(config)

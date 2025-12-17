@@ -1,4 +1,4 @@
-import { observabilityRegistry } from "./index";
+import { observabilityRegistry } from "./base";
 import { useLogger } from "@/composables/useLogger";
 
 const logger = useLogger();
@@ -33,7 +33,12 @@ export function flushMetricQueue(): void {
 	if (!provider) return;
 
 	const queued = [...metricQueue];
+	const queueSize = queued.length;
 	metricQueue.length = 0;
+
+	logger.log(
+		`[LaunchDarkly] Flushing ${queueSize} queued metrics to observability`,
+	);
 
 	for (const metric of queued) {
 		try {
@@ -57,6 +62,8 @@ export function flushMetricQueue(): void {
 			logger.warn(`Failed to flush queued metric ${metric.name}:`, e);
 		}
 	}
+
+	logger.log(`[LaunchDarkly] Successfully flushed ${queueSize} metrics`);
 }
 
 function checkProviderReady(): void {
@@ -239,6 +246,9 @@ export function trackPageLoadTime(pageName: string, mode?: string): void {
 	)[0] as PerformanceNavigationTiming;
 	if (navigation) {
 		const loadTime = navigation.loadEventEnd - navigation.fetchStart;
+		if (loadTime <= 0) {
+			return; // Page load not complete yet
+		}
 		recordDistribution(METRIC_NAMES.PAGE_LOAD_TIME, loadTime, {
 			tags: { page: pageName, mode: mode || "unknown" },
 			unit: "ms",

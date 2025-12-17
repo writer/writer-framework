@@ -210,3 +210,5 @@ export class ObservabilityRegistry {
 		}
 	}
 }
+
+export const observabilityRegistry = new ObservabilityRegistry();
