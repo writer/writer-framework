@@ -11,6 +11,7 @@
 			'BlueprintsNode--stopped': completionStyle == 'stopped',
 			'BlueprintsNode--error': completionStyle == 'error',
 		}"
+		@dblclick="handleDoubleClick"
 	>
 		<div
 			v-if="isIntelligent && completionStyle === null"
@@ -137,7 +138,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import BlueprintsNodeNamer from "../base/BlueprintsNodeNamer.vue";
@@ -151,11 +152,13 @@ import BlueprintsNodeLogs from "./BlueprintsNodeLogs.vue";
 import BlueprintsNodeTools from "./BlueprintsNodeTools.vue";
 import { useBlueprintNodeTools } from "@/composables/useBlueprintNodeTools";
 import { getSourceBlueprintName } from "@/builder/useComponentDescription";
+import { useToasts } from "@/builder/useToast";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-const { removeOut } = useComponentActions(wf, wfbm);
+const { removeOut, goToComponentParentPage } = useComponentActions(wf, wfbm);
+const { pushToast } = useToasts();
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
 
@@ -410,6 +413,39 @@ const possibleImageUrls = computed(() => {
 
 	return paths.map((p) => convertAbsolutePathtoFullURL(p));
 });
+
+async function handleDoubleClick(ev: MouseEvent) {
+	if (
+		component.value.type === "blueprints_code" ||
+		component.value.type === "blueprints_setstate" ||
+		component.value.type === "blueprints_returnvalue" ||
+		component.value.type === "blueprints_logmessage"
+	) {
+		const isSelected = wfbm.isComponentIdSelected(componentId);
+		if (isSelected) {
+			// Expand the code editor
+			wfbm.expandedEditorForComponent.value = componentId;
+		}
+	} else if (component.value.type === "blueprints_runblueprint") {
+		const bpKey = component.value.content?.blueprintKey ?? "";
+		if (!bpKey) return;
+
+		// Find the blueprint component by its key
+		const blueprint = wf
+			.getComponents("blueprints_root")
+			.find((page) => page.content.key === bpKey);
+
+		if (!blueprint) return;
+		goToComponentParentPage(blueprint.id);
+		await nextTick();
+		wfbm.handleSelectionFromEvent(ev, blueprint.id, undefined, "tree");
+
+		pushToast({
+			type: "success",
+			message: `Navigated to ${blueprint.content.key} blueprint`,
+		});
+	}
+}
 
 function openLogs() {
 	const item = latestKnownOutcomes.value.at(-1);
