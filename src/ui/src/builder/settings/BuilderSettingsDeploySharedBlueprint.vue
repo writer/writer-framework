@@ -30,14 +30,12 @@
 
 			<div class="DeploySharedBlueprint__globalOption">
 				<label class="DeploySharedBlueprint__checkbox">
-					<input
-						v-model="form.proposeAsGlobal"
-						type="checkbox"
-					/>
+					<input v-model="form.proposeAsGlobal" type="checkbox" />
 					<span>Propose as global blueprint</span>
 				</label>
 				<p class="DeploySharedBlueprint__hint">
-					Global blueprints are available to all organizations and require approval via GitHub PR.
+					Global blueprints are available to all organizations and
+					require approval via GitHub PR.
 				</p>
 			</div>
 
