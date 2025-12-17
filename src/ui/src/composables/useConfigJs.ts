@@ -10,20 +10,21 @@ export function useConfigJs(wf: Core) {
 			return;
 		}
 
-		try {
-			const { writerApi } = useWriterApi();
-			const configJsContent = await writerApi.fetchConfigJs();
+		const { writerApi } = useWriterApi();
+		const configJsContent = await writerApi.fetchConfigJs();
 
-			const script = document.createElement("script");
-			script.textContent = configJsContent;
-			document.head.appendChild(script);
-		} catch (err) {
+		if (!configJsContent) {
 			if (wf.isWriterCloudApp.value) {
-				logger.warn("Failed to load config.js via WriterApi ", err);
+				logger.warn("Failed to load config.js via WriterApi");
 			} else {
 				logger.log("config.js not available (not a Writer Cloud App)");
 			}
+			return;
 		}
+
+		const script = document.createElement("script");
+		script.textContent = configJsContent;
+		document.head.appendChild(script);
 	}
 
 	return {

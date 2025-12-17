@@ -305,14 +305,12 @@ export function setupFlagChangeListener(
 			try {
 				const activeFlags = Object.keys(settings).filter((k) => {
 					const flagValue = settings[k];
-					// Handle both direct values and objects with 'current' property
 					const value =
 						flagValue &&
 						typeof flagValue === "object" &&
 						"current" in flagValue
 							? (flagValue as { current: unknown }).current
 							: flagValue;
-					// Consider flag active if value is defined and truthy
 					return value !== undefined && Boolean(value);
 				});
 				onFlagsChange(activeFlags);

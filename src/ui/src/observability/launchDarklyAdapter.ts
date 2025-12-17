@@ -52,10 +52,6 @@ export class LaunchDarklyAdapter implements ObservabilityProvider {
 				name,
 				attributes: options?.tags,
 			});
-			logger.log(`[LaunchDarkly] Sent increment metric: ${name}`, {
-				tags: options?.tags,
-				value: options?.value,
-			});
 		} catch (e) {
 			logger.warn(`Failed to increment metric ${name}:`, e);
 		}
@@ -73,11 +69,6 @@ export class LaunchDarklyAdapter implements ObservabilityProvider {
 				value,
 				attributes: options?.tags,
 			});
-			logger.log(`[LaunchDarkly] Sent distribution metric: ${name}`, {
-				value,
-				unit: options?.unit,
-				tags: options?.tags,
-			});
 		} catch (e) {
 			logger.warn(`Failed to record distribution ${name}:`, e);
 		}
@@ -94,11 +85,6 @@ export class LaunchDarklyAdapter implements ObservabilityProvider {
 				name,
 				value,
 				attributes: options?.tags,
-			});
-			logger.log(`[LaunchDarkly] Sent gauge metric: ${name}`, {
-				value,
-				unit: options?.unit,
-				tags: options?.tags,
 			});
 		} catch (e) {
 			logger.warn(`Failed to set gauge ${name}:`, e);
@@ -136,13 +122,6 @@ export class LaunchDarklyAdapter implements ObservabilityProvider {
 				errorObj.message || String(error),
 				Object.keys(payload).length > 0 ? payload : undefined,
 			);
-			logger.log(
-				`[LaunchDarkly] Sent error/exception: ${errorObj.name || "Error"}`,
-				{
-					message: errorObj.message || String(error),
-					context: payload,
-				},
-			);
 		} catch (e) {
 			logger.warn("[LaunchDarkly] Failed to capture exception:", e);
 		}
@@ -168,10 +147,6 @@ export class LaunchDarklyAdapter implements ObservabilityProvider {
 					message,
 					Object.keys(payload).length > 0 ? payload : undefined,
 				);
-				logger.log(`[LaunchDarkly] Sent error message: ${message}`, {
-					level,
-					context: payload,
-				});
 			}
 		} catch (e) {
 			logger.warn("Failed to capture message:", e);

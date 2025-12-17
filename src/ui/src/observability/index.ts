@@ -10,23 +10,8 @@ export {
 	recordDistribution,
 	setGauge,
 	METRIC_NAMES,
-	trackPageLoadTime,
-	trackComponentRenderTime,
-	trackApiRequest,
-	trackUserAction,
-	trackUserClick,
-	trackUserInput,
-	trackFeatureUsage,
-	trackConversionEvent,
-	trackActiveSessions,
-	trackMemoryUsage,
-	trackCpuUsage,
-	trackActiveConnections,
-	trackQueueSize,
 	flushMetricQueue,
 } from "./frontendMetrics";
-
-// Re-export the singleton instance (created in base.ts to avoid circular dependencies)
 
 try {
 	observabilityRegistry.register("launchdarkly", new LaunchDarklyAdapter());

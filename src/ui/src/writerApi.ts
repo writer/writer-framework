@@ -375,30 +375,48 @@ export class WriterApi {
 		return allTools;
 	}
 
-	async fetchConfigJs(): Promise<string> {
-		const url = new URL(`/env/config.js`, this.#baseUrl);
-		const res = await fetch(url, {
-			signal: this.#signal,
-			credentials: "include",
-			headers: {
-				"X-Client": "Framework",
-			},
-			...this.#requestInitBase,
-		});
-		if (!res.ok) {
-			const errorText = await res.text();
-			throw Error(errorText);
+	async fetchConfigJs(): Promise<string | null> {
+		try {
+			const url = new URL(`/env/config.js`, this.#baseUrl);
+			const res = await fetch(url, {
+				signal: this.#signal,
+				credentials: "include",
+				headers: {
+					"X-Client": "Framework",
+				},
+				...this.#requestInitBase,
+			});
+			if (!res.ok) {
+				return null;
+			}
+
+			const contentType = res.headers.get("content-type");
+			if (contentType && !contentType.includes("javascript")) {
+				return null;
+			}
+
+			const content = await res.text();
+
+			const trimmedContent = content.trimStart().toLowerCase();
+			if (
+				trimmedContent.startsWith("<!doctype") ||
+				trimmedContent.startsWith("<html") ||
+				trimmedContent.startsWith("<head") ||
+				trimmedContent.startsWith("<body")
+			) {
+				return null;
+			}
+
+			return content;
+		} catch {
+			return null;
 		}
-		return res.text();
 	}
 
 	// Shared blueprints
 
 	#getAgentStorageBaseUrl(): string {
-		return (
-			import.meta.env.VITE_AGENT_STORAGE_URL ||
-			this.#baseUrl
-		);
+		return import.meta.env.VITE_AGENT_STORAGE_URL || this.#baseUrl;
 	}
 
 	async publishSharedBlueprint(

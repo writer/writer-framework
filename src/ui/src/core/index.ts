@@ -35,6 +35,12 @@ import { useObservabilityMetric } from "@/composables/useObservabilityMetric";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
 import { RECONNECT_DELAY_MS } from "@/constants/retry";
 import {
+	incrementMetric,
+	recordDistribution,
+	trackError,
+	METRIC_NAMES,
+} from "@/observability/frontendMetrics";
+import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
 	findSourceFileFromPath,
@@ -109,22 +115,6 @@ export function generateCore() {
 			observabilityMetricInstance = useObservabilityMetric(coreLike);
 		}
 		return observabilityMetricInstance;
-	}
-
-	// Helper function to get metrics functions (avoids repeated dynamic imports)
-	async function getMetricsFunctions() {
-		const {
-			incrementMetric,
-			recordDistribution,
-			trackError,
-			METRIC_NAMES,
-		} = await import("@/observability/frontendMetrics");
-		return {
-			incrementMetric,
-			recordDistribution,
-			trackError,
-			METRIC_NAMES,
-		};
 	}
 
 	const writerOrgId = computed(
@@ -416,8 +406,6 @@ export function generateCore() {
 				}
 			} catch (error) {
 				logger.error("Error parsing WebSocket message:", error);
-				const { incrementMetric, METRIC_NAMES } =
-					await getMetricsFunctions();
 				incrementMetric(METRIC_NAMES.WEBSOCKET_INVALID_MESSAGE, {
 					tags: { mode: mode.value || "unknown" },
 				});
@@ -432,9 +420,6 @@ export function generateCore() {
 
 		webSocket.onclose = async (ev: CloseEvent) => {
 			webSocket = null;
-
-			const { incrementMetric, METRIC_NAMES } =
-				await getMetricsFunctions();
 
 			if (ev.code == 1008) {
 				syncHealth.value = "offline";
@@ -483,19 +468,23 @@ export function generateCore() {
 				}
 			}
 
-			setTimeout(async () => {
-				try {
-					await startSync();
-					logger.info("Reconnected.");
-					incrementMetric(METRIC_NAMES.WEBSOCKET_RECONNECTED, {
-						tags: { mode: mode.value || "unknown" },
+			setTimeout(() => {
+				startSync()
+					.then(() => {
+						logger.info("Reconnected.");
+						incrementMetric(METRIC_NAMES.WEBSOCKET_RECONNECTED, {
+							tags: { mode: mode.value || "unknown" },
+						});
+					})
+					.catch(() => {
+						logger.error("Couldn't reconnect.");
+						incrementMetric(
+							METRIC_NAMES.WEBSOCKET_RECONNECT_FAILED,
+							{
+								tags: { mode: mode.value || "unknown" },
+							},
+						);
 					});
-				} catch {
-					logger.error("Couldn't reconnect.");
-					incrementMetric(METRIC_NAMES.WEBSOCKET_RECONNECT_FAILED, {
-						tags: { mode: mode.value || "unknown" },
-					});
-				}
 			}, RECONNECT_DELAY_MS);
 		};
 
@@ -503,9 +492,7 @@ export function generateCore() {
 			webSocket.addEventListener("open", () => resolve(), { once: true });
 			webSocket.addEventListener(
 				"close",
-				async (ev) => {
-					const { incrementMetric, METRIC_NAMES } =
-						await getMetricsFunctions();
+				(ev) => {
 					incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTION_FAILURE, {
 						tags: {
 							mode: mode.value || "unknown",
@@ -522,9 +509,7 @@ export function generateCore() {
 			);
 			webSocket.addEventListener(
 				"error",
-				async () => {
-					const { incrementMetric, METRIC_NAMES } =
-						await getMetricsFunctions();
+				() => {
 					incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTION_FAILURE, {
 						tags: { mode: mode.value || "unknown" },
 					});
@@ -538,28 +523,20 @@ export function generateCore() {
 		if (!webSocket) return;
 		webSocket.onclose = (ev) => {
 			if (ev.code !== 1000) {
-				import("@/observability/frontendMetrics").then(
-					({ incrementMetric, METRIC_NAMES }) => {
-						incrementMetric(METRIC_NAMES.WEBSOCKET_CLOSE_ERROR, {
-							tags: {
-								mode: mode.value || "unknown",
-								code: ev.code.toString(),
-							},
-						});
+				incrementMetric(METRIC_NAMES.WEBSOCKET_CLOSE_ERROR, {
+					tags: {
+						mode: mode.value || "unknown",
+						code: ev.code.toString(),
 					},
-				);
+				});
 			}
 		};
 		try {
 			webSocket.close(closeCode);
 		} catch {
-			import("@/observability/frontendMetrics").then(
-				({ incrementMetric, METRIC_NAMES }) => {
-					incrementMetric(METRIC_NAMES.WEBSOCKET_CLOSE_ERROR, {
-						tags: { mode: mode.value || "unknown" },
-					});
-				},
-			);
+			incrementMetric(METRIC_NAMES.WEBSOCKET_CLOSE_ERROR, {
+				tags: { mode: mode.value || "unknown" },
+			});
 		}
 		syncHealth.value = "offline";
 	}
@@ -914,8 +891,6 @@ export function generateCore() {
 			try {
 				webSocket.send(JSON.stringify(wsData, bigIntReplacer));
 			} catch (error) {
-				const { incrementMetric, METRIC_NAMES } =
-					await getMetricsFunctions();
 				incrementMetric(METRIC_NAMES.WEBSOCKET_MESSAGE_SEND_ERROR, {
 					tags: { type, mode: mode.value || "unknown" },
 				});
@@ -923,8 +898,6 @@ export function generateCore() {
 			}
 
 			const duration = performance.now() - startTime;
-			const { recordDistribution, incrementMetric, METRIC_NAMES } =
-				await getMetricsFunctions();
 			recordDistribution(
 				METRIC_NAMES.FRONTEND_MESSAGE_DURATION,
 				duration,
@@ -938,8 +911,6 @@ export function generateCore() {
 			});
 		} catch (error) {
 			logger.error("sendFrontendMessage error", error);
-			const { trackError, incrementMetric, METRIC_NAMES } =
-				await getMetricsFunctions();
 			trackError(
 				error instanceof Error ? error : new Error(String(error)),
 				"frontend_message_error",

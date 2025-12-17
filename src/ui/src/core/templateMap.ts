@@ -31,14 +31,14 @@ function checkFlags(required?: string[]): boolean {
 	if (!required || required.length === 0) return true;
 
 	if (isLDInitialized()) {
-		return required.some((flag) => {
-			return evaluateFlagWithOverride(
+		return required.some((flag) =>
+			evaluateFlagWithOverride(
 				flag,
 				() => getFlagValue(flag, false),
 				false,
 				false,
-			);
-		});
+			),
+		);
 	}
 
 	return required.some((f) => activeFeatureFlags.includes(f));

@@ -1,75 +1,51 @@
 export type LaunchDarklyEnvironment = "Development" | "Production" | "Test";
 
-const LAUNCHDARKLY_ENV_DEVELOPMENT: LaunchDarklyEnvironment = "Development";
-const LAUNCHDARKLY_ENV_PRODUCTION: LaunchDarklyEnvironment = "Production";
-const LAUNCHDARKLY_ENV_TEST: LaunchDarklyEnvironment = "Test";
-const LAUNCHDARKLY_ENV_DEFAULT: LaunchDarklyEnvironment =
-	LAUNCHDARKLY_ENV_DEVELOPMENT;
+const DEFAULT_ENVIRONMENT: LaunchDarklyEnvironment = "Development";
 
 export function getLaunchDarklyClientId(): string | undefined {
-	if (typeof window !== "undefined") {
-		const config = window.__WRITER_APP_CONFIG__;
-		return config?.LAUNCH_DARKLY;
-	}
-
-	return undefined;
+	return typeof window !== "undefined"
+		? window.__WRITER_APP_CONFIG__?.LAUNCH_DARKLY
+		: undefined;
 }
 
 export function getLaunchDarklyEnvironment(): LaunchDarklyEnvironment {
 	const viteMode = import.meta.env.MODE;
 	if (viteMode) {
 		if (["development", "dev"].includes(viteMode)) {
-			return LAUNCHDARKLY_ENV_DEVELOPMENT;
+			return "Development";
 		}
 		if (["production", "prod"].includes(viteMode)) {
-			return LAUNCHDARKLY_ENV_PRODUCTION;
+			return "Production";
 		}
 		if (viteMode === "test") {
-			return LAUNCHDARKLY_ENV_TEST;
+			return "Test";
 		}
 	}
 
-	return LAUNCHDARKLY_ENV_DEFAULT;
+	return DEFAULT_ENVIRONMENT;
 }
 
-function getFlagOverride(
-	flagKey: string,
-	overrideSource?: string,
-): boolean | string | undefined {
-	const source = overrideSource ?? "localStorage";
-
-	if (source === "localStorage" && typeof window !== "undefined") {
-		try {
-			const envKey = flagKey.toUpperCase().replace(/[-.]/g, "_");
-			const overrideKey = `LAUNCHDARKLY_FLAG_OVERRIDE_${envKey}`;
-			const overrideValue = localStorage.getItem(overrideKey);
-
-			if (overrideValue !== null) {
-				const overrideLower = overrideValue.toLowerCase().trim();
-				if (
-					overrideLower === "true" ||
-					overrideLower === "1" ||
-					overrideLower === "yes" ||
-					overrideLower === "on"
-				) {
-					return true;
-				}
-				if (
-					overrideLower === "false" ||
-					overrideLower === "0" ||
-					overrideLower === "no" ||
-					overrideLower === "off"
-				) {
-					return false;
-				}
-				return overrideValue;
-			}
-		} catch {
-			// localStorage may not be available
-		}
+function getFlagOverride(flagKey: string): boolean | string | undefined {
+	if (typeof window === "undefined") {
+		return undefined;
 	}
 
-	return undefined;
+	const envKey = flagKey.toUpperCase().replace(/[-.]/g, "_");
+	const overrideKey = `LAUNCHDARKLY_FLAG_OVERRIDE_${envKey}`;
+	const overrideValue = localStorage.getItem(overrideKey);
+
+	if (!overrideValue) {
+		return undefined;
+	}
+
+	const overrideLower = overrideValue.toLowerCase().trim();
+	if (["true", "1", "yes", "on"].includes(overrideLower)) {
+		return true;
+	}
+	if (["false", "0", "no", "off"].includes(overrideLower)) {
+		return false;
+	}
+	return overrideValue;
 }
 
 /* eslint-disable no-console */

@@ -145,7 +145,7 @@ class LaunchDarklyClient:
                 except (ValueError, TypeError):
                     pass
 
-            context_builder = Context.builder("user", session_id)
+            context_builder = Context.builder(session_id)
 
             if org_id is not None:
                 context_builder.set("organizationId", org_id)
