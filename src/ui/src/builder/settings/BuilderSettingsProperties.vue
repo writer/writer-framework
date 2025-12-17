@@ -289,6 +289,7 @@ const secretsManager = inject(injectionKeys.secretsManager);
 
 const expandedFields = ref(new Set());
 
+// Check if the code field should be expanded for the current component
 const isFieldExpanded = computed(() => {
 	return (
 		ssbm.expandedEditorForComponent.value === selectedComponent.value?.id
