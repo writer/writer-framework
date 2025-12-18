@@ -112,7 +112,10 @@ const componentDefinition = computed(() => {
 });
 
 const displayDescription = computed(() => {
-	const sharedDescription = getSourceBlueprintDescription(wf, component.value);
+	const sharedDescription = getSourceBlueprintDescription(
+		wf,
+		component.value,
+	);
 	return sharedDescription || componentDefinition.value?.description;
 });
 
