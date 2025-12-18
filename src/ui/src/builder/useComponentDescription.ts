@@ -5,32 +5,32 @@ import { computed, ComputedRef, unref } from "vue";
 
 /**
  * Gets the display name for a shared blueprint by looking up its source blueprint.
- * Returns the source blueprint's key (name), or null if not found.
+ * Returns the source blueprint's key (name), or undefined if not found.
  */
 export function getSourceBlueprintName(
 	wf: Core,
 	component: Component,
-): string | null {
-	if (component?.type !== "blueprints_shared") return null;
+): string | undefined {
+	if (component?.type !== "blueprints_shared") return;
 	const sourceBlueprintId = component.content?.sourceBlueprintId;
-	if (!sourceBlueprintId) return null;
+	if (!sourceBlueprintId) return;
 	const sourceBlueprint = wf.getComponentById(sourceBlueprintId);
-	return sourceBlueprint?.content?.key || null;
+	return sourceBlueprint?.content?.key;
 }
 
 /**
  * Gets the description for a shared blueprint by looking up its source blueprint.
- * Returns the source blueprint's deployedDescription, or null if not found.
+ * Returns the source blueprint's deployedDescription, or undefined if not found.
  */
 export function getSourceBlueprintDescription(
 	wf: Core,
 	component: Component,
-): string | null {
-	if (component?.type !== "blueprints_shared") return null;
+): string | undefined {
+	if (component?.type !== "blueprints_shared") return;
 	const sourceBlueprintId = component.content?.sourceBlueprintId;
-	if (!sourceBlueprintId) return null;
+	if (!sourceBlueprintId) return;
 	const sourceBlueprint = wf.getComponentById(sourceBlueprintId);
-	return sourceBlueprint?.content?.deployedDescription || null;
+	return sourceBlueprint?.content?.deployedDescription;
 }
 
 export function useComponentDescription(
