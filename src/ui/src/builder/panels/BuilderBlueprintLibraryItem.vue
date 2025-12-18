@@ -30,6 +30,7 @@ import { useToasts } from "../useToast";
 import injectionKeys from "@/injectionKeys";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { useComponentActions } from "@/builder/useComponentActions";
+import { useLogger } from "@/composables/useLogger";
 import type { Component } from "@/writerTypes";
 
 const props = defineProps<{
