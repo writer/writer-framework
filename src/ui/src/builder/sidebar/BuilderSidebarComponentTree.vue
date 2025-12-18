@@ -172,7 +172,7 @@ async function addBlueprint() {
 
 	await nextTick();
 	wf.setActivePageId(pageId);
-	wfbm.appendSelection(pageId);
+	wfbm.setSelection(pageId);
 }
 
 function getNewBlueprintKey() {
