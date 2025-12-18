@@ -1,10 +1,15 @@
 <template>
 	<div class="BuilderSettingsMain">
+		<BaseMarkdown
+			v-if="displayDescription && isSharedBlueprint"
+			:raw-text="displayDescription"
+			class="BuilderSettingsMain__description"
+		/>
 		<p
-			v-if="componentDefinition.description"
+			v-else-if="displayDescription"
 			class="BuilderSettingsMain__description"
 		>
-			{{ componentDefinition.description }}
+			{{ displayDescription }}
 		</p>
 		<p v-if="isReadOnly" class="BuilderSettingsMain__warning cmc-warning">
 			<span>
@@ -76,6 +81,8 @@ import WdsIcon from "@/wds/WdsIcon.vue";
 import { useClipboard } from "@vueuse/core";
 import { artifactRegistry } from "./artifacts";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import { getSourceBlueprintDescription } from "@/builder/useComponentDescription";
+import BaseMarkdown from "@/components/core/base/BaseMarkdown.vue";
 
 const BuilderSettingsHandlers = defineAsyncComponentWithLoader({
 	loader: () => import("./BuilderSettingsHandlers.vue"),
@@ -103,6 +110,15 @@ const componentDefinition = computed(() => {
 	const definition = wf.getComponentDefinition(type);
 	return definition;
 });
+
+const displayDescription = computed(() => {
+	const sharedDescription = getSourceBlueprintDescription(wf, component.value);
+	return sharedDescription || componentDefinition.value?.description;
+});
+
+const isSharedBlueprint = computed(
+	() => component.value?.type === "blueprints_shared",
+);
 
 watch(component, (newComponent) => {
 	if (!newComponent) ssbm.setSelection(null);
@@ -144,6 +160,10 @@ const artifactsBottom = computed(() =>
 	padding: 24px;
 	font-size: 14px;
 	border-bottom: 1px solid var(--builderSeparatorColor);
+}
+
+.BuilderSettingsMain__description :deep(p:last-child) {
+	margin-bottom: 0;
 }
 
 .BuilderSettingsMain__section {

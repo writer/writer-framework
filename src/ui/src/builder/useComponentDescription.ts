@@ -18,6 +18,21 @@ export function getSourceBlueprintName(
 	return sourceBlueprint?.content?.key || null;
 }
 
+/**
+ * Gets the description for a shared blueprint by looking up its source blueprint.
+ * Returns the source blueprint's deployedDescription, or null if not found.
+ */
+export function getSourceBlueprintDescription(
+	wf: Core,
+	component: Component,
+): string | null {
+	if (component?.type !== "blueprints_shared") return null;
+	const sourceBlueprintId = component.content?.sourceBlueprintId;
+	if (!sourceBlueprintId) return null;
+	const sourceBlueprint = wf.getComponentById(sourceBlueprintId);
+	return sourceBlueprint?.content?.deployedDescription || null;
+}
+
 export function useComponentDescription(
 	wf: ReturnType<typeof generateCore>,
 	component: Component | ComputedRef<Component>,
