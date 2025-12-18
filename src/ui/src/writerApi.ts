@@ -522,7 +522,7 @@ export class WriterApi {
 		return res.json();
 	}
 
-	async proposeGlobalBlueprint(data: {
+	async proposeSharedBlueprintGlobal(data: {
 		title: string;
 		description: string;
 		components: unknown;
@@ -537,7 +537,7 @@ export class WriterApi {
 	}): Promise<{ pr_url: string; branch_name: string; blueprint_id: string }> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
 		const url = new URL(
-			`/api/agent-storage/v1/global-blueprints/propose`,
+			`/api/agent-storage/v1/shared-blueprints`,
 			baseUrl,
 		);
 

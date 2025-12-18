@@ -141,7 +141,7 @@ async function handleDeploy() {
 
 		if (form.value.proposeAsGlobal) {
 			// Propose as global blueprint via GitHub PR
-			const result = await writerApi.proposeGlobalBlueprint({
+			const result = await writerApi.proposeSharedBlueprintGlobal({
 				title: form.value.name.trim(),
 				description: form.value.description.trim(),
 				components: components,
