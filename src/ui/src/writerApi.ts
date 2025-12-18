@@ -497,6 +497,30 @@ export class WriterApi {
 		});
 		if (!res.ok) throw Error(await res.text());
 	}
+
+	async trackBlueprintInstallation(
+		orgId: number,
+		blueprintId: string,
+		appId: string,
+	): Promise<{ id: string }> {
+		const baseUrl = this.#getAgentStorageBaseUrl();
+		const url = new URL(
+			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints/installations`,
+			baseUrl,
+		);
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: "POST",
+			body: JSON.stringify({
+				blueprint_id: blueprintId,
+				app_id: appId,
+			}),
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
 }
 
 export type WriterApiUser = Pick<

@@ -30,6 +30,7 @@ import { useToasts } from "../useToast";
 import injectionKeys from "@/injectionKeys";
 import { useWriterApi } from "@/composables/useWriterApi";
 import { useComponentActions } from "@/builder/useComponentActions";
+import { useLogger } from "@/composables/useLogger";
 import type { Component } from "@/writerTypes";
 
 const props = defineProps<{
@@ -80,6 +81,14 @@ async function handleInstall() {
 			description: blueprint.description || undefined,
 			components,
 		});
+
+		// Track installation (fire-and-forget, don't block UX)
+		const appId = wf.writerAppId.value;
+		if (appId) {
+			writerApi
+				.trackBlueprintInstallation(orgId, props.block.id, appId)
+				.catch(useLogger().error);
+		}
 
 		pushToast({
 			type: "success",
