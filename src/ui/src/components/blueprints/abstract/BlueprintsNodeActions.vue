@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject, nextTick } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useComponentInformation } from "@/composables/useComponentInformation";
 import { useBlueprintComponentResultId } from "@/composables/useBlueprintComponentResultId";
@@ -22,6 +22,7 @@ const instancePath = inject(injectionKeys.instancePath);
 
 const props = defineProps({
 	showDisplayErrorOption: { type: Boolean },
+	showOpenEditorOption: { type: Boolean },
 });
 
 const emits = defineEmits({
@@ -37,6 +38,13 @@ const { copy, copied: isComponentIdCopied } = useClipboard();
 
 function copyComponentId() {
 	copy(resultId.value);
+}
+
+async function openEditorForComponent() {
+	wfbm.setSelection(componentId, undefined, "click");
+	await nextTick();
+	wfbm.expandedEditorForComponent.value = componentId;
+	tracking.track("button_click_for_code_editor_opened");
 }
 
 const settingsActions = useBuilderSettingsActions(
@@ -96,6 +104,17 @@ const dropdownOptions = computed(() => {
 
 <template>
 	<div class="BlueprintsNodeActions">
+		<WdsButton
+			v-if="props.showOpenEditorOption"
+			size="smallIcon"
+			variant="neutral"
+			data-writer-tooltip-placement="bottom"
+			:data-writer-unselectable="true"
+			data-writer-tooltip="Open editor"
+			@click.prevent="openEditorForComponent"
+		>
+			<WdsIcon name="code" />
+		</WdsButton>
 		<WdsButton
 			v-if="resultId"
 			size="smallIcon"

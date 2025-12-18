@@ -111,6 +111,7 @@
 				/>
 				<BlueprintsNodeActions
 					:show-display-error-option="canDisplayErrorOut"
+					:show-open-editor-option="isCodeComponent"
 					@show-error="forceDisplayErrorOut = true"
 				/>
 			</div>
@@ -153,12 +154,14 @@ import BlueprintsNodeTools from "./BlueprintsNodeTools.vue";
 import { useBlueprintNodeTools } from "@/composables/useBlueprintNodeTools";
 import { getSourceBlueprintName } from "@/builder/useComponentDescription";
 import { useToasts } from "@/builder/useToast";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const { removeOut, goToComponentParentPage } = useComponentActions(wf, wfbm);
 const { pushToast } = useToasts();
+const tracking = useWriterTracking(wf);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
 
@@ -175,6 +178,10 @@ const isDeprecated = computed(() => {
 });
 
 const { component, definition: def } = useComponentInformation(wf, componentId);
+
+const isCodeComponent = computed(() => {
+	return component.value?.type === "blueprints_code";
+});
 
 const displayName = computed(() => {
 	if (!component.value) return "Unknown";
@@ -425,6 +432,11 @@ async function handleDoubleClick(ev: MouseEvent) {
 		if (isSelected) {
 			// Expand the code editor
 			wfbm.expandedEditorForComponent.value = componentId;
+			tracking.track(
+				isCodeComponent.value
+					? "dbl_click_for_code_editor_opened"
+					: "dbl_click_for_value_opened",
+			);
 		}
 	} else if (component.value.type === "blueprints_runblueprint") {
 		const bpKey = component.value.content?.blueprintKey ?? "";
@@ -444,6 +456,7 @@ async function handleDoubleClick(ev: MouseEvent) {
 			type: "success",
 			message: `Navigated to ${blueprint.content.key} blueprint`,
 		});
+		tracking.track("dbl_click_for_blueprint_navigated");
 	}
 }
 
