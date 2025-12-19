@@ -27,6 +27,24 @@
 					}"
 				/>
 			</WdsFieldWrapper>
+
+			<div class="DeploySharedBlueprint__globalOption">
+				<label class="DeploySharedBlueprint__checkbox">
+					<input v-model="form.proposeAsGlobal" type="checkbox" />
+					<span>Propose as global blueprint</span>
+				</label>
+				<p class="DeploySharedBlueprint__hint">
+					Global blueprints are available to all organizations and
+					require approval via GitHub PR.
+				</p>
+			</div>
+
+			<div v-if="prUrl" class="DeploySharedBlueprint__success">
+				<p>Pull request created successfully!</p>
+				<a :href="prUrl" target="_blank" rel="noopener noreferrer">
+					{{ prUrl }}
+				</a>
+			</div>
 		</div>
 	</WdsModal>
 </template>
@@ -71,10 +89,12 @@ const blueprintDescription = computed(
 const form = ref({
 	name: "",
 	description: "",
+	proposeAsGlobal: false,
 });
 
 const errors = shallowRef<Record<string, string>>({});
 const isDeploying = ref(false);
+const prUrl = ref<string | null>(null);
 
 function validateForm(): boolean {
 	const newErrors: Record<string, string> = {};
@@ -113,46 +133,69 @@ async function handleDeploy() {
 	}
 
 	isDeploying.value = true;
+	prUrl.value = null;
+
 	try {
 		// Extract components from frontend
 		const components = extractBlueprintComponents(props.blueprintId);
 
-		const data = await writerApi.publishSharedBlueprint(orgId, {
-			title: form.value.name.trim(),
-			description: form.value.description.trim(),
-			components: components,
-			metadata: {},
-		});
-
-		// Update blueprint's published snippet ID and description
-		setContentValue(
-			props.blueprintId,
-			"publishedSnippetId",
-			data.snippet_id,
-		);
-		setContentValue(
-			props.blueprintId,
-			"deployedDescription",
-			form.value.description.trim(),
-		);
-
-		pushToast({
-			type: "success",
-			message: `Blueprint "${form.value.name.trim()}" published successfully`,
-		});
-		tracking.track("blueprints_shared_published");
-
-		resetForm();
-		isOpen.value = false;
-
-		try {
-			await wf.init();
-		} catch (_error) {
-			pushToast({
-				type: "error",
-				message:
-					"Blueprint published but failed to reload. Please refresh the page.",
+		if (form.value.proposeAsGlobal) {
+			// Propose as global blueprint via GitHub PR
+			const result = await writerApi.proposeSharedBlueprintGlobal({
+				title: form.value.name.trim(),
+				description: form.value.description.trim(),
+				components: components,
+				metadata: {},
 			});
+
+			prUrl.value = result.pr_url;
+
+			pushToast({
+				type: "success",
+				message: `Global blueprint proposed! A PR has been created for review.`,
+			});
+			tracking.track("blueprints_global_proposed");
+
+			// Don't close the modal - show the PR URL
+		} else {
+			// Publish to org's shared blueprints
+			const data = await writerApi.publishSharedBlueprint(orgId, {
+				title: form.value.name.trim(),
+				description: form.value.description.trim(),
+				components: components,
+				metadata: {},
+			});
+
+			// Update blueprint's published snippet ID and description
+			setContentValue(
+				props.blueprintId,
+				"publishedSnippetId",
+				data.snippet_id,
+			);
+			setContentValue(
+				props.blueprintId,
+				"deployedDescription",
+				form.value.description.trim(),
+			);
+
+			pushToast({
+				type: "success",
+				message: `Blueprint "${form.value.name.trim()}" published successfully`,
+			});
+			tracking.track("blueprints_shared_published");
+
+			resetForm();
+			isOpen.value = false;
+
+			try {
+				await wf.init();
+			} catch (_error) {
+				pushToast({
+					type: "error",
+					message:
+						"Blueprint published but failed to reload. Please refresh the page.",
+				});
+			}
 		}
 	} catch (error) {
 		pushToast({
@@ -175,18 +218,35 @@ function resetForm() {
 	form.value = {
 		name: blueprintName.value,
 		description: blueprintDescription.value,
+		proposeAsGlobal: false,
 	};
 	errors.value = {};
+	prUrl.value = null;
 }
 
 const modalActions = computed<ModalAction[]>(() => {
+	const publishText = form.value.proposeAsGlobal ? "Propose" : "Publish";
+	const publishingText = form.value.proposeAsGlobal
+		? "Proposing..."
+		: "Publishing...";
+
+	// If PR was created, show close button only
+	if (prUrl.value) {
+		return [
+			{
+				desc: "Close",
+				fn: handleClose,
+			},
+		];
+	}
+
 	return [
 		{
 			desc: "Cancel",
 			fn: handleClose,
 		},
 		{
-			desc: isDeploying.value ? "Publishing..." : "Publish",
+			desc: isDeploying.value ? publishingText : publishText,
 			fn: handleDeploy,
 			disabled: isDeploying.value,
 		},
@@ -227,5 +287,52 @@ watch(isOpen, (newValue) => {
 
 .DeploySharedBlueprint__textarea--error {
 	border-color: var(--builderErrorColor);
+}
+
+.DeploySharedBlueprint__globalOption {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 12px;
+	background: var(--builderSubtleSeparatorColor);
+	border-radius: 4px;
+}
+
+.DeploySharedBlueprint__checkbox {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	font-size: 14px;
+}
+
+.DeploySharedBlueprint__checkbox input {
+	cursor: pointer;
+}
+
+.DeploySharedBlueprint__hint {
+	font-size: 12px;
+	color: var(--builderSecondaryTextColor);
+	margin: 0;
+}
+
+.DeploySharedBlueprint__success {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px;
+	background: var(--builderSuccessBackgroundColor, #e6f7e6);
+	border: 1px solid var(--builderSuccessColor, #4caf50);
+	border-radius: 4px;
+}
+
+.DeploySharedBlueprint__success p {
+	margin: 0;
+	font-weight: 500;
+}
+
+.DeploySharedBlueprint__success a {
+	color: var(--builderPrimaryColor);
+	word-break: break-all;
 }
 </style>
