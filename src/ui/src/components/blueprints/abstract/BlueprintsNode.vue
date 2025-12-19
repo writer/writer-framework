@@ -442,7 +442,6 @@ async function handleDoubleClick(ev: MouseEvent) {
 		const bpKey = component.value.content?.blueprintKey ?? "";
 		if (!bpKey) return;
 
-		// Find the blueprint component by its key
 		const blueprint = wf
 			.getComponents("blueprints_root")
 			.find((page) => page.content.key === bpKey);
