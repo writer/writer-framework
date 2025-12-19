@@ -173,11 +173,21 @@ async function addBlueprint() {
 	await nextTick();
 	wf.setActivePageId(pageId);
 	wfbm.setSelection(pageId);
+	tracking.track("blueprints_new_added");
 }
 
 function getNewBlueprintKey() {
-	const indexes = allBlueprints.value.length;
-	return `BLUEPRINT_${indexes === 0 ? 1 : indexes + 1}`;
+	const existingKeys = allBlueprints.value
+		.map((bp) => bp.content?.key)
+		.filter((key) => key?.startsWith("BLUEPRINT_"))
+		.map((key) => Number.parseInt(key.replace("BLUEPRINT_", ""), 10))
+		.filter((num) => !Number.isNaN(num));
+
+	const maxIndex =
+		existingKeys.length > 0
+			? Math.max(...existingKeys)
+			: allBlueprints.value.length + 10;
+	return `BLUEPRINT_${maxIndex + 1}`;
 }
 
 async function addSharedBlueprint() {
