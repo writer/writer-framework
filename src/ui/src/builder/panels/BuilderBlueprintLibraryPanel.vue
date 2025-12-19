@@ -36,12 +36,38 @@
 					</p>
 				</div>
 
-				<div v-else class="BuilderBlueprintLibraryPanel__grid">
-					<BuilderBlueprintLibraryItem
-						v-for="blueprint in blueprints"
-						:key="blueprint.id"
-						:block="blueprint"
-					/>
+				<div v-else class="BuilderBlueprintLibraryPanel__sections">
+					<section
+						v-if="globalBlueprints.length > 0"
+						class="BuilderBlueprintLibraryPanel__section"
+					>
+						<h3 class="BuilderBlueprintLibraryPanel__sectionTitle">
+							Agents for everyone
+						</h3>
+						<div class="BuilderBlueprintLibraryPanel__grid">
+							<BuilderBlueprintLibraryItem
+								v-for="blueprint in globalBlueprints"
+								:key="blueprint.id"
+								:block="blueprint"
+							/>
+						</div>
+					</section>
+
+					<section
+						v-if="orgBlueprints.length > 0"
+						class="BuilderBlueprintLibraryPanel__section"
+					>
+						<h3 class="BuilderBlueprintLibraryPanel__sectionTitle">
+							Agents for your organization
+						</h3>
+						<div class="BuilderBlueprintLibraryPanel__grid">
+							<BuilderBlueprintLibraryItem
+								v-for="blueprint in orgBlueprints"
+								:key="blueprint.id"
+								:block="blueprint"
+							/>
+						</div>
+					</section>
 				</div>
 			</div>
 		</div>
@@ -79,9 +105,17 @@ const blueprints = ref<
 		description: string;
 		category: string;
 		createdBy: number;
+		isGlobal: boolean;
 	}>
 >([]);
 const isLoading = ref(false);
+
+const globalBlueprints = computed(() =>
+	blueprints.value.filter((bp) => bp.isGlobal),
+);
+const orgBlueprints = computed(() =>
+	blueprints.value.filter((bp) => !bp.isGlobal),
+);
 
 async function loadBlueprints() {
 	if (!isBlueprintLibraryEnabled.value) return;
@@ -111,6 +145,7 @@ async function loadBlueprints() {
 			description: bp.description,
 			category: bp.category || "Shared Blueprints",
 			createdBy: bp.createdBy,
+			isGlobal: bp.isGlobal,
 		}));
 	} catch (error) {
 		pushToast({
@@ -164,11 +199,32 @@ watch(isOpen, (newValue) => {
 	min-height: 0;
 }
 
+.BuilderBlueprintLibraryPanel__sections {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	padding: 16px;
+}
+
+.BuilderBlueprintLibraryPanel__section {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.BuilderBlueprintLibraryPanel__sectionTitle {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--builderSecondaryTextColor);
+	margin: 0;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
 .BuilderBlueprintLibraryPanel__grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 	gap: 16px;
-	padding: 16px;
 }
 
 .BuilderBlueprintLibraryPanel__loading,

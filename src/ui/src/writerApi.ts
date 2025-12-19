@@ -446,7 +446,7 @@ export class WriterApi {
 			Pick<
 				WriterApiSharedBlueprint,
 				"id" | "title" | "description" | "category" | "createdBy"
-			>
+			> & { isGlobal: boolean }
 		>
 	> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
@@ -462,7 +462,23 @@ export class WriterApi {
 		const res = await fetch(url, this.#requestInitBase);
 		if (!res.ok) throw Error(await res.text());
 
-		return res.json();
+		const data: Array<{
+			id: string;
+			title: string;
+			description: string;
+			category: string;
+			createdBy: number;
+			isReadonly: boolean;
+		}> = await res.json();
+
+		return data.map((bp) => ({
+			id: bp.id,
+			title: bp.title,
+			description: bp.description,
+			category: bp.category,
+			createdBy: bp.createdBy,
+			isGlobal: bp.isReadonly,
+		}));
 	}
 
 	async getSharedBlueprint(
