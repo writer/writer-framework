@@ -127,17 +127,17 @@ const blueprints = ref<
 		title: string;
 		description: string;
 		category: string;
-		visibility: string;
+		isReadonly: boolean;
 		createdBy: number;
 	}>
 >([]);
 const isLoading = ref(false);
 
 const globalBlueprints = computed(() =>
-	blueprints.value.filter((bp) => bp.visibility === "GLOBAL"),
+	blueprints.value.filter((bp) => bp.isReadonly === true),
 );
 const orgBlueprints = computed(() =>
-	blueprints.value.filter((bp) => bp.visibility === "ORG"),
+	blueprints.value.filter((bp) => bp.isReadonly !== true),
 );
 
 async function loadBlueprints() {
@@ -167,7 +167,7 @@ async function loadBlueprints() {
 			title: bp.title,
 			description: bp.description,
 			category: bp.category || "Shared Blueprints",
-			visibility: bp.visibility,
+			isReadonly: Boolean(bp.isReadonly),
 			createdBy: bp.createdBy,
 		}));
 	} catch (error) {

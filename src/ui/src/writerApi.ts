@@ -445,7 +445,7 @@ export class WriterApi {
 		Array<
 			Pick<
 				WriterApiSharedBlueprint,
-				"id" | "title" | "description" | "category" | "createdBy" | "visibility"
+				"id" | "title" | "description" | "category" | "createdBy" | "isReadonly"
 			>
 		>
 	> {
@@ -574,6 +574,7 @@ export type WriterApiSharedBlueprint = {
 	metadata: unknown;
 	createdAt: string;
 	updatedAt: string;
+	isReadonly: boolean;
 };
 
 type WriterApiBlamable = {
