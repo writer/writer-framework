@@ -41,7 +41,10 @@
 						v-if="globalBlueprints.length > 0"
 						class="BuilderBlueprintLibraryPanel__section"
 						:open="true"
-						:icons="{ open: 'chevron-down', close: 'chevron-right' }"
+						:icons="{
+							open: 'chevron-down',
+							close: 'chevron-right',
+						}"
 					>
 						<template #title>
 							<span
@@ -65,7 +68,10 @@
 						v-if="orgBlueprints.length > 0"
 						class="BuilderBlueprintLibraryPanel__section"
 						:open="true"
-						:icons="{ open: 'chevron-down', close: 'chevron-right' }"
+						:icons="{
+							open: 'chevron-down',
+							close: 'chevron-right',
+						}"
 					>
 						<template #title>
 							<span
