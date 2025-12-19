@@ -109,7 +109,7 @@ const dropdownOptions = computed(() => {
 			size="smallIcon"
 			variant="neutral"
 			data-writer-tooltip-placement="bottom"
-			:data-writer-unselectable="true"
+			data-writer-unselectable
 			data-writer-tooltip="Open editor"
 			@click.prevent="openEditorForComponent"
 		>
