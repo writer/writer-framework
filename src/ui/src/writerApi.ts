@@ -445,7 +445,7 @@ export class WriterApi {
 		Array<
 			Pick<
 				WriterApiSharedBlueprint,
-				"id" | "title" | "description" | "category" | "createdBy"
+				"id" | "title" | "description" | "category" | "createdBy" | "visibility"
 			>
 		>
 	> {
