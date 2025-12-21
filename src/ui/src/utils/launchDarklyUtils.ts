@@ -1,11 +1,31 @@
+/* eslint-disable no-console */
+import type { WriterAppConfig } from "@/writerTypes";
+
 export type LaunchDarklyEnvironment = "Development" | "Production" | "Test";
 
 const DEFAULT_ENVIRONMENT: LaunchDarklyEnvironment = "Development";
 
+function getConfig(): WriterAppConfig | undefined {
+	if (typeof window === "undefined" || !window.__WRITER_APP_CONFIG__) {
+		return undefined;
+	}
+
+	const raw = window.__WRITER_APP_CONFIG__;
+	if (typeof raw === "string") {
+		try {
+			return JSON.parse(atob(raw));
+		} catch (err) {
+			console.warn("Failed to decode __WRITER_APP_CONFIG__", err);
+			return undefined;
+		}
+	}
+
+	return raw;
+}
+
 export function getLaunchDarklyClientId(): string | undefined {
-	return typeof window !== "undefined"
-		? window.__WRITER_APP_CONFIG__?.LAUNCH_DARKLY
-		: undefined;
+	const config = getConfig();
+	return config?.LAUNCH_DARKLY;
 }
 
 export function getLaunchDarklyEnvironment(): LaunchDarklyEnvironment {

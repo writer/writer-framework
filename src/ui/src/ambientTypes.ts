@@ -9,7 +9,7 @@ declare module "vue" {
 
 declare global {
 	interface Window {
-		__WRITER_APP_CONFIG__?: WriterAppConfig;
+		__WRITER_APP_CONFIG__?: WriterAppConfig | string;
 	}
 }
 
