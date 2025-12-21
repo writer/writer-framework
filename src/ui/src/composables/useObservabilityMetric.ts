@@ -1,4 +1,5 @@
 import type { ComputedRef, Ref } from "vue";
+import { readonly, ref } from "vue";
 import { useLogger } from "./useLogger";
 import { useConfigJs } from "./useConfigJs";
 import { getLaunchDarklyClientId } from "@/utils/launchDarklyUtils";
@@ -29,7 +30,7 @@ export interface ObservableCore {
 export function useObservabilityMetric(wf: ObservableCore) {
 	const logger = useLogger();
 	const { loadConfigJs } = useConfigJs(wf);
-	let isLaunchDarklyInitialized = false;
+	const isLaunchDarklyInitialized = ref(false);
 
 	async function initialize(sessionId: string | null): Promise<void> {
 		try {
@@ -74,7 +75,7 @@ export function useObservabilityMetric(wf: ObservableCore) {
 
 			await initializeLaunchDarkly(context, clientId);
 
-			isLaunchDarklyInitialized = true;
+			isLaunchDarklyInitialized.value = true;
 		} catch (error) {
 			logger.warn("LaunchDarkly initialization failed", error);
 		}
@@ -82,6 +83,9 @@ export function useObservabilityMetric(wf: ObservableCore) {
 
 	function updateSocketDuration(connectStartTime: number): void {
 		if (!wf.isWriterCloudApp.value) {
+			return;
+		}
+		if (!isLaunchDarklyInitialized.value) {
 			return;
 		}
 
@@ -106,6 +110,6 @@ export function useObservabilityMetric(wf: ObservableCore) {
 	return {
 		initialize,
 		updateSocketDuration,
-		isLaunchDarklyInitialized: () => isLaunchDarklyInitialized,
+		isLaunchDarklyInitialized: readonly(isLaunchDarklyInitialized),
 	};
 }

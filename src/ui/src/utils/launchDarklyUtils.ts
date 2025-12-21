@@ -48,7 +48,6 @@ function getFlagOverride(flagKey: string): boolean | string | undefined {
 	return overrideValue;
 }
 
-/* eslint-disable no-console */
 function safeFlagEvaluation<T>(
 	flagKey: string,
 	evaluationFunc: () => T,
@@ -93,4 +92,3 @@ export function evaluateFlagWithOverride<T>(
 
 	return safeFlagEvaluation(flagKey, evaluationFunc, defaultValue);
 }
-/* eslint-enable no-console */

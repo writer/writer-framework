@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 
 from writer.launchdarkly_utils import (
     LaunchDarklyEnvironment,
@@ -24,18 +24,18 @@ try:
             OBSERVABILITY_AVAILABLE = True
         except ImportError:
             OBSERVABILITY_AVAILABLE = False
-            ObservabilityPlugin = None
-            ObservabilityConfig = None
+            ObservabilityPlugin = None  # type: ignore[assignment]
+            ObservabilityConfig = None  # type: ignore[assignment]
 
     LD_AVAILABLE = True
 except ImportError:
     LD_AVAILABLE = False
     OBSERVABILITY_AVAILABLE = False
-    LDClient = None
-    Config = None
-    Context = None
-    ObservabilityPlugin = None
-    ObservabilityConfig = None
+    LDClient = None  # type: ignore[assignment]
+    Config = None  # type: ignore[assignment]
+    Context = None  # type: ignore[assignment]
+    ObservabilityPlugin = None  # type: ignore[assignment]
+    ObservabilityConfig = None  # type: ignore[assignment]
 
 
 class LaunchDarklyClient:
@@ -81,13 +81,17 @@ class LaunchDarklyClient:
             plugin = ObservabilityPlugin(observability_config)
 
             try:
-                config = Config(sdk_key, plugins=[plugin])
+                # Use start_wait parameter to wait for initialization during construction
+                config = Config(sdk_key, plugins=[plugin], start_wait=5)
             except TypeError:
-                logger.error("[LaunchDarkly] SDK version does not support plugins parameter")
-                raise RuntimeError(
-                    "LaunchDarkly SDK version does not support plugins parameter. "
-                    "Observability plugin is required. Please upgrade to SDK 9.12.0+."
-                )
+                # Fallback if plugins parameter not supported
+                try:
+                    config = Config(sdk_key, start_wait=5)
+                    logger.warning("[LaunchDarkly] SDK version does not support plugins parameter, initializing without observability")
+                except TypeError:
+                    # Fallback if start_wait not supported either
+                    config = Config(sdk_key)
+                    logger.warning("[LaunchDarkly] SDK version does not support start_wait parameter")
 
             cls._client = LDClient(config)
 
@@ -97,8 +101,10 @@ class LaunchDarklyClient:
                 except Exception:
                     pass
 
-            if not cls._client.wait_until_ready(timeout=5):
-                raise TimeoutError("LaunchDarkly client initialization timeout")
+            # Verify initialization using Python SDK method
+            if hasattr(cls._client, "is_initialized"):
+                if not cls._client.is_initialized():  # type: ignore[attr-defined]
+                    raise TimeoutError("LaunchDarkly client initialization timeout")
 
             logger.info(f"LaunchDarkly client initialized successfully (environment: {environment})")
             return cls._client
@@ -193,7 +199,7 @@ class LaunchDarklyClient:
     def evaluate_all_flags(
         cls,
         context: Optional["Context"],
-        flag_keys: Optional[list[str]] = None,
+        flag_keys: Optional[List[str]] = None,
     ) -> Dict[str, bool]:
         if context is None:
             return {}

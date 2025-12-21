@@ -20,7 +20,7 @@ LAUNCHDARKLY_ENVIRONMENTS: tuple[LaunchDarklyEnvironment, ...] = (
 
 LAUNCHDARKLY_ENV_DEFAULT: LaunchDarklyEnvironment = LAUNCHDARKLY_ENV_DEVELOPMENT
 
-def get_launchdarkly_sdk_key() -> str | None:
+def get_launchdarkly_sdk_key() -> Optional[str]:
     """
     Get the LaunchDarkly SDK key from environment variables.
     
@@ -53,7 +53,7 @@ def get_launchdarkly_environment() -> LaunchDarklyEnvironment:
     """
     env_raw = os.getenv("LAUNCHDARKLY_ENVIRONMENT", LAUNCHDARKLY_ENV_DEFAULT)
     if env_raw in LAUNCHDARKLY_ENVIRONMENTS:
-        return env_raw
+        return env_raw  # type: ignore[return-value]
 
     env_lower = env_raw.lower()
     if env_lower in ("development", "dev"):

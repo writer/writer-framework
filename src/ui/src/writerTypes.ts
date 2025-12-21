@@ -288,7 +288,7 @@ export interface WriterAppConfig {
 	FIREBASE_API_KEY?: string;
 	FIREBASE_MESSAGING_SENDER_ID?: string;
 	FIREBASE_APP_ID?: string;
-	RECAPTCHA_ENTEPRISE_KEY?: string;
+	RECAPTCHA_ENTERPRISE_KEY?: string;
 	APP_PLAYGROUND_URL?: string;
 	APP_EMBED_URL?: string;
 	REDIRECT_WHITELISTED_DOMAINS?: string[];
