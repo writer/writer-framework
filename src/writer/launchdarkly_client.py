@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional, Any, List
+from typing import Any, Dict, List, Optional
 
 from writer.launchdarkly_utils import (
     LaunchDarklyEnvironment,
@@ -11,16 +11,14 @@ from writer.launchdarkly_utils import (
 logger = logging.getLogger(__name__)
 
 try:
-    from ldclient import LDClient
+    from ldclient import Context, LDClient
     from ldclient.config import Config
-    from ldclient import Context
     try:
-        from ldclient.observability import ObservabilityPlugin, ObservabilityConfig  # type: ignore[import-not-found]
+        from ldclient.observability import ObservabilityConfig, ObservabilityPlugin  # type: ignore[import-not-found]
         OBSERVABILITY_AVAILABLE = True
     except ImportError:
-        # Fallback for older SDK versions or if observability is in a different location
         try:
-            from launchdarkly.observability import ObservabilityPlugin, ObservabilityConfig  # type: ignore[import-not-found]
+            from launchdarkly.observability import ObservabilityConfig, ObservabilityPlugin  # type: ignore[import-not-found]
             OBSERVABILITY_AVAILABLE = True
         except ImportError:
             OBSERVABILITY_AVAILABLE = False
@@ -56,13 +54,6 @@ class LaunchDarklyClient:
         if not is_launchdarkly_enabled():
             return None
 
-        if not OBSERVABILITY_AVAILABLE or ObservabilityPlugin is None or ObservabilityConfig is None:
-            logger.error(
-                "LaunchDarkly Observability plugin is required but not available. "
-                "Please ensure launchdarkly-server-sdk includes observability support."
-            )
-            return None
-
         try:
             sdk_key = get_launchdarkly_sdk_key()
             if not sdk_key:
@@ -73,22 +64,37 @@ class LaunchDarklyClient:
             from writer import VERSION
             service_version = VERSION
 
-            observability_config = ObservabilityConfig(
-                service_name="writer-framework",
-                service_version=service_version,
-                environment=environment,
-            )
-            plugin = ObservabilityPlugin(observability_config)
+            if (OBSERVABILITY_AVAILABLE
+                and ObservabilityPlugin is not None 
+                and ObservabilityConfig is not None
+                and callable(ObservabilityPlugin)
+                and callable(ObservabilityConfig)):
+                try:
+                    observability_config = ObservabilityConfig(
+                        service_name="writer-framework",
+                        service_version=service_version,
+                        environment=environment,
+                    )
+                    plugin = ObservabilityPlugin(observability_config)
 
-            try:
-                # Create config with observability plugin
-                config = Config(sdk_key, plugins=[plugin])
-            except TypeError:
-                # Fallback if plugins parameter not supported
+                    try:
+                        config = Config(sdk_key, plugins=[plugin])
+                    except TypeError:
+                        config = Config(sdk_key)
+                        logger.warning("[LaunchDarkly] SDK version does not support plugins parameter, initializing without observability")
+                except Exception as e:
+                    logger.warning(
+                        f"[LaunchDarkly] Failed to create observability plugin: {e}. "
+                        "Initializing without observability."
+                    )
+                    config = Config(sdk_key)
+            else:
+                logger.warning(
+                    "[LaunchDarkly] Observability plugin not available. "
+                    "Initializing without observability support."
+                )
                 config = Config(sdk_key)
-                logger.warning("[LaunchDarkly] SDK version does not support plugins parameter, initializing without observability")
 
-            # Create client - Python SDK initializes synchronously during construction
             cls._client = LDClient(config)
 
             if hasattr(cls._client, "set_tag"):
@@ -96,9 +102,6 @@ class LaunchDarklyClient:
                     cls._client.set_tag("environment", environment)
                 except Exception:
                     pass
-
-            # Python SDK client is ready immediately after construction
-            # No need to wait for initialization as it's synchronous
 
             logger.info(f"LaunchDarkly client initialized successfully (environment: {environment})")
             return cls._client

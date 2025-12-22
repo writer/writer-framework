@@ -1,6 +1,6 @@
-import os
 import logging
-from typing import Literal, Optional, Callable, TypeVar, Any
+import os
+from typing import Any, Callable, Literal, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +21,6 @@ LAUNCHDARKLY_ENVIRONMENTS: tuple[LaunchDarklyEnvironment, ...] = (
 LAUNCHDARKLY_ENV_DEFAULT: LaunchDarklyEnvironment = LAUNCHDARKLY_ENV_DEVELOPMENT
 
 def get_launchdarkly_sdk_key() -> Optional[str]:
-    """
-    Get the LaunchDarkly SDK key from environment variables.
-    
-    Returns:
-        SDK key string if found, None otherwise
-    """
     sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY")
     if sdk_key and sdk_key.strip():
         return sdk_key.strip()
@@ -34,23 +28,10 @@ def get_launchdarkly_sdk_key() -> Optional[str]:
 
 
 def is_launchdarkly_enabled() -> bool:
-    """
-    Check if LaunchDarkly is enabled (SDK key is configured).
-    
-    Returns:
-        True if LaunchDarkly SDK key is available, False otherwise
-    """
     return get_launchdarkly_sdk_key() is not None
 
 
 def get_launchdarkly_environment() -> LaunchDarklyEnvironment:
-    """
-    Get the LaunchDarkly environment from environment variables.
-    
-    Returns:
-        LaunchDarkly environment: "Development", "Production", or "Test"
-        Defaults to "Development" if not set or invalid
-    """
     env_raw = os.getenv("LAUNCHDARKLY_ENVIRONMENT", LAUNCHDARKLY_ENV_DEFAULT)
     if env_raw in LAUNCHDARKLY_ENVIRONMENTS:
         return env_raw  # type: ignore[return-value]
@@ -113,14 +94,11 @@ def evaluate_flag_with_override(
 ) -> T:
     override = get_flag_override(flag_key)
     if override is not None:
-        # Type check: ensure override matches the expected type T
-        # For boolean flags, override will be bool; for other types, it may be a string
         if isinstance(override, type(default)):
             if log_override:
                 logger.debug(f"Using override for flag '{flag_key}': {override}")
             return override  # type: ignore[return-value]
         else:
-            # Override type doesn't match expected type, log and fall back to evaluation
             if log_override:
                 logger.warning(
                     f"Override for flag '{flag_key}' has incorrect type "
