@@ -3,8 +3,8 @@ from typing import Any, Dict, List, Optional
 
 from writer.launchdarkly_utils import (
     LaunchDarklyEnvironment,
-    get_launchdarkly_sdk_key,
     get_launchdarkly_environment,
+    get_launchdarkly_sdk_key,
     is_launchdarkly_enabled,
 )
 
@@ -15,12 +15,18 @@ try:
     from ldclient.config import Config
 
     try:
-        from ldclient.observability import ObservabilityConfig, ObservabilityPlugin  # type: ignore[import-not-found]
+        from ldclient.observability import (  # type: ignore[import-not-found]
+            ObservabilityConfig,
+            ObservabilityPlugin,
+        )
 
         OBSERVABILITY_AVAILABLE = True
     except ImportError:
         try:
-            from launchdarkly.observability import ObservabilityConfig, ObservabilityPlugin  # type: ignore[import-not-found]
+            from launchdarkly.observability import (  # type: ignore[import-not-found]
+                ObservabilityConfig,
+                ObservabilityPlugin,
+            )
 
             OBSERVABILITY_AVAILABLE = True
         except ImportError:
