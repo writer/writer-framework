@@ -69,6 +69,10 @@ class BlueprintRunner:
     def api_blueprints(self):
         return self._gather_api_blueprints()
 
+    @property
+    def cron_blueprints(self):
+        return self._gather_cron_blueprints()
+
     @contextmanager
     def _get_executor(self) -> Generator[ThreadPoolExecutor, None, None]:
         """Return the application's thread pool executor.
@@ -137,6 +141,17 @@ class BlueprintRunner:
         """
         return blueprint_id in self.api_blueprints
 
+    def is_blueprint_cron_available(
+        self, blueprint_id: str
+    ):
+        """
+        Checks if a blueprint with the given key is available for Cron execution.
+
+        :param blueprint_id: The blueprint identifier.
+        :return: True if the blueprint is available for Cron execution, False otherwise.
+        """
+        return blueprint_id in self.cron_blueprints
+
     def get_blueprint_api_trigger(
         self, blueprint_id: str
     ):
@@ -152,17 +167,33 @@ class BlueprintRunner:
             )
         return self.api_blueprints[blueprint_id]
 
-    def _gather_api_blueprints(self):
+    def get_blueprint_cron_trigger(
+        self, blueprint_id: str
+    ):
         """
-        Gathers all blueprints that have an API trigger.
+        Retrieves the Cron trigger for a given blueprint key.
 
-        :return: A set of blueprint keys that have an API trigger.
+        :param blueprint_key: The blueprint identifier.
+        :return: The Cron trigger component.
+        """
+        if not self.is_blueprint_cron_available(blueprint_id):
+            raise ValueError(
+                f'Cron trigger not found for blueprint "{blueprint_id}".'
+            )
+        return self.cron_blueprints[blueprint_id]
+
+    def _gather_blueprints_by_trigger(self, trigger_type: str):
+        """
+        Gathers all blueprints that have a trigger of the specified type.
+
+        :param trigger_type: The trigger component type (e.g., "blueprints_apitrigger").
+        :return: A dict mapping blueprint IDs to their trigger IDs.
         """
         triggers = [
             c for c in self.session.session_component_tree.components.values()
-            if c.type == "blueprints_apitrigger"
-            ]
-        api_blueprints = {}
+            if c.type == trigger_type
+        ]
+        blueprints = {}
 
         for trigger in triggers:
             parent_blueprint_id = \
@@ -170,7 +201,7 @@ class BlueprintRunner:
             parent_blueprint = \
                 self.session.session_component_tree.get_component(
                     parent_blueprint_id
-                    )
+                )
 
             if (
                 parent_blueprint
@@ -178,10 +209,25 @@ class BlueprintRunner:
                 parent_blueprint.type == "blueprints_blueprint"
             ):
                 # Store the blueprint key against its trigger ID
-                api_blueprints[parent_blueprint_id] = \
-                    trigger.id
+                blueprints[parent_blueprint_id] = trigger.id
 
-        return api_blueprints
+        return blueprints
+
+    def _gather_api_blueprints(self):
+        """
+        Gathers all blueprints that have an API trigger.
+
+        :return: A dict mapping blueprint IDs to their API trigger IDs.
+        """
+        return self._gather_blueprints_by_trigger("blueprints_apitrigger")
+
+    def _gather_cron_blueprints(self):
+        """
+        Gathers all blueprints that have a Cron trigger.
+
+        :return: A dict mapping blueprint IDs to their Cron trigger IDs.
+        """
+        return self._gather_blueprints_by_trigger("blueprints_crontrigger")
 
     def run_blueprint_via_api(
         self,
@@ -194,6 +240,8 @@ class BlueprintRunner:
         Executes a blueprint by its key via the API.
 
         :param blueprint_id: The blueprint identifier.
+        :param trigger_type: The type of trigger ("API" or "Cron").
+        :param branch_id: Optional branch ID to start execution from.
         :param execution_environment: The execution environment for
         the blueprint.
         :return: The result of the blueprint execution.
@@ -203,7 +251,11 @@ class BlueprintRunner:
 
         trigger_id = branch_id
         if trigger_id is None:
-            trigger_id = self.get_blueprint_api_trigger(blueprint_id)
+            if trigger_type == "Cron" or not self.is_blueprint_api_available(blueprint_id):
+                trigger_id = self.get_blueprint_cron_trigger(blueprint_id)
+                trigger_type = "Cron"
+            else:
+                trigger_id = self.get_blueprint_api_trigger(blueprint_id)
 
         return self.run_branch(
             trigger_id,
