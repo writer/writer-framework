@@ -1185,11 +1185,23 @@ export function generateCore() {
 	}
 
 	function getPreviousPageInPageStack() {
-		return pageStack.value.find((item) => item.id === activePageId.value);
+		const currentIdx = pageStack.value.findIndex(
+			(item) => item.id === activePageId.value,
+		);
+		if (currentIdx > 0) {
+			return pageStack.value[currentIdx - 1];
+		}
+		return null;
 	}
 
 	function getNextPageInPageStack() {
-		return pageStack.value.find((item) => item.id === activePageId.value);
+		const currentIdx = pageStack.value.findIndex(
+			(item) => item.id === activePageId.value,
+		);
+		if (currentIdx + 1 < pageStack.value.length) {
+			return pageStack.value[currentIdx + 1];
+		}
+		return null;
 	}
 
 	const core = {

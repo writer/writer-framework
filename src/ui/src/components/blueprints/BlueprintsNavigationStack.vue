@@ -109,7 +109,7 @@ const previousBlueprintTooltip = computed(() => {
 
 	const previousPage = wf.getPreviousPageInPageStack();
 	if (!previousPage?.key) return `Go to previous blueprint (${shortcut})`;
-	return `Previous blueprint - ${previousPage.key} (${shortcut})`;
+	return `${previousPage.key} (${shortcut})`;
 });
 
 const nextBlueprintTooltip = computed(() => {
@@ -118,7 +118,7 @@ const nextBlueprintTooltip = computed(() => {
 
 	const nextPage = wf.getNextPageInPageStack();
 	if (!nextPage?.key) return `Go to next blueprint (${shortcut})`;
-	return `Next blueprint - ${nextPage.key} (${shortcut})`;
+	return `${nextPage.key} (${shortcut})`;
 });
 
 function handleNextBlueprint(ev: MouseEvent | KeyboardEvent) {
