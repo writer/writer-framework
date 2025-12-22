@@ -304,3 +304,7 @@ export interface WriterAppConfig {
 	FULLSTORY_ORG_ID?: string;
 	CHAMELEON_API_KEY?: string;
 }
+export type NavigationStackItem = {
+	id: Component["id"];
+	key: string;
+};
