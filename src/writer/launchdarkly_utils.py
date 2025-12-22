@@ -46,18 +46,19 @@ def get_launchdarkly_environment() -> LaunchDarklyEnvironment:
     else:
         return LAUNCHDARKLY_ENV_DEFAULT
 
+
 def get_flag_override(
     flag_key: str,
     override_source: Optional[str] = None,
 ) -> Optional[Any]:
     if override_source is None:
         override_source = "env"
-    
+
     if override_source == "env":
         env_key = flag_key.upper().replace("-", "_").replace(".", "_")
         override_key = f"LAUNCHDARKLY_FLAG_OVERRIDE_{env_key}"
         override_value = os.getenv(override_key)
-        
+
         if override_value is not None:
             override_lower = override_value.lower().strip()
             if override_lower in ("true", "1", "yes", "on"):
@@ -65,7 +66,7 @@ def get_flag_override(
             elif override_lower in ("false", "0", "no", "off"):
                 return False
             return override_value
-    
+
     return None
 
 
@@ -79,10 +80,7 @@ def safe_flag_evaluation(
         return evaluation_func()
     except Exception as e:
         if log_errors:
-            logger.warning(
-                f"Feature flag evaluation failed for '{flag_key}': {e}",
-                exc_info=True
-            )
+            logger.warning(f"Feature flag evaluation failed for '{flag_key}': {e}", exc_info=True)
         return default
 
 
@@ -105,6 +103,5 @@ def evaluate_flag_with_override(
                     f"(expected {type(default).__name__}, got {type(override).__name__}), "
                     "falling back to evaluation"
                 )
-    
-    return safe_flag_evaluation(flag_key, evaluation_func, default)
 
+    return safe_flag_evaluation(flag_key, evaluation_func, default)

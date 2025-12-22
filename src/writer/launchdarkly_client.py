@@ -13,12 +13,15 @@ logger = logging.getLogger(__name__)
 try:
     from ldclient import Context, LDClient
     from ldclient.config import Config
+
     try:
         from ldclient.observability import ObservabilityConfig, ObservabilityPlugin  # type: ignore[import-not-found]
+
         OBSERVABILITY_AVAILABLE = True
     except ImportError:
         try:
             from launchdarkly.observability import ObservabilityConfig, ObservabilityPlugin  # type: ignore[import-not-found]
+
             OBSERVABILITY_AVAILABLE = True
         except ImportError:
             OBSERVABILITY_AVAILABLE = False
@@ -62,13 +65,16 @@ class LaunchDarklyClient:
 
             environment = get_launchdarkly_environment()
             from writer import VERSION
+
             service_version = VERSION
 
-            if (OBSERVABILITY_AVAILABLE
-                and ObservabilityPlugin is not None 
+            if (
+                OBSERVABILITY_AVAILABLE
+                and ObservabilityPlugin is not None
                 and ObservabilityConfig is not None
                 and callable(ObservabilityPlugin)
-                and callable(ObservabilityConfig)):
+                and callable(ObservabilityConfig)
+            ):
                 try:
                     observability_config = ObservabilityConfig(
                         service_name="writer-framework",
@@ -81,7 +87,9 @@ class LaunchDarklyClient:
                         config = Config(sdk_key, plugins=[plugin])
                     except TypeError:
                         config = Config(sdk_key)
-                        logger.warning("[LaunchDarkly] SDK version does not support plugins parameter, initializing without observability")
+                        logger.warning(
+                            "[LaunchDarkly] SDK version does not support plugins parameter, initializing without observability"
+                        )
                 except Exception as e:
                     logger.warning(
                         f"[LaunchDarkly] Failed to create observability plugin: {e}. "
@@ -103,15 +111,14 @@ class LaunchDarklyClient:
                 except Exception:
                     pass
 
-            logger.info(f"LaunchDarkly client initialized successfully (environment: {environment})")
+            logger.info(
+                f"LaunchDarkly client initialized successfully (environment: {environment})"
+            )
             return cls._client
 
         except Exception as e:
             cls._initialization_error = e
-            logger.warning(
-                f"LaunchDarkly initialization failed: {e}",
-                exc_info=True
-            )
+            logger.warning(f"LaunchDarkly initialization failed: {e}", exc_info=True)
             return None
 
     @classmethod
@@ -162,10 +169,7 @@ class LaunchDarklyClient:
             return context_builder.build()
 
         except Exception as e:
-            logger.warning(
-                f"Failed to build LaunchDarkly context: {e}",
-                exc_info=True
-            )
+            logger.warning(f"Failed to build LaunchDarkly context: {e}", exc_info=True)
             return None
 
     @classmethod
@@ -187,8 +191,7 @@ class LaunchDarklyClient:
 
         except Exception as e:
             logger.warning(
-                f"LaunchDarkly flag evaluation failed for '{flag_key}': {e}",
-                exc_info=True
+                f"LaunchDarkly flag evaluation failed for '{flag_key}': {e}", exc_info=True
             )
             return default
 
@@ -208,21 +211,16 @@ class LaunchDarklyClient:
 
             if flag_keys is None:
                 from writer.core import Config
+
                 flag_keys = Config.feature_flags or []
 
             if not flag_keys:
                 return {}
 
-            return {
-                key: cls.evaluate_flag(key, context, False)
-                for key in flag_keys
-            }
+            return {key: cls.evaluate_flag(key, context, False) for key in flag_keys}
 
         except Exception as e:
-            logger.warning(
-                f"LaunchDarkly bulk flag evaluation failed: {e}",
-                exc_info=True
-            )
+            logger.warning(f"LaunchDarkly bulk flag evaluation failed: {e}", exc_info=True)
             return {}
 
     @classmethod
@@ -238,12 +236,11 @@ class LaunchDarklyClient:
 
             if hasattr(client, "observe") and hasattr(client.observe, "record_exception"):
                 client.observe.record_exception(error)
-            elif hasattr(client, "_observability") and hasattr(client._observability, "record_exception"):
+            elif hasattr(client, "_observability") and hasattr(
+                client._observability, "record_exception"
+            ):
                 client._observability.record_exception(error)
             else:
                 logger.debug("LaunchDarkly client does not support error recording")
         except Exception as e:
-            logger.warning(
-                f"Failed to capture error to LaunchDarkly: {e}",
-                exc_info=True
-            )
+            logger.warning(f"Failed to capture error to LaunchDarkly: {e}", exc_info=True)
