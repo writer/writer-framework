@@ -15,27 +15,27 @@ try:
     from ldclient.config import Config
     from ldclient import Context
     try:
-        from ldclient.observability import ObservabilityPlugin, ObservabilityConfig
+        from ldclient.observability import ObservabilityPlugin, ObservabilityConfig  # type: ignore[import-not-found]
         OBSERVABILITY_AVAILABLE = True
     except ImportError:
         # Fallback for older SDK versions or if observability is in a different location
         try:
-            from launchdarkly.observability import ObservabilityPlugin, ObservabilityConfig
+            from launchdarkly.observability import ObservabilityPlugin, ObservabilityConfig  # type: ignore[import-not-found]
             OBSERVABILITY_AVAILABLE = True
         except ImportError:
             OBSERVABILITY_AVAILABLE = False
-            ObservabilityPlugin = None  # type: ignore[assignment]
-            ObservabilityConfig = None  # type: ignore[assignment]
+            ObservabilityPlugin = None  # type: ignore[assignment,misc]
+            ObservabilityConfig = None  # type: ignore[assignment,misc]
 
     LD_AVAILABLE = True
 except ImportError:
     LD_AVAILABLE = False
     OBSERVABILITY_AVAILABLE = False
-    LDClient = None  # type: ignore[assignment]
-    Config = None  # type: ignore[assignment]
-    Context = None  # type: ignore[assignment]
-    ObservabilityPlugin = None  # type: ignore[assignment]
-    ObservabilityConfig = None  # type: ignore[assignment]
+    LDClient = None  # type: ignore[assignment,misc]
+    Config = None  # type: ignore[assignment,misc]
+    Context = None  # type: ignore[assignment,misc]
+    ObservabilityPlugin = None  # type: ignore[assignment,misc]
+    ObservabilityConfig = None  # type: ignore[assignment,misc]
 
 
 class LaunchDarklyClient:
@@ -81,18 +81,14 @@ class LaunchDarklyClient:
             plugin = ObservabilityPlugin(observability_config)
 
             try:
-                # Use start_wait parameter to wait for initialization during construction
-                config = Config(sdk_key, plugins=[plugin], start_wait=5)
+                # Create config with observability plugin
+                config = Config(sdk_key, plugins=[plugin])
             except TypeError:
                 # Fallback if plugins parameter not supported
-                try:
-                    config = Config(sdk_key, start_wait=5)
-                    logger.warning("[LaunchDarkly] SDK version does not support plugins parameter, initializing without observability")
-                except TypeError:
-                    # Fallback if start_wait not supported either
-                    config = Config(sdk_key)
-                    logger.warning("[LaunchDarkly] SDK version does not support start_wait parameter")
+                config = Config(sdk_key)
+                logger.warning("[LaunchDarkly] SDK version does not support plugins parameter, initializing without observability")
 
+            # Create client - Python SDK initializes synchronously during construction
             cls._client = LDClient(config)
 
             if hasattr(cls._client, "set_tag"):
@@ -101,10 +97,8 @@ class LaunchDarklyClient:
                 except Exception:
                     pass
 
-            # Verify initialization using Python SDK method
-            if hasattr(cls._client, "is_initialized"):
-                if not cls._client.is_initialized():  # type: ignore[attr-defined]
-                    raise TimeoutError("LaunchDarkly client initialization timeout")
+            # Python SDK client is ready immediately after construction
+            # No need to wait for initialization as it's synchronous
 
             logger.info(f"LaunchDarkly client initialized successfully (environment: {environment})")
             return cls._client
