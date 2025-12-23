@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import hashlib
 import importlib.util
 import io
 import logging
@@ -8,6 +9,7 @@ import multiprocessing
 import multiprocessing.connection
 import multiprocessing.synchronize
 import os
+import pathlib
 import shutil
 import signal
 import subprocess
@@ -16,7 +18,7 @@ import tempfile
 import threading
 import zipfile
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
 import watchdog.events
 from pydantic import ValidationError
@@ -691,6 +693,76 @@ class FileEventHandler(watchdog.events.PatternMatchingEventHandler):
             return
         self.update_callback()
 
+class ProjectHashLogHandler(watchdog.events.PatternMatchingEventHandler):
+    def __init__(self, app_path: str, wf_project_context: WfProjectContext, patterns: List[str]):
+        super().__init__(patterns=patterns)
+        self.wf_project_context = wf_project_context
+
+        for file in pathlib.Path(app_path).rglob("*"):
+            if file.is_dir():
+                continue
+            file_hash = hashlib.md5()
+            try:
+                with open(file, 'rb') as f:
+                    while chunk := f.read(8192):
+                        file_hash.update(chunk)
+                self.wf_project_context.file_hashes[str(file.absolute())] = file_hash.hexdigest()
+            except Exception as e:
+                logging.warning(f"Failed to hash {file}: {e}")
+        
+        self.project_hash = ""
+        self._log_hash()
+
+    def _calculate_project_hash(self) -> str:
+        project_hash = hashlib.md5()
+        for filename in sorted(self.wf_project_context.file_hashes.keys()):
+            file_hash = self.wf_project_context.file_hashes[filename]
+            project_hash.update(bytes.fromhex(file_hash))
+        return project_hash.hexdigest()
+
+    def _process_file(self, file_path) -> None:
+        try:
+            file_hash = hashlib.md5()
+            with open(file_path, 'rb') as f:
+                while chunk := f.read(8192):
+                    file_hash.update(chunk)
+            self.wf_project_context.file_hashes[file_path] = file_hash.hexdigest()
+            self._log_hash()
+        except FileNotFoundError:
+            return
+        except Exception as e:
+            logging.warning(f"Failed to hash {file_path}: {e}")
+    
+    def _log_hash(self) -> None:
+        previous_project_hash = self.project_hash
+        self.project_hash = self._calculate_project_hash()
+        if previous_project_hash != self.project_hash:
+            logging.debug(f"Project hash: {self.project_hash}")
+
+    def on_modified(self, event: Union[watchdog.events.DirModifiedEvent, watchdog.events.FileModifiedEvent]):
+        if not event.is_directory:
+            self._process_file(event.src_path)
+
+    def on_created(self, event: Union[watchdog.events.DirCreatedEvent, watchdog.events.FileCreatedEvent]):
+        if not event.is_directory:
+            self._process_file(event.src_path)
+        else:
+            for sub_event in watchdog.events.generate_sub_created_events(event.src_path):
+                self.on_created(sub_event)
+
+    def on_moved(self, event: Union[watchdog.events.DirMovedEvent, watchdog.events.FileMovedEvent]):
+        if not event.is_directory:
+            self.wf_project_context.file_hashes.pop(event.src_path, None)
+            self._process_file(event.dest_path)
+        else:
+            for sub_event in watchdog.events.generate_sub_moved_events(event.src_path, event.dest_path):
+                self.on_moved(sub_event)
+
+    def on_deleted(self, event: Union[watchdog.events.DirDeletedEvent, watchdog.events.FileDeletedEvent]):
+        if not event.is_directory:
+            self.wf_project_context.file_hashes.pop(event.src_path, None)
+            self._log_hash()
+
 
 class ThreadSafeAsyncEvent(asyncio.Event):
     """Asyncio event adapted to be thread-safe."""
@@ -824,6 +896,12 @@ class AppRunner:
             path=self.app_path,
             recursive=True,
         )
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            self.observer.schedule(
+                ProjectHashLogHandler(self.app_path, self.wf_project_context, patterns=["*"]),
+                path=self.app_path,
+                recursive=True,
+            )
         # See _install_requirements docstring for info
         # self.observer.schedule(
         #     FileEventHandler(self._install_requirements, patterns=["requirements.txt"]),
