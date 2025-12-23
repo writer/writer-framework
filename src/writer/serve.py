@@ -539,39 +539,21 @@ def get_asgi_app(
 
                 await queue.put(await format_event("status", {"status": "executing", "msg": (f"Executing branch: {branch_id}..." if branch_id else f"Executing blueprint: {blueprint_id}...")}))
 
-                if branch_id:
-                    task = asyncio.create_task(
-                        app_runner.handle_event(
-                            session_id,
-                            WriterEvent(
-                                type="wf-run-blueprint-via-api",
-                                isSafe=True,
-                                handler="run_blueprint_via_api",
-                                payload={
-                                    "blueprint_id": blueprint_id,
-                                    "trigger_type": "Cron",
-                                    "branch_id": branch_id,
-                                    **(payload or {})
-                                },
-                            )
+                task = asyncio.create_task(
+                    app_runner.handle_event(
+                        session_id,
+                        WriterEvent(
+                            type="wf-run-blueprint-via-api",
+                            isSafe=True,
+                            handler="run_blueprint_via_api",
+                            payload={
+                                "blueprint_id": blueprint_id,
+                                "branch_id": branch_id,
+                                **(payload or {})
+                            },
                         )
                     )
-                else:
-                    task = asyncio.create_task(
-                        app_runner.handle_event(
-                            session_id,
-                            WriterEvent(
-                                type="wf-run-blueprint-via-api",
-                                isSafe=True,
-                                handler="run_blueprint_via_api",
-                                payload={
-                                    "blueprint_id": blueprint_id,
-                                    "trigger_type": "API",
-                                    **(payload or {})
-                                },
-                            )
-                        )
-                    )
+                )
 
                 await queue.put(await format_event("status", {"status": "running", "msg": ("Branch is running. Awaiting output..." if branch_id else "Blueprint is running. Awaiting output...")}))
 

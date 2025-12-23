@@ -232,7 +232,6 @@ class BlueprintRunner:
     def run_blueprint_via_api(
         self,
         blueprint_id: str,
-        trigger_type: Literal["API", "Cron"],
         branch_id: Optional[str] = None,
         execution_environment: Optional[Dict[str, Any]] = None
     ):
@@ -240,7 +239,6 @@ class BlueprintRunner:
         Executes a blueprint by its key via the API.
 
         :param blueprint_id: The blueprint identifier.
-        :param trigger_type: The type of trigger ("API" or "Cron").
         :param branch_id: Optional branch ID to start execution from.
         :param execution_environment: The execution environment for
         the blueprint.
@@ -250,13 +248,24 @@ class BlueprintRunner:
             execution_environment = {}
 
         trigger_id = branch_id
-        if trigger_id is None:
-            if trigger_type == "Cron" or not self.is_blueprint_api_available(blueprint_id):
-                trigger_id = self.get_blueprint_cron_trigger(blueprint_id)
+        if trigger_id is not None:
+            # Determine trigger type from the component
+            component = self.session.session_component_tree.get_component(trigger_id)
+            if component and component.type == "blueprints_apitrigger":
+                trigger_type = "API"
+            elif component and component.type == "blueprints_crontrigger":
                 trigger_type = "Cron"
             else:
-                trigger_id = self.get_blueprint_api_trigger(blueprint_id)
-
+                trigger_type = "Branch"
+        elif self.is_blueprint_api_available(blueprint_id):
+            # Prioritize API trigger over Cron if both exist
+            trigger_id = self.get_blueprint_api_trigger(blueprint_id)
+            trigger_type = "API"
+        elif self.is_blueprint_cron_available(blueprint_id):
+            trigger_id = self.get_blueprint_cron_trigger(blueprint_id)
+            trigger_type = "Cron"
+        else:
+            raise ValueError(f'No trigger found for blueprint "{blueprint_id}".')
         return self.run_branch(
             trigger_id,
             None,
