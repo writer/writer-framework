@@ -119,7 +119,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     trigger-agent-manager:
-        needs: [build, wait-for-pypi]
+        needs: [build]
         if: github.ref_name == 'dev'
         uses: ./.github/workflows/trigger-workflow.yml
         with:
