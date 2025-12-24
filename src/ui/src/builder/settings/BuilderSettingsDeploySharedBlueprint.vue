@@ -28,7 +28,10 @@
 				/>
 			</WdsFieldWrapper>
 
-			<div class="DeploySharedBlueprint__globalOption">
+			<div
+				v-if="isGlobalBlueprintProposalsEnabled"
+				class="DeploySharedBlueprint__globalOption"
+			>
 				<label class="DeploySharedBlueprint__checkbox">
 					<input v-model="form.proposeAsGlobal" type="checkbox" />
 					<span>Propose as global blueprint</span>
@@ -77,6 +80,12 @@ const tracking = useWriterTracking(wf);
 const { writerApi } = useWriterApi();
 
 const blueprint = computed(() => wf.getComponentById(props.blueprintId));
+
+const isGlobalBlueprintProposalsEnabled = computed(
+	() =>
+		Array.isArray(wf.featureFlags.value) &&
+		wf.featureFlags.value.includes("global_blueprint_proposals"),
+);
 
 const blueprintName = computed(
 	() => blueprint.value?.content?.key || "Shared Blueprint",
