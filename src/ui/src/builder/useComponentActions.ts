@@ -1157,7 +1157,6 @@ export function useComponentActions(
 	function installSharedBlueprint(blueprintData: {
 		id: string;
 		title: string;
-		version: number;
 		description?: string;
 		components: Component[];
 	}): Component["id"] {
@@ -1172,7 +1171,6 @@ export function useComponentActions(
 					key: blueprintData.title,
 					isSharedBlueprint: SHARED_BLUEPRINT_FLAG_VALUE,
 					sourceBlueprintId: blueprintData.id,
-					deployedVersion: String(blueprintData.version),
 					deployedDescription: blueprintData.description,
 				},
 			},

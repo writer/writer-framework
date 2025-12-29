@@ -36,13 +36,60 @@
 					</p>
 				</div>
 
-				<div v-else class="BuilderBlueprintLibraryPanel__grid">
-					<BuilderBlueprintLibraryItem
-						v-for="blueprint in blueprints"
-						:key="blueprint.id"
-						:block="blueprint"
-						@deleted="loadBlueprints"
-					/>
+				<div v-else class="BuilderBlueprintLibraryPanel__sections">
+					<SharedCollapsible
+						v-if="globalBlueprints.length > 0"
+						class="BuilderBlueprintLibraryPanel__section"
+						:open="true"
+						:icons="{
+							open: 'chevron-down',
+							close: 'chevron-right',
+						}"
+					>
+						<template #title>
+							<span
+								class="BuilderBlueprintLibraryPanel__sectionTitle"
+							>
+								Agents for everyone
+							</span>
+						</template>
+						<template #content>
+							<div class="BuilderBlueprintLibraryPanel__grid">
+								<BuilderBlueprintLibraryItem
+									v-for="blueprint in globalBlueprints"
+									:key="blueprint.id"
+									:block="blueprint"
+								/>
+							</div>
+						</template>
+					</SharedCollapsible>
+
+					<SharedCollapsible
+						v-if="orgBlueprints.length > 0"
+						class="BuilderBlueprintLibraryPanel__section"
+						:open="true"
+						:icons="{
+							open: 'chevron-down',
+							close: 'chevron-right',
+						}"
+					>
+						<template #title>
+							<span
+								class="BuilderBlueprintLibraryPanel__sectionTitle"
+							>
+								Agents for your organization
+							</span>
+						</template>
+						<template #content>
+							<div class="BuilderBlueprintLibraryPanel__grid">
+								<BuilderBlueprintLibraryItem
+									v-for="blueprint in orgBlueprints"
+									:key="blueprint.id"
+									:block="blueprint"
+								/>
+							</div>
+						</template>
+					</SharedCollapsible>
 				</div>
 			</div>
 		</div>
@@ -55,6 +102,7 @@ import WdsModal from "@/wds/WdsModal.vue";
 import BuilderBlueprintLibraryItem from "./BuilderBlueprintLibraryItem.vue";
 import WdsTextInput from "@/wds/WdsTextInput.vue";
 import WdsSkeletonLoader from "@/wds/WdsSkeletonLoader.vue";
+import SharedCollapsible from "@/components/shared/SharedCollapsible.vue";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "../useToast";
 import { useDebouncer } from "@/composables/useDebouncer";
@@ -79,11 +127,18 @@ const blueprints = ref<
 		title: string;
 		description: string;
 		category: string;
-		version_number: number;
+		isReadonly: boolean;
 		createdBy: number;
 	}>
 >([]);
 const isLoading = ref(false);
+
+const globalBlueprints = computed(() =>
+	blueprints.value.filter((bp) => bp.isReadonly === true),
+);
+const orgBlueprints = computed(() =>
+	blueprints.value.filter((bp) => bp.isReadonly !== true),
+);
 
 async function loadBlueprints() {
 	if (!isBlueprintLibraryEnabled.value) return;
@@ -112,7 +167,7 @@ async function loadBlueprints() {
 			title: bp.title,
 			description: bp.description,
 			category: bp.category || "Shared Blueprints",
-			version_number: bp.version_number,
+			isReadonly: Boolean(bp.isReadonly),
 			createdBy: bp.createdBy,
 		}));
 	} catch (error) {
@@ -167,11 +222,34 @@ watch(isOpen, (newValue) => {
 	min-height: 0;
 }
 
+.BuilderBlueprintLibraryPanel__sections {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	padding: 16px;
+}
+
+.BuilderBlueprintLibraryPanel__section {
+	--accentColor: var(--builderSecondaryTextColor);
+}
+
+.BuilderBlueprintLibraryPanel__section :deep(.content) {
+	padding-top: 12px;
+	padding-left: 0;
+}
+
+.BuilderBlueprintLibraryPanel__sectionTitle {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--builderSecondaryTextColor);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
 .BuilderBlueprintLibraryPanel__grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 	gap: 16px;
-	padding: 16px;
 }
 
 .BuilderBlueprintLibraryPanel__loading,

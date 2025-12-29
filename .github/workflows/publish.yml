@@ -143,35 +143,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  wait-for-pypi:
-    needs: build
-    if: github.ref_name == 'dev'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for PyPI propagation
-        run: |
-          VERSION=${{ needs.build.outputs.version }}
-          echo "Waiting for writer==$VERSION to be available..."
 
-          MAX_RETRIES=20
-          SLEEP_SECONDS=15
-          COUNT=0
-
-          # check inside docker to avoid hitting the same mirror
-          until docker run --rm python:3.11 pip install --no-deps "writer==$VERSION"; do
-              COUNT=$((COUNT + 1))
-              if [ $COUNT -ge $MAX_RETRIES ]; then
-                  echo "Timeout waiting for PyPI propagation. Version $VERSION still not available."
-                  exit 0
-              fi
-              echo "Version $VERSION not yet available, retrying in $SLEEP_SECONDS seconds..."
-              sleep $SLEEP_SECONDS
-          done
-
-          echo "Version $VERSION is now available"
 
   trigger-agent-manager:
-    needs: [build, wait-for-pypi]
+    needs: [build]
     if: github.ref_name == 'dev'
     uses: ./.github/workflows/trigger-workflow.yml
     with:

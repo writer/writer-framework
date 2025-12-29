@@ -433,9 +433,8 @@ export class WriterApi {
 				dependencies?: unknown[];
 				author?: string;
 			};
-			existingSnippetId?: string | null;
 		},
-	): Promise<{ snippet_id: string; version: number }> {
+	): Promise<{ snippet_id: string }> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
 		const url = new URL(
 			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints`,
@@ -450,7 +449,6 @@ export class WriterApi {
 				description: data.description,
 				components: data.components,
 				metadata: data.metadata,
-				existing_snippet_id: data.existingSnippetId || null,
 			}),
 		});
 		if (!res.ok) throw Error(await res.text());
@@ -465,12 +463,7 @@ export class WriterApi {
 		Array<
 			Pick<
 				WriterApiSharedBlueprint,
-				| "id"
-				| "title"
-				| "description"
-				| "category"
-				| "version_number"
-				| "createdBy"
+				"id" | "title" | "description" | "category" | "createdBy" | "isReadonly"
 			>
 		>
 	> {
@@ -522,6 +515,64 @@ export class WriterApi {
 		});
 		if (!res.ok) throw Error(await res.text());
 	}
+
+	async trackBlueprintInstallation(
+		orgId: number,
+		blueprintId: string,
+		appId: string,
+	): Promise<{ id: string }> {
+		const baseUrl = this.#getAgentStorageBaseUrl();
+		const url = new URL(
+			`/api/agent-storage/v1/organization/${orgId}/shared-blueprints/installations`,
+			baseUrl,
+		);
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: "POST",
+			body: JSON.stringify({
+				blueprint_id: blueprintId,
+				app_id: appId,
+			}),
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
+
+	async proposeSharedBlueprintGlobal(data: {
+		title: string;
+		description: string;
+		components: unknown;
+		metadata: {
+			name?: string;
+			stateInputs?: string[];
+			stateOutputs?: string[];
+			vaultKeys?: string[];
+			dependencies?: unknown[];
+			author?: string;
+		};
+	}): Promise<{ pr_url: string; branch_name: string; blueprint_id: string }> {
+		const baseUrl = this.#getAgentStorageBaseUrl();
+		const url = new URL(
+			`/api/agent-storage/v1/shared-blueprints`,
+			baseUrl,
+		);
+
+		const res = await fetch(url, {
+			...this.#requestInitBase,
+			method: "POST",
+			body: JSON.stringify({
+				title: data.title,
+				description: data.description,
+				components: data.components,
+				metadata: data.metadata,
+			}),
+		});
+		if (!res.ok) throw Error(await res.text());
+
+		return res.json();
+	}
 }
 
 export type WriterApiUser = Pick<
@@ -534,19 +585,14 @@ export type WriterApiSharedBlueprint = {
 	title: string;
 	description: string;
 	category: string;
-	version_number: number;
 	visibility: string;
 	orgId: string;
 	createdBy: number;
-	version: {
-		version: number;
-		description: string | null;
-		components: unknown;
-		metadata: unknown;
-		createdAt: string;
-	};
+	components: unknown;
+	metadata: unknown;
 	createdAt: string;
 	updatedAt: string;
+	isReadonly: boolean;
 };
 
 type WriterApiBlamable = {
