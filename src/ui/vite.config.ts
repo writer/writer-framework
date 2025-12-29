@@ -11,7 +11,9 @@ export default defineConfig({
 	includeWriterComponentPath: false,
 	define: {
 		WRITER_LIVE_CCT: JSON.stringify("no"),
-		WRITER_FRAMEWORK_VERSION: JSON.stringify(process.env.WRITER_FRAMEWORK_VERSION || ""),
+		WRITER_FRAMEWORK_VERSION: JSON.stringify(
+			process.env.WRITER_FRAMEWORK_VERSION || "",
+		),
 	},
 	css: {
 		postcss: {
@@ -26,6 +28,7 @@ export default defineConfig({
 	build: {
 		outDir: "../writer/static",
 		emptyOutDir: true,
+		sourcemap: true,
 	},
 	resolve: {
 		alias: {

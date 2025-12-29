@@ -1,0 +1,115 @@
+import type { ComputedRef, Ref } from "vue";
+import { readonly, ref } from "vue";
+import { useLogger } from "./useLogger";
+import { useConfigJs } from "./useConfigJs";
+import { getLaunchDarklyClientId } from "@/utils/launchDarklyUtils";
+import {
+	buildLDContext,
+	initializeLaunchDarkly,
+} from "@/core/launchDarklyClient";
+import {
+	incrementMetric,
+	METRIC_NAMES,
+	recordDistribution,
+} from "@/observability/frontendMetrics";
+
+export interface ObservableCore {
+	mode: Ref<"run" | "edit" | null>;
+	writerApplication: Ref<
+		| {
+				id: string;
+				organizationId: string;
+				apiKey?: string;
+				baseUrl?: string;
+		  }
+		| undefined
+	>;
+	isWriterCloudApp: ComputedRef<boolean>;
+}
+
+export function useObservabilityMetric(wf: ObservableCore) {
+	const logger = useLogger();
+	const { loadConfigJs } = useConfigJs(wf);
+	const isLaunchDarklyInitialized = ref(false);
+
+	async function initialize(sessionId: string | null): Promise<void> {
+		try {
+			try {
+				await loadConfigJs();
+			} catch (configError) {
+				logger.warn(
+					"Failed to load config.js, LaunchDarkly initialization:",
+					configError,
+				);
+
+				return;
+			}
+
+			const clientId = getLaunchDarklyClientId();
+
+			if (!clientId) {
+				if (!wf.isWriterCloudApp.value) {
+					logger.log(
+						"Skipping LaunchDarkly initialization - not a Writer Cloud App and no client ID in config",
+					);
+				} else {
+					logger.log(
+						"LaunchDarkly client ID not available, skipping initialization",
+					);
+				}
+				return;
+			}
+
+			if (!sessionId) {
+				logger.warn(
+					"LaunchDarkly initialization skipped: sessionId not provided",
+				);
+				return;
+			}
+
+			const context = buildLDContext(
+				sessionId,
+				wf.mode.value,
+				wf.writerApplication.value,
+			);
+
+			await initializeLaunchDarkly(context, clientId);
+
+			isLaunchDarklyInitialized.value = true;
+		} catch (error) {
+			logger.warn("LaunchDarkly initialization failed", error);
+		}
+	}
+
+	function updateSocketDuration(connectStartTime: number): void {
+		if (!wf.isWriterCloudApp.value) {
+			return;
+		}
+		if (!isLaunchDarklyInitialized.value) {
+			return;
+		}
+
+		if (typeof performance === "undefined") {
+			return;
+		}
+
+		const connectDuration = performance.now() - connectStartTime;
+		recordDistribution(
+			METRIC_NAMES.WEBSOCKET_CONNECT_DURATION,
+			connectDuration,
+			{
+				tags: { mode: wf.mode.value || "unknown" },
+				unit: "ms",
+			},
+		);
+		incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTED, {
+			tags: { mode: wf.mode.value || "unknown" },
+		});
+	}
+
+	return {
+		initialize,
+		updateSocketDuration,
+		isLaunchDarklyInitialized: readonly(isLaunchDarklyInitialized),
+	};
+}

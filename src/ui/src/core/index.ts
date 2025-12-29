@@ -31,8 +31,18 @@ import { parseAccessor } from "./parsing";
 import { loadExtensions } from "./loadExtensions";
 import { bigIntReplacer } from "./serializer";
 import { useLogger } from "@/composables/useLogger";
+import {
+	useObservabilityMetric,
+	type ObservableCore,
+} from "@/composables/useObservabilityMetric";
 import { readBlobAsArrayBufferJson } from "@/utils/blob";
 import { RECONNECT_DELAY_MS } from "@/constants/retry";
+import {
+	incrementMetric,
+	recordDistribution,
+	trackError,
+	METRIC_NAMES,
+} from "@/observability/frontendMetrics";
 import {
 	createFileToSourceFiles,
 	deleteFileToSourceFiles,
@@ -62,6 +72,7 @@ export function generateCore() {
 		  }
 		| undefined
 	>();
+	const logger = useLogger();
 	const featureFlags = shallowRef<string[]>([]);
 	const runCode: Ref<string> = ref(null);
 	const sourceFiles = shallowRef<SourceFiles>({
@@ -87,6 +98,27 @@ export function generateCore() {
 
 	const activePageId = ref<Component["id"] | undefined>();
 
+	let observabilityMetricInstance: ReturnType<
+		typeof useObservabilityMetric
+	> | null = null;
+
+	function getOrCreateObservabilityMetric() {
+		if (!observabilityMetricInstance) {
+			const coreLike: ObservableCore = {
+				mode,
+				writerApplication,
+				isWriterCloudApp: computed(() =>
+					Boolean(
+						writerApplication.value?.id ||
+							writerApplication.value?.organizationId,
+					),
+				),
+			};
+			observabilityMetricInstance = useObservabilityMetric(coreLike);
+		}
+		return observabilityMetricInstance;
+	}
+
 	const writerOrgId = computed(
 		() => Number(writerApplication.value?.organizationId) || undefined,
 	);
@@ -107,6 +139,38 @@ export function generateCore() {
 		await initSession();
 		sendKeepAliveMessage();
 		if (mode.value != "edit") return;
+	}
+
+	/**
+	 * Load LaunchDarkly client and initialize observability.
+	 * This function ensures that useConfigJs has been called before
+	 * attempting to get the LaunchDarkly client ID.
+	 *
+	 * @param sessionId - The session ID to use for LaunchDarkly context
+	 */
+	async function loadLaunchDarkly(sessionId: string | null): Promise<void> {
+		const observabilityMetric = getOrCreateObservabilityMetric();
+
+		try {
+			await observabilityMetric.initialize(sessionId);
+
+			const { setupFlagChangeListener } = await import(
+				"@/core/launchDarklyClient"
+			);
+			setupFlagChangeListener((activeFlags) => {
+				try {
+					featureFlags.value = activeFlags;
+					setActiveFeatureFlags(activeFlags);
+				} catch (e) {
+					logger.error(
+						"Error updating feature flags from LaunchDarkly",
+						e,
+					);
+				}
+			});
+		} catch (error) {
+			logger.error("Unexpected error initializing LaunchDarkly", error);
+		}
 	}
 
 	/**
@@ -158,6 +222,8 @@ export function generateCore() {
 		setActiveFeatureFlags(featureFlags.value);
 		writerApplication.value = initData.writerApplication;
 		loadAbstractTemplates(initData.abstractTemplates);
+
+		await loadLaunchDarkly(sessionId);
 
 		// Only returned for edit (Builder) mode
 
@@ -250,9 +316,14 @@ export function generateCore() {
 		url.protocol = url.protocol.replace("http", "ws");
 		webSocket = new WebSocket(url.href);
 
-		webSocket.onopen = () => {
+		const wsConnectStartTime = performance.now();
+		webSocket.onopen = async () => {
 			syncHealth.value = "connected";
 			logger.log("WebSocket connected. Initialising stream...");
+
+			const observabilityMetric = getOrCreateObservabilityMetric();
+			observabilityMetric.updateSocketDuration(wsConnectStartTime);
+
 			sendFrontendMessage("streamInit", { sessionId });
 
 			if (pendingComponentUpdate) {
@@ -337,6 +408,9 @@ export function generateCore() {
 				}
 			} catch (error) {
 				logger.error("Error parsing WebSocket message:", error);
+				incrementMetric(METRIC_NAMES.WEBSOCKET_INVALID_MESSAGE, {
+					tags: { mode: mode.value || "unknown" },
+				});
 				return;
 			}
 			try {
@@ -363,28 +437,56 @@ export function generateCore() {
 			}
 
 			// Connection lost due to some other reason. Try to reconnect.
-
 			const WEBSOCKET_CODE_UPDATE_CODE = 4001;
+			const NORMAL_CLOSE_CODE = 1000;
 
 			if (ev.code == WEBSOCKET_CODE_UPDATE_CODE) {
 				syncHealth.value = "suspended";
 				logger.info(
 					"WebSocket closed due to code update. Attempting to reconnect...",
 				);
-			} else {
+			} else if (ev.code !== NORMAL_CLOSE_CODE) {
 				syncHealth.value = "offline";
 				logger.error(
 					`WebSocket closed with code ${ev.code}. Attempting to reconnect...`,
 				);
+				if (ev.code === 1006) {
+					incrementMetric(METRIC_NAMES.WEBSOCKET_ABNORMAL_CLOSE, {
+						tags: {
+							mode: mode.value || "unknown",
+							code: ev.code.toString(),
+						},
+					});
+				} else {
+					incrementMetric(
+						METRIC_NAMES.WEBSOCKET_UNEXPECTED_DISCONNECT,
+						{
+							tags: {
+								mode: mode.value || "unknown",
+								code: ev.code.toString(),
+							},
+						},
+					);
+				}
 			}
 
-			setTimeout(async () => {
-				try {
-					await startSync();
-					logger.info("Reconnected.");
-				} catch {
-					logger.error("Couldn't reconnect.");
-				}
+			setTimeout(() => {
+				startSync()
+					.then(() => {
+						logger.info("Reconnected.");
+						incrementMetric(METRIC_NAMES.WEBSOCKET_RECONNECTED, {
+							tags: { mode: mode.value || "unknown" },
+						});
+					})
+					.catch(() => {
+						logger.error("Couldn't reconnect.");
+						incrementMetric(
+							METRIC_NAMES.WEBSOCKET_RECONNECT_FAILED,
+							{
+								tags: { mode: mode.value || "unknown" },
+							},
+						);
+					});
 			}, RECONNECT_DELAY_MS);
 		};
 
@@ -392,7 +494,13 @@ export function generateCore() {
 			webSocket.addEventListener("open", () => resolve(), { once: true });
 			webSocket.addEventListener(
 				"close",
-				() => {
+				(ev) => {
+					incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTION_FAILURE, {
+						tags: {
+							mode: mode.value || "unknown",
+							code: ev.code.toString(),
+						},
+					});
 					reject(
 						new Error(
 							"WebSocket connection closed before establishing.",
@@ -401,13 +509,37 @@ export function generateCore() {
 				},
 				{ once: true },
 			);
+			webSocket.addEventListener(
+				"error",
+				() => {
+					incrementMetric(METRIC_NAMES.WEBSOCKET_CONNECTION_FAILURE, {
+						tags: { mode: mode.value || "unknown" },
+					});
+				},
+				{ once: true },
+			);
 		});
 	}
 
 	function stopSync(closeCode: number = 1000): void {
 		if (!webSocket) return;
-		webSocket.onclose = () => {};
-		webSocket.close(closeCode);
+		webSocket.onclose = (ev) => {
+			if (ev.code !== 1000) {
+				incrementMetric(METRIC_NAMES.WEBSOCKET_CLOSE_ERROR, {
+					tags: {
+						mode: mode.value || "unknown",
+						code: ev.code.toString(),
+					},
+				});
+			}
+		};
+		try {
+			webSocket.close(closeCode);
+		} catch {
+			incrementMetric(METRIC_NAMES.WEBSOCKET_CLOSE_ERROR, {
+				tags: { mode: mode.value || "unknown" },
+			});
+		}
 		syncHealth.value = "offline";
 	}
 
@@ -731,6 +863,7 @@ export function generateCore() {
 		}
 		const logger = useLogger();
 		const trackingId = frontendMessageCounter++;
+		const startTime = performance.now();
 		try {
 			if (callback || track) {
 				frontendMessageMap.value.set(trackingId, {
@@ -757,9 +890,40 @@ export function generateCore() {
 			if (webSocket.readyState !== WebSocket.OPEN) {
 				throw "Connection lost.";
 			}
-			webSocket.send(JSON.stringify(wsData, bigIntReplacer));
+			try {
+				webSocket.send(JSON.stringify(wsData, bigIntReplacer));
+			} catch (error) {
+				incrementMetric(METRIC_NAMES.WEBSOCKET_MESSAGE_SEND_ERROR, {
+					tags: { type, mode: mode.value || "unknown" },
+				});
+				throw error;
+			}
+
+			const duration = performance.now() - startTime;
+			recordDistribution(
+				METRIC_NAMES.FRONTEND_MESSAGE_DURATION,
+				duration,
+				{
+					tags: { type, mode: mode.value || "unknown" },
+					unit: "ms",
+				},
+			);
+			incrementMetric(METRIC_NAMES.FRONTEND_MESSAGE_SENT, {
+				tags: { type, mode: mode.value || "unknown" },
+			});
 		} catch (error) {
 			logger.error("sendFrontendMessage error", error);
+			trackError(
+				error instanceof Error ? error : new Error(String(error)),
+				"frontend_message_error",
+				{
+					type,
+					mode: mode.value || "unknown",
+				},
+			);
+			incrementMetric(METRIC_NAMES.FRONTEND_MESSAGE_ERROR, {
+				tags: { type, mode: mode.value || "unknown" },
+			});
 			callback?.({ ok: false });
 		}
 	}

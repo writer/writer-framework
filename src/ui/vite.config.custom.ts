@@ -10,7 +10,9 @@ export default defineConfig({
 	includeWriterComponentPath: false,
 	define: {
 		WRITER_LIVE_CCT: JSON.stringify("yes"),
-		WRITER_FRAMEWORK_VERSION: JSON.stringify(process.env.WRITER_FRAMEWORK_VERSION || ""),
+		WRITER_FRAMEWORK_VERSION: JSON.stringify(
+			process.env.WRITER_FRAMEWORK_VERSION || "",
+		),
 	},
 	publicDir: false,
 	build: {
@@ -40,6 +42,7 @@ export default defineConfig({
 		},
 		outDir: "custom_components_dist",
 		emptyOutDir: true,
+		sourcemap: true, // Generate sourcemaps for LaunchDarkly error tracking
 	},
 	resolve: {
 		alias: {

@@ -1,33 +1,61 @@
 import { useLogger } from "./useLogger.js";
 import { useWriterApi } from "./useWriterApi.js";
-import type { Core } from "@/writerTypes";
+import type { ObservableCore } from "./useObservabilityMetric.js";
+import type { WriterAppConfig } from "@/writerTypes";
 
-export function useConfigJs(wf: Core) {
+function decodeConfig(appConfigRaw: WriterAppConfig | string): WriterAppConfig {
+	if (typeof appConfigRaw === "string") {
+		try {
+			return JSON.parse(atob(appConfigRaw));
+		} catch (err) {
+			throw new Error(`Failed to decode config: ${err}`);
+		}
+	}
+
+	return appConfigRaw;
+}
+
+export function useConfigJs(wf: ObservableCore) {
 	const logger = useLogger();
 
 	async function loadConfigJs(): Promise<void> {
-		if (!wf.isWriterCloudApp.value) {
-			logger.log("Skipping config.js load - not a Writer Cloud App");
+		if (typeof window !== "undefined" && window.__WRITER_APP_CONFIG__) {
+			const rawConfig = window.__WRITER_APP_CONFIG__;
+			if (typeof rawConfig === "string") {
+				try {
+					window.__WRITER_APP_CONFIG__ = decodeConfig(rawConfig);
+				} catch (err) {
+					logger.error("Failed to decode __WRITER_APP_CONFIG__", err);
+				}
+			}
 			return;
 		}
 
-		if (
-			typeof window !== "undefined" &&
-			(window as { __WRITER_APP_CONFIG__?: unknown })
-				.__WRITER_APP_CONFIG__
-		) {
+		const { writerApi } = useWriterApi();
+		const configJsContent = await writerApi.fetchConfigJs();
+
+		if (!configJsContent) {
+			if (wf.isWriterCloudApp.value) {
+				logger.warn("Failed to load config.js via WriterApi");
+			} else {
+				logger.log("config.js not available (not a Writer Cloud App)");
+			}
 			return;
 		}
 
-		try {
-			const { writerApi } = useWriterApi();
-			const configJsContent = await writerApi.fetchConfigJs();
+		const script = document.createElement("script");
+		script.textContent = configJsContent;
+		document.head.appendChild(script);
 
-			const script = document.createElement("script");
-			script.textContent = configJsContent;
-			document.head.appendChild(script);
-		} catch (err) {
-			logger.warn("Failed to load config.js via WriterApi ", err);
+		if (window.__WRITER_APP_CONFIG__) {
+			const rawConfig = window.__WRITER_APP_CONFIG__;
+			if (typeof rawConfig === "string") {
+				try {
+					window.__WRITER_APP_CONFIG__ = decodeConfig(rawConfig);
+				} catch (err) {
+					logger.error("Failed to decode __WRITER_APP_CONFIG__", err);
+				}
+			}
 		}
 	}
 

@@ -1,5 +1,7 @@
 import type { Component as VueComponent } from "vue";
 import { reactive } from "vue";
+import { isLDInitialized, getFlagValue } from "./launchDarklyClient";
+import { evaluateFlagWithOverride } from "@/utils/launchDarklyUtils";
 // Maps Writer Framework component types to renderable Vue components
 // content
 import CoreDataframe from "../components/core/content/CoreDataframe.vue";
@@ -27,6 +29,18 @@ export function setActiveFeatureFlags(flags: string[]) {
 
 function checkFlags(required?: string[]): boolean {
 	if (!required || required.length === 0) return true;
+
+	if (isLDInitialized()) {
+		return required.some((flag) =>
+			evaluateFlagWithOverride(
+				flag,
+				() => getFlagValue(flag, false),
+				false,
+				false,
+			),
+		);
+	}
+
 	return required.some((f) => activeFeatureFlags.includes(f));
 }
 
@@ -239,7 +253,8 @@ export function getSupportedComponentTypes() {
 		...Object.keys(abstractTemplateMap),
 	];
 	return allTypes.filter((t) => {
-		const required = (templateMap[t] as any)?.writer?.featureFlags as
+		const tmpl = getMergedAbstractTemplate(t) ?? templateMap[t];
+		const required = (tmpl as any)?.writer?.featureFlags as
 			| string[]
 			| undefined;
 		return checkFlags(required);

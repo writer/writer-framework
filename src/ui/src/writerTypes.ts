@@ -278,3 +278,29 @@ export type WriterModel = {
 	id: string;
 	name: string;
 };
+
+export interface WriterAppConfig {
+	APP_ROOT?: string;
+	API_URL?: string;
+	ANGULAR_REDIRECT?: string;
+	FIREBASE_DB_ID?: string;
+	FIREBASE_PROJECT_ID?: string;
+	FIREBASE_API_KEY?: string;
+	FIREBASE_MESSAGING_SENDER_ID?: string;
+	FIREBASE_APP_ID?: string;
+	RECAPTCHA_ENTERPRISE_KEY?: string;
+	APP_PLAYGROUND_URL?: string;
+	APP_EMBED_URL?: string;
+	REDIRECT_WHITELISTED_DOMAINS?: string[];
+	CANDU_TOKEN?: string;
+	STRIPE_KEY?: string;
+	DATADOG_APP_ID?: string;
+	DATADOG_CLIENT_TOKEN?: string;
+	GMT_KEY?: string;
+	GOOGLE_MAPS_KEY?: string;
+	CHROME_EXTENSION_ID?: string;
+	LAUNCH_DARKLY?: string;
+	PYLON_APP_ID?: string;
+	FULLSTORY_ORG_ID?: string;
+	CHAMELEON_API_KEY?: string;
+}
