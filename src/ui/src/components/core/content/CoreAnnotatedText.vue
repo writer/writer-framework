@@ -14,7 +14,7 @@
 				<span
 					v-if="Array.isArray(content)"
 					class="CoreAnnotatedText__annotation"
-					:style="{ backgroundColor: getAnnotationBgColor(content) }"
+					:style="getAnnotationStyle(content)"
 				>
 					{{ content[0] }}
 					<span
@@ -185,22 +185,28 @@ const markdown = useMarkdownRenderer();
 function generateColorCss(
 	baseColor: Color,
 	colorData: { h: number; s: number; l: number },
-) {
-	let genColor = baseColor
-		.set(
-			"hsl.h",
-			`${Math.sign(colorData.h) == -1 ? "-" : "+"}${Math.abs(colorData.h)}`,
-		)
-		.set(
-			"hsl.s",
-			`${Math.sign(colorData.s) == -1 ? "-" : "+"}${Math.abs(colorData.s / 100.0)}`,
-		)
-		.set(
-			"hsl.l",
-			`${Math.sign(colorData.l) == -1 ? "-" : "+"}${Math.abs(colorData.l / 100.0)}`,
-		);
+): string {
+	try {
+		let genColor = baseColor
+			.set(
+				"hsl.h",
+				`${Math.sign(colorData.h) == -1 ? "-" : "+"}${Math.abs(colorData.h)}`,
+			)
+			.set(
+				"hsl.s",
+				`${Math.sign(colorData.s) == -1 ? "-" : "+"}${Math.abs(colorData.s / 100.0)}`,
+			)
+			.set(
+				"hsl.l",
+				`${Math.sign(colorData.l) == -1 ? "-" : "+"}${Math.abs(colorData.l / 100.0)}`,
+			);
 
-	return genColor.css();
+		// Use rgb() format with commas for better browser compatibility
+		const cssColor = genColor.css("rgb");
+		return cssColor || fields.referenceColor.value || WdsColor.Blue5;
+	} catch (error) {
+		return fields.referenceColor.value || WdsColor.Blue5;
+	}
 }
 
 function calculateColorStep(s: string, stepsLength = COLOR_STEPS.length) {
@@ -213,16 +219,41 @@ function calculateColorStep(s: string, stepsLength = COLOR_STEPS.length) {
 	return step;
 }
 
-function getAnnotationBgColor(content: AnnotatedTextElementArray) {
-	return content[2] || generateColor(content[1]);
+function getAnnotationBgColor(content: AnnotatedTextElementArray): string {
+	try {
+		if (content[2] && typeof content[2] === "string" && content[2].trim()) {
+			return content[2];
+		}
+		if (content[1] && typeof content[1] === "string") {
+			const generatedColor = generateColor(content[1]);
+			if (generatedColor && typeof generatedColor === "string" && generatedColor.trim()) {
+				return generatedColor;
+			}
+		}
+	} catch (error) {
+		// Fall through to fallback
+	}
+	// Ensure we always return a valid color string
+	const fallbackColor = fields.referenceColor.value || WdsColor.Blue5 || "#0066cc";
+	return typeof fallbackColor === "string" ? fallbackColor : "#0066cc";
 }
 
-function generateColor(s: string) {
+function getAnnotationStyle(content: AnnotatedTextElementArray) {
+	const bgColor = getAnnotationBgColor(content);
+	// Always return a style object with backgroundColor to ensure Vue renders it
+	// Ensure the color is always a valid string
+	const finalColor = (bgColor && typeof bgColor === "string" && bgColor.trim()) 
+		? bgColor 
+		: (fields.referenceColor.value || WdsColor.Blue5 || "#0066cc");
+	return { backgroundColor: String(finalColor) };
+}
+
+function generateColor(s: string): string {
 	if (!fields.rotateHue.value) {
-		return fields.referenceColor.value;
+		return fields.referenceColor.value || WdsColor.Blue5;
 	}
 
-	const baseColor = chroma(fields.referenceColor.value);
+	const baseColor = chroma(fields.referenceColor.value || WdsColor.Blue5);
 
 	if (lastSeed !== fields.seed.value) {
 		currentSteps = [...COLOR_STEPS];
@@ -231,7 +262,8 @@ function generateColor(s: string) {
 	}
 
 	if (subjectColorCache[s]) {
-		return generateColorCss(baseColor, subjectColorCache[s]);
+		const cachedColor = generateColorCss(baseColor, subjectColorCache[s]);
+		return cachedColor || fields.referenceColor.value || WdsColor.Blue5;
 	}
 
 	// If we run out of colors, reset the list
@@ -245,7 +277,8 @@ function generateColor(s: string) {
 	subjectColorCache[s] = colorData;
 	currentSteps.splice(colorStep, 1);
 
-	return generateColorCss(baseColor, colorData);
+	const generatedColor = generateColorCss(baseColor, colorData);
+	return generatedColor || fields.referenceColor.value || WdsColor.Blue5;
 }
 
 const copyRawContent = computed(() => {
