@@ -24,4 +24,5 @@ self.MonacoEnvironment = {
 	},
 };
 
+// @ts-expect-error - Monaco TypeScript API may have changed in TypeScript 5.9
 monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);
