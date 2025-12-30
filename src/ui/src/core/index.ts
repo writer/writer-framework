@@ -109,7 +109,7 @@ export function generateCore() {
 				isWriterCloudApp: computed(() =>
 					Boolean(
 						writerApplication.value?.id ||
-							writerApplication.value?.organizationId,
+						writerApplication.value?.organizationId,
 					),
 				),
 			};
@@ -153,9 +153,8 @@ export function generateCore() {
 		try {
 			await observabilityMetric.initialize(sessionId);
 
-			const { setupFlagChangeListener } = await import(
-				"@/core/launchDarklyClient"
-			);
+			const { setupFlagChangeListener } =
+				await import("@/core/launchDarklyClient");
 			setupFlagChangeListener((activeFlags) => {
 				try {
 					featureFlags.value = activeFlags;

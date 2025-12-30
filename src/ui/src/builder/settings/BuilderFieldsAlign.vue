@@ -67,11 +67,11 @@ enum SubMode {
 	hleft = "start",
 	hcenter = "center",
 	hright = "end",
-	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
+
 	vtop = "start",
-	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
+
 	vcenter = "center",
-	// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
+
 	vbottom = "end",
 }
 

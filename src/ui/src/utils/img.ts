@@ -3,12 +3,15 @@ import type { ILogger } from "@/composables/useLogger";
 /**
  * Optimizes an image file by resizing and compressing it if it's larger than 2MB.
  * Falls back to the original file if optimization fails.
- * 
+ *
  * @param file - The image file to optimize
  * @param logger - Logger instance for debugging
  * @returns Promise that resolves to either the optimized file or the original file
  */
-export const optimizeImage = async (file: File, logger: ILogger): Promise<File> => {
+export const optimizeImage = async (
+	file: File,
+	logger: ILogger,
+): Promise<File> => {
 	// Only optimize if file is larger than 2MB
 	if (file.size <= 2 * 1024 * 1024) {
 		return file;
@@ -17,17 +20,19 @@ export const optimizeImage = async (file: File, logger: ILogger): Promise<File> 
 	return new Promise((resolve) => {
 		const canvas = document.createElement("canvas");
 		const ctx = canvas.getContext("2d");
-		
+
 		if (!ctx) {
-			logger.warn(`Canvas 2D context not available for image optimization: ${file.name}, using original`);
+			logger.warn(
+				`Canvas 2D context not available for image optimization: ${file.name}, using original`,
+			);
 			resolve(file);
 			return;
 		}
-		
+
 		const img = new Image();
 
 		const objectUrl = URL.createObjectURL(file);
-		
+
 		img.onload = () => {
 			// Calculate new dimensions (max 1920x1080)
 			const maxWidth = 1920;
@@ -45,10 +50,10 @@ export const optimizeImage = async (file: File, logger: ILogger): Promise<File> 
 
 			// Draw and compress
 			ctx.drawImage(img, 0, 0, width, height);
-			
+
 			// Clean up the object URL after use
 			URL.revokeObjectURL(objectUrl);
-			
+
 			canvas.toBlob(
 				(blob) => {
 					if (blob) {
@@ -57,7 +62,9 @@ export const optimizeImage = async (file: File, logger: ILogger): Promise<File> 
 						);
 					} else {
 						// Fall back to original file if compression fails
-						logger.warn(`Failed to compress image: ${file.name}, using original`);
+						logger.warn(
+							`Failed to compress image: ${file.name}, using original`,
+						);
 						resolve(file);
 					}
 				},
@@ -71,10 +78,12 @@ export const optimizeImage = async (file: File, logger: ILogger): Promise<File> 
 			URL.revokeObjectURL(objectUrl);
 			// Fall back to original file if image loading fails
 			// This allows the user to still send the image even if optimization fails
-			logger.warn(`Failed to optimize image: ${file.name}, using original`);
+			logger.warn(
+				`Failed to optimize image: ${file.name}, using original`,
+			);
 			resolve(file);
 		};
-		
+
 		img.src = objectUrl;
 	});
 };

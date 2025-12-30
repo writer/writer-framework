@@ -47,7 +47,8 @@ export function useDragDropComponent(wf: Core) {
 			draggedType: componentType,
 			draggedId: componentType === "blueprints_shared" ? "" : componentId,
 			// For blueprints_shared, componentId contains the sourceBlueprintId
-			sourceBlueprintId: componentType === "blueprints_shared" ? componentId : undefined,
+			sourceBlueprintId:
+				componentType === "blueprints_shared" ? componentId : undefined,
 		};
 	}
 
@@ -277,9 +278,7 @@ export function useDragDropComponent(wf: Core) {
 		if (rootEl.hasAttribute("data-writer-container")) {
 			return rootEl;
 		}
-		const containers = rootEl.querySelectorAll(
-			`[data-writer-container]`,
-		);
+		const containers = rootEl.querySelectorAll(`[data-writer-container]`);
 		for (let i = 0; i < containers.length; i++) {
 			const container = containers[i];
 

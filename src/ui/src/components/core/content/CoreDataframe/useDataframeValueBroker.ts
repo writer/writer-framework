@@ -19,17 +19,17 @@ export function useDataFrameValueBroker(
 
 	type Job =
 		| {
-			eventType: "wf-dataframe-add";
-			payload: Parameters<typeof handlerAddRow>;
-		}
+				eventType: "wf-dataframe-add";
+				payload: Parameters<typeof handlerAddRow>;
+		  }
 		| {
-			eventType: "wf-dataframe-update";
-			payload: Parameters<typeof handlerUpdateCell>;
-		}
+				eventType: "wf-dataframe-update";
+				payload: Parameters<typeof handlerUpdateCell>;
+		  }
 		| {
-			eventType: "wf-dataframe-action";
-			payload: Parameters<typeof handlerActionRow>;
-		};
+				eventType: "wf-dataframe-action";
+				payload: Parameters<typeof handlerActionRow>;
+		  };
 
 	const { push: pushJob, isBusy } = useJobs<Job>(handler);
 

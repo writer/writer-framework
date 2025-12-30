@@ -108,9 +108,8 @@ export async function initializeLaunchDarkly(
 			);
 		}
 
-		const sessionReplayModule = await import(
-			"@launchdarkly/session-replay"
-		);
+		const sessionReplayModule =
+			await import("@launchdarkly/session-replay");
 
 		const SessionReplay =
 			(
@@ -161,9 +160,8 @@ export async function initializeLaunchDarkly(
 		initializationError = null; // Clear error on successful initialization
 
 		try {
-			const { observabilityRegistry, flushMetricQueue } = await import(
-				"@/observability"
-			);
+			const { observabilityRegistry, flushMetricQueue } =
+				await import("@/observability");
 			await observabilityRegistry.initializeProvider("launchdarkly");
 			flushMetricQueue();
 		} catch (_e) {
@@ -173,9 +171,8 @@ export async function initializeLaunchDarkly(
 		ldClient.on("error", async (error) => {
 			logger.warn("LaunchDarkly SDK error", error);
 			try {
-				const { observabilityRegistry } = await import(
-					"@/observability"
-				);
+				const { observabilityRegistry } =
+					await import("@/observability");
 				const provider = observabilityRegistry.getInitializedProvider();
 				if (provider?.captureException) {
 					const errorObj =
@@ -205,9 +202,8 @@ export async function initializeLaunchDarkly(
 				context?: Record<string, unknown>,
 			) => {
 				try {
-					const { observabilityRegistry } = await import(
-						"@/observability"
-					);
+					const { observabilityRegistry } =
+						await import("@/observability");
 					const provider =
 						observabilityRegistry.getInitializedProvider();
 					if (provider?.captureException) {
