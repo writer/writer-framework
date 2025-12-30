@@ -19,17 +19,18 @@
 				:key="section.key"
 				class="section"
 			>
-				<div class="section__header">
-					<span class="section__title">{{ section.title }}</span>
-					<WdsButton
-						variant="neutral"
-						size="smallIcon"
-						:data-automation-action="section.addAction"
-						@click="section.onAdd"
-					>
-						<WdsIcon name="plus" />
-					</WdsButton>
-				</div>
+			<div class="section__header">
+				<span class="section__title">{{ section.title }}</span>
+				<WdsButton
+					v-if="section.showAddButton"
+					variant="neutral"
+					size="smallIcon"
+					:data-automation-action="section.addAction"
+					@click="section.onAdd"
+				>
+					<WdsIcon name="plus" />
+				</WdsButton>
+			</div>
 				<div class="section__content">
 					<BuilderSidebarComponentTreeBranch
 						v-for="blueprint in section.items"
@@ -59,16 +60,16 @@
 					<WdsIcon name="plus" />
 					Add page
 				</WdsButton>
-				<WdsButton
-					v-if="rootComponentId == 'blueprints_root'"
-					variant="special"
-					size="small"
-					data-automation-action="add-blueprint-footer"
-					@click="addBlueprint"
-				>
-					<WdsIcon name="plus" />
-					Add blueprint
-				</WdsButton>
+			<WdsButton
+				v-if="rootComponentId == 'blueprints_root'"
+				variant="special"
+				size="small"
+				data-automation-action="add-blueprint-footer"
+				@click="addBlueprint"
+			>
+				<WdsIcon name="plus" />
+				Add blueprint
+			</WdsButton>
 			</div>
 		</template>
 	</BuilderSidebarPanel>
@@ -120,6 +121,10 @@ const sharedBlueprintItems = computed(() => {
 	return allBlueprints.value.filter((c) => isSharedBlueprint(c));
 });
 
+const isSharedBlueprintsEnabled = computed(() =>
+	wf.featureFlags.value?.includes("shared_blueprints"),
+);
+
 const blueprintSections = computed(() => {
 	const sections = [
 		{
@@ -129,10 +134,11 @@ const blueprintSections = computed(() => {
 			addAction: "add-blueprint",
 			onAdd: addBlueprint,
 			emptyText: "No blueprints yet",
+			showAddButton: isSharedBlueprintsEnabled.value,
 		},
 	];
 
-	if (wf.featureFlags.value?.includes("shared_blueprints")) {
+	if (isSharedBlueprintsEnabled.value) {
 		sections.push({
 			key: "shared-blueprints",
 			title: "Shared Blueprints",
@@ -140,6 +146,7 @@ const blueprintSections = computed(() => {
 			addAction: "add-shared-blueprint",
 			onAdd: addSharedBlueprint,
 			emptyText: "No shared blueprints yet",
+			showAddButton: true,
 		});
 	}
 
