@@ -4,6 +4,7 @@
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/png" href="./static/favicon.png?2" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="color-scheme" content="light" />
 		<title>Writer</title>
 		<!-- {{ meta }} -->
 		<!-- {{ opengraph_tags }} -->
@@ -17,8 +18,23 @@
 				-webkit-font-smoothing: antialiased;
 			}
 
+			html {
+				color-scheme: light;
+			}
+
 			body {
 				font-size: 13px;
+				background-color: #ffffff;
+				color: #000000;
+				/* Prevent layout shift during font loading */
+				font-family: Poppins, "Helvetica Neue", "Lucida Grande", sans-serif;
+			}
+
+			/* Ensure form elements don't switch to dark mode */
+			textarea, input {
+				color-scheme: light;
+				background-color: #ffffff;
+				color: #000000;
 			}
 
 			#app {

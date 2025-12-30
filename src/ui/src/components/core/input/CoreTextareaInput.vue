@@ -122,6 +122,7 @@ textarea {
 	width: 100%;
 	margin: 0;
 	border: 1px solid var(--separatorColor);
+	background: var(--wdsColorWhite);
 	border-radius: 8px;
 	padding: 8.5px 12px 8.5px 12px;
 	font-size: 0.875rem;

@@ -222,6 +222,10 @@ function changeActivePane(value: Pane | undefined) {
 	display: grid;
 	grid-template-columns: 48px;
 	grid-template-rows: 100%;
+	width: 100%;
+	max-width: 288px;
+	min-width: 0;
+	overflow: hidden;
 }
 .BuilderSidebar:has(.BuilderSidebar__pane) {
 	grid-template-columns: 48px 240px;
@@ -268,6 +272,11 @@ function changeActivePane(value: Pane | undefined) {
 	height: 100%;
 	display: grid;
 	grid-template-rows: auto 1fr;
+	background: var(--wdsColorWhite);
+	width: 240px;
+	min-width: 0;
+	max-width: 240px;
+	overflow: hidden;
 }
 .BuilderSidebar__pane__header {
 	padding: 16px 16px 0 16px;

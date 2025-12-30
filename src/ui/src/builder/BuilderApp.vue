@@ -536,9 +536,10 @@ onUnmounted(() => {
 .mainGrid {
 	width: 100vw;
 	height: 100vh;
-	grid-template-columns: auto 1fr;
+	grid-template-columns: auto minmax(0, 1fr);
 	grid-template-rows: var(--builderTopBarHeight) minmax(0, 1fr);
 	display: grid;
+	overflow: hidden;
 }
 
 .builderHeader {
@@ -549,9 +550,18 @@ onUnmounted(() => {
 
 .sidebar {
 	grid-column: 1 / 2;
-	grid-row: 2 / 5;
+	grid-row: 2 / 3;
 	min-height: 0;
-	border-right: 1px solid var(--builderAreaSeparatorColor);
+	min-width: 48px;
+	max-width: 288px;
+	width: fit-content;
+	padding: 0;
+	border-radius: 0;
+	border-left: none;
+	border-top: none;
+	border-bottom: none;
+	border-right: 1px solid var(--builderIntenseSeparatorColor);
+	overflow: hidden;
 }
 
 .builderMain {
@@ -561,8 +571,18 @@ onUnmounted(() => {
 	height: 100%;
 }
 
-.mainGrid--fullWidth {
-	grid-column: 1 / -1;
+.builderMainWrapper {
+	grid-column: 2 / 3;
+	grid-row: 2 / 3;
+	min-width: 0;
+	min-height: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+.builderMainWrapper--fullWidth {
+	grid-column: 1 / -1 !important;
 }
 
 .rendererWrapper {
@@ -591,11 +611,6 @@ onUnmounted(() => {
 
 .componentRenderer.settingsOpen {
 	--notificationsDisplacement: calc(var(--builderSettingsWidth) + 24px);
-}
-
-.panelSwitcher {
-	grid-column: 2 / 3;
-	grid-row: 3;
 }
 
 .collaborationTracker,
