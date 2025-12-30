@@ -23,7 +23,7 @@ If the user gets off bounds by MAX_DISTANCE_FROM_CANDIDATE_PX, the candidacy is 
 
 const MAX_DISTANCE_FROM_CANDIDATE_PX = 30;
 const dragDropMimeRegex =
-	/^application\/json;writer=(?<componentType>\w+),(?<componentId>[\w\-]*)$/;
+	/^application\/json;writer=(?<componentType>\w+),(?<componentId>[\w-]*)$/;
 const candidateId: Ref<Component["id"]> = ref(null);
 const candidateInstancePath: Ref<string> = ref(null);
 const isCandidacyConfirmed: Ref<boolean> = ref(false);
