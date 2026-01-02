@@ -571,20 +571,6 @@ onUnmounted(() => {
 	height: 100%;
 }
 
-.builderMainWrapper {
-	grid-column: 2 / 3;
-	grid-row: 2 / 3;
-	min-width: 0;
-	min-height: 0;
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
-}
-
-.builderMainWrapper--fullWidth {
-	grid-column: 1 / -1 !important;
-}
-
 .rendererWrapper {
 	display: flex;
 	flex-direction: column;
