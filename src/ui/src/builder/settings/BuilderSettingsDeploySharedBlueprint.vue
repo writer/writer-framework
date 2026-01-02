@@ -23,9 +23,18 @@
 					class="DeploySharedBlueprint__textarea"
 					:class="{
 						'DeploySharedBlueprint__textarea--error':
-							errors.description,
+							errors.description || isDescriptionOverLimit,
 					}"
 				/>
+				<div
+					class="DeploySharedBlueprint__charCounter"
+					:class="{
+						'DeploySharedBlueprint__charCounter--error':
+							isDescriptionOverLimit,
+					}"
+				>
+					{{ descriptionLength }}/{{ DESCRIPTION_MAX_LENGTH }}
+				</div>
 			</WdsFieldWrapper>
 
 			<div
@@ -67,6 +76,8 @@ const props = defineProps<{
 	blueprintId: string;
 }>();
 
+const DESCRIPTION_MAX_LENGTH = 8192;
+
 const isOpen = defineModel({ type: Boolean });
 
 const wf = inject(injectionKeys.core);
@@ -105,6 +116,11 @@ const errors = shallowRef<Record<string, string>>({});
 const isDeploying = ref(false);
 const prUrl = ref<string | null>(null);
 
+const descriptionLength = computed(() => form.value.description.length);
+const isDescriptionOverLimit = computed(
+	() => descriptionLength.value > DESCRIPTION_MAX_LENGTH,
+);
+
 function validateForm(): boolean {
 	const newErrors: Record<string, string> = {};
 
@@ -113,6 +129,8 @@ function validateForm(): boolean {
 	}
 	if (!form.value.description.trim()) {
 		newErrors.description = "Description is required";
+	} else if (isDescriptionOverLimit.value) {
+		newErrors.description = `Description must be ${DESCRIPTION_MAX_LENGTH} characters or less`;
 	}
 
 	errors.value = newErrors;
@@ -257,7 +275,7 @@ const modalActions = computed<ModalAction[]>(() => {
 		{
 			desc: isDeploying.value ? publishingText : publishText,
 			fn: handleDeploy,
-			disabled: isDeploying.value,
+			disabled: isDeploying.value || isDescriptionOverLimit.value,
 		},
 	];
 });
@@ -296,6 +314,17 @@ watch(isOpen, (newValue) => {
 
 .DeploySharedBlueprint__textarea--error {
 	border-color: var(--builderErrorColor);
+}
+
+.DeploySharedBlueprint__charCounter {
+	font-size: 12px;
+	color: var(--builderSecondaryTextColor);
+	text-align: right;
+	margin-top: 4px;
+}
+
+.DeploySharedBlueprint__charCounter--error {
+	color: var(--builderErrorColor);
 }
 
 .DeploySharedBlueprint__globalOption {
