@@ -28,6 +28,7 @@ from writer.core import (
     EventHandlerRegistry,
     MiddlewareRegistry,
     WriterSession,
+    base_component_tree,
     use_request_context,
 )
 from writer.core_ui import ingest_bmc_component_tree
@@ -164,6 +165,8 @@ class AppProcess(multiprocessing.Process):
             session = writer.session_manager.get_new_session(
                 payload.cookies, payload.headers, payload.proposedSessionId
             )
+        else:
+            session.session_component_tree = core_ui.build_session_component_tree(base_component_tree)
 
         if session is None:
             raise MessageHandlingException("Session rejected.")
