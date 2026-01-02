@@ -271,7 +271,12 @@ function getRelevantToolsInCategory(categoryId: string) {
 		});
 		const q = query.value.toLocaleLowerCase();
 		const queryApplied = enriched
-			.filter((tool) => !q || tool.name.toLocaleLowerCase().includes(q))
+			.filter(
+				(tool) =>
+					!q ||
+					tool.name.toLocaleLowerCase().includes(q) ||
+					tool.description.toLocaleLowerCase().includes(q),
+			)
 			.sort((a, b) =>
 				a.name.localeCompare(b.name, undefined, {
 					sensitivity: "base",
@@ -302,7 +307,12 @@ function getRelevantToolsInCategory(categoryId: string) {
 	});
 	const q = query.value.toLocaleLowerCase();
 	const queryApplied = enriched
-		.filter((tool) => !q || tool.name.toLocaleLowerCase().includes(q))
+		.filter(
+			(tool) =>
+				!q ||
+				tool.name.toLocaleLowerCase().includes(q) ||
+				tool.description.toLocaleLowerCase().includes(q),
+		)
 		.sort((a, b) =>
 			a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
 		);
