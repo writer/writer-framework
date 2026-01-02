@@ -19,18 +19,18 @@
 				:key="section.key"
 				class="section"
 			>
-			<div class="section__header">
-				<span class="section__title">{{ section.title }}</span>
-				<WdsButton
-					v-if="section.showAddButton"
-					variant="neutral"
-					size="smallIcon"
-					:data-automation-action="section.addAction"
-					@click="section.onAdd"
-				>
-					<WdsIcon name="plus" />
-				</WdsButton>
-			</div>
+				<div class="section__header">
+					<span class="section__title">{{ section.title }}</span>
+					<WdsButton
+						v-if="section.showAddButton"
+						variant="neutral"
+						size="smallIcon"
+						:data-automation-action="section.addAction"
+						@click="section.onAdd"
+					>
+						<WdsIcon name="plus" />
+					</WdsButton>
+				</div>
 				<div class="section__content">
 					<BuilderSidebarComponentTreeBranch
 						v-for="blueprint in section.items"
@@ -60,16 +60,16 @@
 					<WdsIcon name="plus" />
 					Add page
 				</WdsButton>
-			<WdsButton
-				v-if="rootComponentId == 'blueprints_root'"
-				variant="special"
-				size="small"
-				data-automation-action="add-blueprint-footer"
-				@click="addBlueprint"
-			>
-				<WdsIcon name="plus" />
-				Add blueprint
-			</WdsButton>
+				<WdsButton
+					v-if="rootComponentId == 'blueprints_root'"
+					variant="special"
+					size="small"
+					data-automation-action="add-blueprint-footer"
+					@click="addBlueprint"
+				>
+					<WdsIcon name="plus" />
+					Add blueprint
+				</WdsButton>
 			</div>
 		</template>
 	</BuilderSidebarPanel>
