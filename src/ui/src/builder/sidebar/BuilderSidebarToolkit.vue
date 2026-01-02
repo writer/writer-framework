@@ -283,7 +283,7 @@ function getRelevantToolsInCategory(categoryId: string) {
 
 	const typeList = getSupportedComponentTypes().filter((type) => {
 		const def = getComponentDefinition(type);
-		if (type.startsWith("shared_")) return false;
+		if (type === "blueprints_shared") return false;
 		if (def.category != categoryId) return false;
 		if (!def.toolkit && activeToolkit.value !== "core") return false;
 		if (def.toolkit && def.toolkit !== activeToolkit.value) return false;
