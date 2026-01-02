@@ -39,11 +39,6 @@
 					v-for="tool in tools"
 					:key="tool.type"
 					class="tool"
-					:class="{
-						'tool--shared':
-							categoryId === 'Shared Blueprints' &&
-							isSharedBlueprintsEnabled,
-					}"
 					:data-writer-tooltip="tool.description"
 					data-writer-tooltip-placement="right"
 					data-writer-tooltip-gap="8"
@@ -58,33 +53,15 @@
 						)
 					"
 				>
-					<SharedImgWithFallback
-						:alt="`(Icon for ${tool.name})`"
-						draggable="false"
-						:urls="getToolIcons(tool)"
-						:loader-max-width-px="18"
-						:loader-max-height-px="18"
-					/>
-					<div class="name">{{ tool.name }}</div>
-					<button
-						v-if="
-							categoryId === 'Shared Blueprints' &&
-							isSharedBlueprintsEnabled &&
-							tool.sourceBlueprintId
-						"
-						class="tool__delete"
-						:data-writer-tooltip="`Delete ${tool.name}`"
-						data-writer-tooltip-placement="right"
-						@click.stop="
-							handleDeleteSharedBlueprint(
-								tool.sourceBlueprintId,
-								tool.name,
-							)
-						"
-					>
-						<WdsIcon name="trash" />
-					</button>
-				</div>
+				<SharedImgWithFallback
+					:alt="`(Icon for ${tool.name})`"
+					draggable="false"
+					:urls="getToolIcons(tool)"
+					:loader-max-width-px="18"
+					:loader-max-height-px="18"
+				/>
+				<div class="name">{{ tool.name }}</div>
+			</div>
 			</div>
 		</div>
 
@@ -122,17 +99,12 @@ import { useDragDropComponent } from "../useDragDropComponent";
 import { Component } from "@/writerTypes";
 import SharedImgWithFallback from "@/components/shared/SharedImgWithFallback.vue";
 import { convertAbsolutePathtoFullURL } from "@/utils/url";
-import { useToasts } from "../useToast";
-import { useComponentActions } from "../useComponentActions";
-import { useWriterTracking } from "@/composables/useWriterTracking";
 import { isSharedBlueprint } from "@/utils/sharedBlueprint";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 
 const BuilderBlueprintLibraryPanel = defineAsyncComponentWithLoader({
 	loader: () => import("../panels/BuilderBlueprintLibraryPanel.vue"),
 });
-
-const { pushToast } = useToasts();
 
 const isAutogenModalShown = inject(
 	injectionKeys.isAutogenModalShown,
@@ -149,8 +121,6 @@ function showBlueprintLibrary() {
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-const tracking = useWriterTracking(wf);
-const { removeComponentsSubtree } = useComponentActions(wf, wfbm, tracking);
 const { removeInsertionCandidacy } = useDragDropComponent(wf);
 const query = ref("");
 
@@ -298,7 +268,13 @@ function getRelevantToolsInCategory(categoryId: string) {
 	});
 	const enriched = typeList.map((type) => {
 		const { name, description, category } = getComponentDefinition(type);
-		return { type, name, description, category: category ?? "Other" };
+		return {
+			type,
+			name,
+			description,
+			category: category ?? "Other",
+			sourceBlueprintId: undefined as string | undefined,
+		};
 	});
 	const q = query.value.toLocaleLowerCase();
 	const queryApplied = enriched
@@ -338,33 +314,6 @@ function getToolIcons(tool: ReturnType<typeof getRelevantToolsInCategory>[0]) {
 		`/components/${tool.type}.svg`,
 		`/components/${activeToolkit.value == "blueprints" ? "blueprints_" : ""}category_${tool.category}.svg`,
 	].map((p) => convertAbsolutePathtoFullURL(p));
-}
-
-function handleDeleteSharedBlueprint(
-	blueprintId: string,
-	blueprintName: string,
-) {
-	if (
-		!confirm(
-			`Are you sure you want to delete the shared blueprint "${blueprintName}"?`,
-		)
-	) {
-		return;
-	}
-
-	try {
-		// Use removeComponentsSubtree for proper cleanup of dependencies and connections
-		removeComponentsSubtree(blueprintId);
-		pushToast({
-			type: "success",
-			message: `Shared blueprint '${blueprintName}' deleted.`,
-		});
-	} catch (error) {
-		pushToast({
-			type: "error",
-			message: `Failed to delete shared blueprint: ${error instanceof Error ? error.message : String(error)}`,
-		});
-	}
 }
 
 watch(activeToolkit, () => {
@@ -440,17 +389,13 @@ watch(activeToolkit, () => {
 
 .tool {
 	display: grid;
-	grid-template-columns: 18px 1fr auto;
+	grid-template-columns: 18px 1fr;
 	grid-template-rows: 1fr;
 	column-gap: 8px;
 	padding: 8px;
 	border-radius: 4px;
 	cursor: grab;
 	position: relative;
-}
-
-.tool--shared {
-	grid-template-columns: 18px 1fr auto;
 }
 
 .tool img {
@@ -461,38 +406,6 @@ watch(activeToolkit, () => {
 
 .tool:hover {
 	background: var(--builderSubtleSeparatorColor);
-}
-
-.tool__delete {
-	display: none;
-	align-items: center;
-	justify-content: center;
-	width: 20px;
-	height: 20px;
-	padding: 0;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--builderSecondaryTextColor);
-	border-radius: 4px;
-	opacity: 0.6;
-	transition:
-		opacity 0.2s,
-		background 0.2s;
-}
-
-.tool--shared:hover .tool__delete {
-	display: flex;
-}
-
-.tool__delete:hover {
-	opacity: 1;
-	background: var(--builderSubtleSeparatorColor);
-	color: var(--builderErrorColor);
-}
-
-.tool__delete:active {
-	opacity: 0.8;
 }
 
 .BuilderSidebarPanel__footer__actions {
