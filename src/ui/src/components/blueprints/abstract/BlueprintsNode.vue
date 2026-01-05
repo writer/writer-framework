@@ -11,6 +11,7 @@
 			'BlueprintsNode--stopped': completionStyle == 'stopped',
 			'BlueprintsNode--error': completionStyle == 'error',
 		}"
+		@dblclick="handleDoubleClick"
 	>
 		<div
 			v-if="isIntelligent && completionStyle === null"
@@ -110,6 +111,7 @@
 				/>
 				<BlueprintsNodeActions
 					:show-display-error-option="canDisplayErrorOut"
+					:show-open-editor-option="isCodeComponent"
 					@show-error="forceDisplayErrorOut = true"
 				/>
 			</div>
@@ -137,7 +139,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { FieldType, WriterComponentDefinition } from "@/writerTypes";
 import BlueprintsNodeNamer from "../base/BlueprintsNodeNamer.vue";
@@ -151,11 +153,15 @@ import BlueprintsNodeLogs from "./BlueprintsNodeLogs.vue";
 import BlueprintsNodeTools from "./BlueprintsNodeTools.vue";
 import { useBlueprintNodeTools } from "@/composables/useBlueprintNodeTools";
 import { getSourceBlueprintName } from "@/builder/useComponentDescription";
+import { useToasts } from "@/builder/useToast";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const emit = defineEmits(["outMousedown", "engaged"]);
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
-const { removeOut } = useComponentActions(wf, wfbm);
+const { removeOut, goToComponentParentPage } = useComponentActions(wf, wfbm);
+const { pushToast } = useToasts();
+const tracking = useWriterTracking(wf);
 const componentId = inject(injectionKeys.componentId);
 const fields = inject(injectionKeys.evaluatedFields);
 
@@ -172,6 +178,10 @@ const isDeprecated = computed(() => {
 });
 
 const { component, definition: def } = useComponentInformation(wf, componentId);
+
+const isCodeComponent = computed(() => {
+	return component.value?.type === "blueprints_code";
+});
 
 const displayName = computed(() => {
 	if (!component.value) return "Unknown";
@@ -410,6 +420,44 @@ const possibleImageUrls = computed(() => {
 
 	return paths.map((p) => convertAbsolutePathtoFullURL(p));
 });
+
+async function handleDoubleClick(ev: MouseEvent) {
+	if (
+		component.value.type === "blueprints_code" ||
+		component.value.type === "blueprints_setstate" ||
+		component.value.type === "blueprints_returnvalue" ||
+		component.value.type === "blueprints_logmessage"
+	) {
+		const isSelected = wfbm.isComponentIdSelected(componentId);
+		if (isSelected) {
+			// Expand the code editor
+			wfbm.expandedEditorForComponent.value = componentId;
+			tracking.track(
+				isCodeComponent.value
+					? "dbl_click_for_code_editor_opened"
+					: "dbl_click_for_value_opened",
+			);
+		}
+	} else if (component.value.type === "blueprints_runblueprint") {
+		const bpKey = component.value.content?.blueprintKey ?? "";
+		if (!bpKey) return;
+
+		const blueprint = wf
+			.getComponents("blueprints_root")
+			.find((page) => page.content.key === bpKey);
+
+		if (!blueprint) return;
+		goToComponentParentPage(blueprint.id);
+		await nextTick();
+		wfbm.handleSelectionFromEvent(ev, blueprint.id, undefined, "tree");
+
+		pushToast({
+			type: "success",
+			message: `Navigated to ${blueprint.content.key} blueprint`,
+		});
+		tracking.track("dbl_click_for_blueprint_navigated");
+	}
+}
 
 function openLogs() {
 	const item = latestKnownOutcomes.value.at(-1);

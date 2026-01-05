@@ -115,6 +115,19 @@ onMounted(() => {
 		emit("update:modelValue", newCode);
 	});
 	resizeObserver.observe(rootEl.value);
+
+	// when in modal, focus the editor and set the cursor to the last line
+	if (props.variant === "half-screen") {
+		editor.focus();
+		editor.setPosition({
+			lineNumber: editor.getModel().getLineCount(),
+			column: editor
+				.getModel()
+				.getLineLastNonWhitespaceColumn(
+					editor.getModel().getLineCount(),
+				),
+		});
+	}
 });
 
 function updateDimensions() {

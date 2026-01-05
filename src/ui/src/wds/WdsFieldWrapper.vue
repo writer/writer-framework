@@ -1,9 +1,9 @@
 <template>
 	<div class="WdsFieldWrapper colorTransformer">
 		<template v-if="isExpanded">
-			<WdsModal :actions="[OkAction]" :description="hint" :title="label"
-				><slot></slot
-			></WdsModal>
+			<WdsModal :actions="[OkAction]" :description="hint" :title="label">
+				<slot></slot>
+			</WdsModal>
 			<div class="temporaryMissingBar">
 				Field <strong>{{ label }}</strong> is open in a new window.
 			</div>
@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import WdsButton from "./WdsButton.vue";
 import WdsIcon from "./WdsIcon.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
@@ -81,13 +81,14 @@ const isBindingEnabled = defineModel("isBindingEnabled", {
 	default: false,
 });
 
-defineProps({
+const props = defineProps({
 	label: { type: String, required: false, default: undefined },
 	unit: { type: String, required: false, default: undefined },
 	hint: { type: String, required: false, default: undefined },
 	error: { type: String, required: false, default: undefined },
 	isExpansible: { type: Boolean, required: false, default: false },
 	isBindingButtonShown: { type: Boolean, required: false, default: false },
+	shouldExpand: { type: Boolean, required: false, default: false },
 	helpButton: {
 		type: [String, Boolean],
 		required: false,
@@ -107,6 +108,16 @@ function handleExpansion() {
 	emits("expand");
 	isExpanded.value = true;
 }
+
+// Watch for external control of expansion
+watch(
+	() => props.shouldExpand,
+	(newVal) => {
+		if (newVal && !isExpanded.value) {
+			handleExpansion();
+		}
+	},
+);
 
 const OkAction: ModalAction = {
 	desc: "OK",

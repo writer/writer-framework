@@ -155,14 +155,39 @@ async function addPage() {
 }
 
 async function addBlueprint() {
+	const key = getNewBlueprintKey();
+
 	const pageId = createAndInsertComponent(
 		"blueprints_blueprint",
 		"blueprints_root",
+		undefined,
+		key
+			? {
+					content: {
+						key,
+					},
+				}
+			: undefined,
 	);
-	wf.setActivePageId(pageId);
+
 	await nextTick();
+	wf.setActivePageId(pageId);
 	wfbm.setSelection(pageId);
 	tracking.track("blueprints_new_added");
+}
+
+function getNewBlueprintKey() {
+	const existingKeys = allBlueprints.value
+		.map((bp) => bp.content?.key)
+		.filter((key) => key?.startsWith("BLUEPRINT_"))
+		.map((key) => Number.parseInt(key.replace("BLUEPRINT_", ""), 10))
+		.filter((num) => !Number.isNaN(num));
+
+	const maxIndex =
+		existingKeys.length > 0
+			? Math.max(...existingKeys)
+			: allBlueprints.value.length + 10;
+	return `BLUEPRINT_${maxIndex + 1}`;
 }
 
 async function addSharedBlueprint() {

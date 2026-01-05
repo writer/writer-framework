@@ -270,6 +270,7 @@ const notes = computed(() =>
 async function handleKeydown(ev: KeyboardEvent) {
 	if (ev.key === "Escape") {
 		ssbm.setSelection(null);
+		ssbm.expandedEditorForComponent.value = null;
 		return;
 	}
 

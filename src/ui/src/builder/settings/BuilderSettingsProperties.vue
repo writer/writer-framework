@@ -90,6 +90,7 @@
 					:unit="fieldValue.type"
 					:error="errorsByFields[fieldKey]"
 					:is-expansible="isExpansible(fieldValue)"
+					:should-expand="isExpansible(fieldValue) && isFieldExpanded"
 					@expand="handleExpand(fieldKey)"
 					@shrink="handleShrink(fieldKey)"
 				>
@@ -288,6 +289,12 @@ const secretsManager = inject(injectionKeys.secretsManager);
 
 const expandedFields = ref(new Set());
 
+const isFieldExpanded = computed(() => {
+	return (
+		ssbm.expandedEditorForComponent.value === selectedComponent.value?.id
+	);
+});
+
 const selectedInstancePath = computed<InstancePath>(() =>
 	parseInstancePathString(ssbm.firstSelectedItem?.value?.instancePath),
 );
@@ -392,10 +399,12 @@ function sortByOrder(fieldEntries: FieldEntry[]): FieldEntry[] {
 }
 
 function handleExpand(fieldKey: string) {
+	ssbm.expandedEditorForComponent.value = selectedComponent.value?.id ?? null;
 	expandedFields.value.add(fieldKey);
 }
 
 function handleShrink(fieldKey: string) {
+	ssbm.expandedEditorForComponent.value = null;
 	expandedFields.value.delete(fieldKey);
 }
 </script>

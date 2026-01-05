@@ -41,7 +41,11 @@ type WriterTrackingEventName =
 	| "blueprints_block_output_copied"
 	| "blueprints_shared_added"
 	| "blueprints_shared_published"
-	| "blueprints_shared_installed";
+	| "blueprints_shared_installed"
+	| "dbl_click_for_code_editor_opened"
+	| "dbl_click_for_value_opened"
+	| "button_click_for_code_editor_opened"
+	| "dbl_click_for_blueprint_navigated";
 
 type EventProperties = {
 	[key: string]: unknown;

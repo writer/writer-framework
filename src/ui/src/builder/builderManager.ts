@@ -414,18 +414,18 @@ export function generateBuilderManager() {
 
 	const activeBlueprintRunId = computed(() => {
 		const logEntries = getLogEntries();
-		const runId =
-			logEntries.find((entry) => {
-				return !!entry.blueprintExecution;
-			})?.blueprintExecution?.runId;
+		const runId = logEntries.find((entry) => {
+			return !!entry.blueprintExecution;
+		})?.blueprintExecution?.runId;
 		if (!runId) return null;
 		const isActive = Boolean(
-			logEntries
-				.filter((entry) => {
-					return entry?.blueprintExecution?.runId === runId
-						&& !entry?.blueprintExecution?.exit;
-				})?.[0]
-		)
+			logEntries.filter((entry) => {
+				return (
+					entry?.blueprintExecution?.runId === runId &&
+					!entry?.blueprintExecution?.exit
+				);
+			})?.[0],
+		);
 		return isActive ? runId : null;
 	});
 
@@ -435,6 +435,7 @@ export function generateBuilderManager() {
 		mode,
 		activeRootId,
 		openPanels: ref(new Set<"code" | "log">()),
+		expandedEditorForComponent: ref<string | null>(null),
 		isSettingsBarCollapsed: ref(false),
 		isComponentIdSelected,
 		selectionStatus,
