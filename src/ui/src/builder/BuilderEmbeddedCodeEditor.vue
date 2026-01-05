@@ -19,15 +19,18 @@ import {
 	onMounted,
 	onUnmounted,
 	PropType,
+	ref,
 	toRefs,
 	useTemplateRef,
 	watch,
 } from "vue";
+import { useMonacopilot } from "../composables/useMonacopilot";
 
 const rootEl = useTemplateRef("rootEl");
 const editorContainerEl = useTemplateRef("editorContainerEl");
 const resizeObserver = new ResizeObserver(updateDimensions);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
+let monacopilotCleanup: (() => void) | null = null;
 
 type EditorVariant = "full" | "minimal" | "half-screen" | "single-line";
 
@@ -116,6 +119,13 @@ onMounted(() => {
 	});
 	resizeObserver.observe(rootEl.value);
 
+	// Register AI-powered code completions
+	try {
+		monacopilotCleanup = useMonacopilot(monaco, editor, props.language);
+	} catch (error) {
+		console.error("Failed to initialize monacopilot:", error);
+	}
+
 	// when in modal, focus the editor and set the cursor to the last line
 	if (props.variant === "half-screen") {
 		editor.focus();
@@ -135,6 +145,10 @@ function updateDimensions() {
 }
 
 onUnmounted(() => {
+	// Clean up monacopilot registration
+	if (monacopilotCleanup) {
+		monacopilotCleanup();
+	}
 	editor.dispose();
 	resizeObserver.disconnect();
 });

@@ -42,6 +42,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from writer import VERSION, abstract
 from writer.ai import Graph
+from writer.ai.code_completion import get_completion_handler
 from writer.app_runner import AppRunner
 from writer.ss_types import (
     AppProcessServerResponse,
@@ -324,6 +325,26 @@ def get_asgi_app(
         await asyncio.gather(*(delete_key(key) for key in requestBody.keys))
 
         return None
+
+    @app.post("/api/code-completion")
+    async def code_completion(request: Request):
+        """
+        Handles AI-powered code completion requests from monacopilot.
+        
+        Requires environment variables:
+        - WRITER_COPILOT_ENABLED: Set to "true" to enable
+        - ANTHROPIC_API_KEY: API key for Claude
+        """
+        try:
+            request_body = await request.json()
+            print("request_body", request_body)
+            handler = get_completion_handler()
+            result = await handler.get_completion(request_body)
+            return JSONResponse(content=result)
+        except Exception as e:
+            logging.error(f"Error in code completion endpoint: {e}")
+            # Return empty completion on error
+            return JSONResponse(content={"completion": ""})
 
     @app.post("/api/init")
     async def init(
