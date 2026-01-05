@@ -128,6 +128,10 @@ function handleNameChange(newName: string) {
 
 async function handleDeploy() {
 	if (!validateForm()) {
+		pushToast({
+			type: "error",
+			message: "Please fill in all required fields",
+		});
 		return;
 	}
 
