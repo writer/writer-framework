@@ -132,6 +132,7 @@ const blueprints = ref<
 	}>
 >([]);
 const isLoading = ref(false);
+const hasLoadedOnce = ref(false);
 
 const globalBlueprints = computed(() =>
 	blueprints.value.filter((bp) => bp.isReadonly === true),
@@ -154,7 +155,10 @@ async function loadBlueprints() {
 		return;
 	}
 
-	isLoading.value = true;
+	// Only show loading state on initial load, not during search refinements
+	if (!hasLoadedOnce.value) {
+		isLoading.value = true;
+	}
 	try {
 		const results = await writerApi.listSharedBlueprints(
 			orgId,
@@ -170,6 +174,7 @@ async function loadBlueprints() {
 			isReadonly: Boolean(bp.isReadonly),
 			createdBy: bp.createdBy,
 		}));
+		hasLoadedOnce.value = true;
 	} catch (error) {
 		pushToast({
 			type: "error",
@@ -186,6 +191,8 @@ watch(searchQuery, debouncedLoadBlueprints);
 
 function handleClose() {
 	isOpen.value = false;
+	hasLoadedOnce.value = false;
+	searchQuery.value = "";
 }
 
 watch(isOpen, (newValue) => {
