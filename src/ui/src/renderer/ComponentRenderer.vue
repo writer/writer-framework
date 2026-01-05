@@ -49,18 +49,10 @@ const wfbm = inject(injectionKeys.builderManager);
 const secretsManager = inject(injectionKeys.secretsManager);
 const templateEvaluator = useEvaluator(wf, secretsManager);
 const importedModulesSpecifiers: Record<string, string> = {};
-const lastActivePageId = ref({});
 
 const activeRootId = computed<Component["id"]>(
 	() => wfbm?.activeRootId.value ?? "root",
 );
-
-watch(activeRootId, (newMode, previousMode) => {
-	lastActivePageId.value[previousMode] = wf.activePageId;
-	const lastPageId = lastActivePageId.value?.[newMode];
-	if (!lastPageId) return;
-	wf.setActivePageId(lastPageId);
-});
 
 const coreRootFields = templateEvaluator.getEvaluatedFields([
 	{ componentId: "root", instanceNumber: 0 },

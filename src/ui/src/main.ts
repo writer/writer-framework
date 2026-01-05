@@ -71,6 +71,16 @@ async function load() {
 	if (wf.isWriterCloudApp.value && secretsManager) {
 		secretsManager.load().catch(logger.error);
 	}
+
+	if (
+		wfbm?.activeRootId.value === "blueprints_root" &&
+		wf.activePageId.value === undefined
+	) {
+		const firstBp = wf.getFirstBlueprint();
+		if (firstBp) {
+			wf.setActivePageId(firstBp.id);
+		}
+	}
 }
 
 async function enableCollaboration(collaborationManager: CollaborationManager) {

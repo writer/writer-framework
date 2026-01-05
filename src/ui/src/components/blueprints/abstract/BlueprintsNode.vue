@@ -434,8 +434,8 @@ async function handleDoubleClick(ev: MouseEvent) {
 			wfbm.expandedEditorForComponent.value = componentId;
 			tracking.track(
 				isCodeComponent.value
-					? "dbl_click_for_code_editor_opened"
-					: "dbl_click_for_value_opened",
+					? "blueprints_dbl_click_editor_opened"
+					: "blueprints_dbl_click_value_opened",
 			);
 		}
 	} else if (component.value.type === "blueprints_runblueprint") {
@@ -455,7 +455,7 @@ async function handleDoubleClick(ev: MouseEvent) {
 			type: "success",
 			message: `Navigated to ${blueprint.content.key} blueprint`,
 		});
-		tracking.track("dbl_click_for_blueprint_navigated");
+		tracking.track("blueprints_dbl_click_blueprint_navigated");
 	}
 }
 

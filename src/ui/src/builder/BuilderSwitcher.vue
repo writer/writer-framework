@@ -79,7 +79,7 @@ function canHaveActivePage(mode: BuilderManagerMode) {
 
 function selectOption(optionId: BuilderManagerMode) {
 	const preMode = wfbm.mode.value;
-	if (preMode == optionId) return;
+	if (preMode === optionId) return;
 
 	if (canHaveActivePage(preMode) && wf.activePageId.value) {
 		previousActivePage[preMode] = wf.activePageId.value;
@@ -107,18 +107,27 @@ function selectOption(optionId: BuilderManagerMode) {
 	wfbm.mode.value = optionId;
 
 	// restore the previous active page
-	if (
-		canHaveActivePage(optionId) &&
-		previousActivePage[optionId] &&
-		wf.getComponentById(previousActivePage[optionId])
-	) {
-		wf.setActivePageId(previousActivePage[optionId]);
+	if (canHaveActivePage(optionId)) {
+		if (
+			previousActivePage[optionId] &&
+			wf.getComponentById(previousActivePage[optionId])
+		) {
+			wf.setActivePageId(previousActivePage[optionId]);
+		} else {
+			if (optionId === "blueprints") {
+				const firstBp = wf.getFirstBlueprint();
+				wf.setActivePageId(firstBp.id);
+			} else {
+				const firstPage = wf.getFirstPage();
+				wf.setActivePageId(firstPage.id);
+			}
+		}
 	}
 
 	if (
-		optionId == "preview" ||
-		preMode == "blueprints" ||
-		optionId == "blueprints"
+		optionId === "preview" ||
+		preMode === "blueprints" ||
+		optionId === "blueprints"
 	) {
 		wfbm.setSelection(null);
 	}

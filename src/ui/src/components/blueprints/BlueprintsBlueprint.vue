@@ -1184,7 +1184,7 @@ onUnmounted(() => {
 
 .navigator {
 	position: absolute;
-	bottom: 24px;
+	bottom: 62px;
 	left: 24px;
 	border-radius: 20px;
 	overflow: hidden;

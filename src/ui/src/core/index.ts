@@ -18,7 +18,6 @@ import {
 	SourceFiles,
 	UserFunction,
 	UserCollaborationPing,
-	NavigationStackItem,
 } from "@/writerTypes";
 import {
 	getSupportedComponentTypes,
@@ -51,6 +50,7 @@ import {
 	isSourceFilesFile,
 	moveFileToSourceFiles,
 } from "./sourceFiles";
+import { createNavigationStack } from "./navigationStack";
 
 const KEEP_ALIVE_DELAY_MS = 60000;
 
@@ -97,8 +97,19 @@ export function generateCore() {
 
 	let pendingComponentUpdate = false;
 
+	// activePageId is used for visible page.
 	const activePageId = ref<Component["id"] | undefined>();
-	const pageStack = ref<NavigationStackItem[]>([]);
+
+	// Helper function to get component (will be defined later)
+	const getComponentById = (componentId: Component["id"]): Component => {
+		return components.value[componentId];
+	};
+
+	// Initialize navigation stack
+	const navigationStack = createNavigationStack(
+		activePageId,
+		getComponentById,
+	);
 
 	let observabilityMetricInstance: ReturnType<
 		typeof useObservabilityMetric
@@ -140,7 +151,7 @@ export function generateCore() {
 	async function init() {
 		await initSession();
 		sendKeepAliveMessage();
-		if (mode.value != "edit") return;
+		if (mode.value !== "edit") return;
 	}
 
 	/**
@@ -988,10 +999,6 @@ export function generateCore() {
 		});
 	}
 
-	function getComponentById(componentId: Component["id"]): Component {
-		return components.value[componentId];
-	}
-
 	function isChildOf(parentId: Component["id"], childId: Component["id"]) {
 		let child = components.value[childId];
 		do {
@@ -1067,15 +1074,15 @@ export function generateCore() {
 	function setActivePageFromKey(targetPageKey: string) {
 		const pages = getComponents("root");
 		const matches = pages.filter((pageComponent) => {
-			const pageKey = pageComponent.content["key"];
+			const pageKey = pageComponent.content.key;
 			return pageKey == targetPageKey;
 		});
-		if (matches.length == 0) return;
+		if (matches.length === 0) return;
 		setActivePageId(matches[0].id);
 	}
 
 	function setActivePageId(componentId: Component["id"]) {
-		getComponentAndNavigate(componentId);
+		navigationStack.navigateInPageStack(componentId, "forward");
 		activePageId.value = componentId;
 	}
 
@@ -1087,119 +1094,30 @@ export function generateCore() {
 		return webSocket;
 	}
 
-	function getComponentAndNavigate(componentId: Component["id"]) {
-		if (pageStack.value.length === 0 && activePageId.value === undefined) {
-			// if there is no page stack and no active page,
-			// add first blueprint where user start their session to the stack
-			const firstBp = Object.values(components.value).find(
-				(c) =>
-					c.type === "blueprints_blueprint" &&
-					c.position === 0 &&
-					c.parentId === "blueprints_root",
-			);
-
-			if (firstBp && firstBp.id !== componentId) {
-				pageStack.value.push({
-					id: firstBp.id,
-					key: firstBp.content.key,
-				});
-			}
-		}
-
-		navigateInPageStack(componentId, "forward");
+	function filterComponents(predicate: (component: Component) => boolean) {
+		return Object.values(components.value).filter(predicate);
 	}
 
-	function navigateInPageStack(
-		pageId: Component["id"] | null = null,
-		direction: "forward" | "backward" = "forward",
-	) {
-		const currentIdx = pageStack.value.findIndex(
-			(item) => item.id === activePageId.value,
+	function getFirstBlueprint() {
+		const filtered = filterComponents(
+			(c) =>
+				c.type === "blueprints_blueprint" &&
+				c.position === 0 &&
+				c.parentId === "blueprints_root",
 		);
-		const component = getComponentById(pageId);
 
-		if (direction === "forward") {
-			// if pageId is not null, add it to the stack
-			if (pageId !== null) {
-				if (currentIdx === -1) {
-					// if this page is not in the stack, add it
-					pageStack.value.push({
-						id: pageId,
-						key: component?.content?.key ?? pageId,
-					});
-				} else {
-					// if this page will break the stack, create a new branch
-					if (currentIdx + 1 < pageStack.value.length) {
-						pageStack.value.splice(
-							currentIdx + 1,
-							pageStack.value.length - currentIdx - 1,
-							{
-								id: pageId,
-								key: component?.content?.key ?? pageId,
-							},
-						);
-					} else {
-						// if this page is the last page in the stack,
-						// and it's not the same as the active page, add it
-						if (
-							pageStack.value[pageStack.value.length - 1].id !==
-							pageId
-						) {
-							pageStack.value.push({
-								id: pageId,
-								key: component?.content?.key ?? pageId,
-							});
-						}
-					}
-				}
-			} else {
-				// if pageId is null, navigate to the next page in the stack
-				if (currentIdx + 1 < pageStack.value.length) {
-					activePageId.value = pageStack.value[currentIdx + 1].id;
-				}
-			}
-		} else if (direction === "backward") {
-			// just navigate to the previous page in the stack
-			if (currentIdx > 0) {
-				activePageId.value = pageStack.value[currentIdx - 1].id;
-			}
-		}
-	}
-
-	function canGoBackInPageStack() {
-		return (
-			pageStack.value.findIndex(
-				(item) => item.id === activePageId.value,
-			) > 0
-		);
-	}
-
-	function canGoForwardInPageStack() {
-		return (
-			pageStack.value.findIndex(
-				(item) => item.id === activePageId.value,
-			) +
-				1 <
-			pageStack.value.length
-		);
-	}
-
-	function getPreviousPageInPageStack() {
-		const currentIdx = pageStack.value.findIndex(
-			(item) => item.id === activePageId.value,
-		);
-		if (currentIdx > 0) {
-			return pageStack.value[currentIdx - 1];
+		if (filtered.length > 0) {
+			return filtered[0];
 		}
 		return null;
 	}
-
-	function getNextPageInPageStack() {
-		const currentIdx = pageStack.value.findIndex(
-			(item) => item.id === activePageId.value,
+	function getFirstPage() {
+		const filtered = filterComponents(
+			(c) =>
+				c.type === "page" && c.position === 0 && c.parentId === "root",
 		);
-		if (currentIdx + 1 < pageStack.value.length) {
-			return pageStack.value[currentIdx + 1];
+		if (filtered.length > 0) {
+			return filtered[0];
 		}
 		return null;
 	}
@@ -1253,12 +1171,9 @@ export function generateCore() {
 		writerAppId,
 		writerApiKey,
 		writerBaseUrl,
-		pageStackLength: computed(() => pageStack.value.length),
-		navigateInPageStack,
-		canGoBackInPageStack,
-		canGoForwardInPageStack,
-		getPreviousPageInPageStack,
-		getNextPageInPageStack,
+		...navigationStack,
+		getFirstBlueprint,
+		getFirstPage,
 	};
 
 	return core;

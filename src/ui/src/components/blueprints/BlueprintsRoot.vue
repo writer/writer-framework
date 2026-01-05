@@ -1,6 +1,5 @@
 <template>
 	<div class="BlueprintsRoot" data-writer-container>
-		<BlueprintsNavigationStack />
 		<template v-for="vnode in getChildrenVNodes()" :key="vnode.key">
 			<component
 				:is="vnode"
@@ -29,7 +28,6 @@ export default {
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
-import BlueprintsNavigationStack from "./BlueprintsNavigationStack.vue";
 
 const wf = inject(injectionKeys.core);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);

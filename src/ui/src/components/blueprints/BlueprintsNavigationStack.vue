@@ -1,9 +1,6 @@
 <template>
 	<div class="BlueprintsNavigationStack" data-writer-unselectable>
-		<div
-			v-if="displayedBlueprintId || displayedBlueprintKey"
-			class="BlueprintsNavigationStack_container"
-		>
+		<div class="BlueprintsNavigationStack_container">
 			<WdsButton
 				size="smallIcon"
 				variant="tertiary"
@@ -30,14 +27,12 @@
 			</WdsButton>
 
 			<span class="BlueprintsNavigationStack_title_prefix">
-				Blueprint:
+				{{
+					displayedItem?.type === "blueprint" ? "Blueprint" : "Page"
+				}}:
 			</span>
 			<div>
-				{{
-					displayedBlueprintKey
-						? displayedBlueprintKey
-						: displayedBlueprintId
-				}}
+				{{ displayedItem?.key ?? displayedItem?.id }}
 			</div>
 			<div v-if="selectedItemKey">> {{ selectedItemKey }}</div>
 		</div>
@@ -50,35 +45,18 @@ import injectionKeys from "@/injectionKeys";
 import { computed, inject, onMounted, onUnmounted } from "vue";
 import WdsButton from "@/wds/WdsButton.vue";
 import WdsIcon from "@/wds/WdsIcon.vue";
+import { isPlatformMac } from "@/core/detectPlatform";
+import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 
-const displayedBlueprintId = computed(() => {
-	const activePageId = wf.activePageId.value;
-	const activePageExists = Boolean(wf.getComponentById(activePageId));
-	if (activePageExists && wf.isChildOf("blueprints_root", activePageId))
-		return activePageId;
+const tracking = useWriterTracking(wf);
 
-	const pageComponents = wf.getComponents("blueprints_root", {
-		includeBMC: true,
-		includeCMC: false,
-		sortedByPosition: true,
-	});
-	if (pageComponents.length == 0) return null;
-
-	return pageComponents[0].id;
-});
-
-const displayedBlueprintKey = computed(() => {
-	const displayedBlueprint = wf.getComponentById(displayedBlueprintId.value);
-	return displayedBlueprint?.content?.key;
-});
+const displayedItem = computed(() => wf.getCurrentPageInPageStack());
 
 const selectedItemKey = computed(() => {
-	if (wfbm.selection.value.length > 1) {
-		return null;
-	}
+	if (wfbm.selection.value.length > 1) return null;
 
 	const { component, definition: def } = useComponentInformation(
 		wf,
@@ -91,73 +69,83 @@ const selectedItemKey = computed(() => {
 	return component.value?.content?.alias || def.value?.name || "Unknown";
 });
 
-// Detect if the user is on macOS
-const isMac = computed(() => {
-	// Try modern User-Agent Client Hints API first
-	const userAgentData = (navigator as any).userAgentData;
-	if (userAgentData?.platform) {
-		return userAgentData.platform.toLowerCase().includes("mac");
-	}
-
-	// Fall back to checking userAgent string
-	return /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
-});
+// Helper to create tooltip with shortcut
+function createTooltip(
+	canNavigate: boolean,
+	stackItem: ReturnType<typeof wf.getPreviousPageInPageStack>,
+	shortcut: string,
+	direction: "previous" | "next",
+) {
+	if (!canNavigate) return `(${shortcut})`;
+	if (!stackItem?.key) return `Go to ${direction} blueprint (${shortcut})`;
+	return `${stackItem.key} (${shortcut})`;
+}
 
 const previousBlueprintTooltip = computed(() => {
-	const shortcut = isMac.value ? "⌃-" : "Ctrl+-";
-	if (!wf.canGoBackInPageStack()) return `(${shortcut})`;
-
-	const previousPage = wf.getPreviousPageInPageStack();
-	if (!previousPage?.key) return `Go to previous blueprint (${shortcut})`;
-	return `${previousPage.key} (${shortcut})`;
+	const shortcut = isPlatformMac() ? "⌃-" : "Ctrl+-";
+	return createTooltip(
+		wf.canGoBackInPageStack(),
+		wf.getPreviousPageInPageStack(),
+		shortcut,
+		"previous",
+	);
 });
 
 const nextBlueprintTooltip = computed(() => {
-	const shortcut = isMac.value ? "⌃⇧-" : "Ctrl+Shift+-";
-	if (!wf.canGoForwardInPageStack()) return `(${shortcut})`;
-
-	const nextPage = wf.getNextPageInPageStack();
-	if (!nextPage?.key) return `Go to next blueprint (${shortcut})`;
-	return `${nextPage.key} (${shortcut})`;
+	const shortcut = isPlatformMac() ? "⌃⇧-" : "Ctrl+Shift+-";
+	return createTooltip(
+		wf.canGoForwardInPageStack(),
+		wf.getNextPageInPageStack(),
+		shortcut,
+		"next",
+	);
 });
 
-function handleNextBlueprint(ev: MouseEvent | KeyboardEvent) {
-	if (wf.canGoForwardInPageStack()) {
-		ev.preventDefault();
-		ev.stopPropagation();
-		wfbm.setSelection(null);
-		wf.navigateInPageStack(null, "forward");
+function handleNavigateInPageStack(
+	direction: "forward" | "backward",
+	event: MouseEvent | KeyboardEvent,
+) {
+	const canNavigate =
+		direction === "forward"
+			? wf.canGoForwardInPageStack()
+			: wf.canGoBackInPageStack();
+
+	if (!canNavigate) return;
+
+	event.preventDefault();
+	event.stopPropagation();
+
+	wfbm.setSelection(null);
+
+	const stackItem = wf.navigateInPageStack(null, direction);
+	if (stackItem) {
+		wfbm.mode.value = stackItem.type === "blueprint" ? "blueprints" : "ui";
+		wfbm.setSelection(stackItem.id, undefined, "click");
+		tracking.track("blueprints_navigation_stack_clicked", {
+			direction,
+			source: event instanceof MouseEvent ? "click" : "keyboard",
+		});
 	}
+}
+
+function handleNextBlueprint(ev: MouseEvent | KeyboardEvent) {
+	handleNavigateInPageStack("forward", ev);
 }
 
 function handlePreviousBlueprint(ev: MouseEvent | KeyboardEvent) {
-	if (wf.canGoBackInPageStack()) {
-		ev.preventDefault();
-		ev.stopPropagation();
-		wfbm.setSelection(null);
-		wf.navigateInPageStack(null, "backward");
-	}
+	handleNavigateInPageStack("backward", ev);
 }
 
 function handleKeyboardShortcut(event: KeyboardEvent) {
-	// Use Ctrl key on both Mac and Windows/Linux
-	const modifierKey = event.ctrlKey;
+	if (!event.ctrlKey) return;
 
-	// Check for Ctrl+- - Go back
-	if (modifierKey && !event.shiftKey && event.key === "-") {
+	// Ctrl+- - Go back
+	if (!event.shiftKey && event.key === "-") {
 		handlePreviousBlueprint(event);
-		return;
 	}
-
-	// Check for Ctrl+Shift+- - Go forward
-	// Note: Shift+- produces "_" on most keyboards
-	if (
-		modifierKey &&
-		event.shiftKey &&
-		(event.key === "_" || event.key === "-")
-	) {
+	// Ctrl+Shift+- - Go forward (Shift+- produces "_" on most keyboards)
+	else if (event.shiftKey && (event.key === "_" || event.key === "-")) {
 		handleNextBlueprint(event);
-		return;
 	}
 }
 
@@ -174,10 +162,7 @@ onUnmounted(() => {
 @import "@/renderer/sharedStyles.css";
 
 .BlueprintsNavigationStack {
-	position: absolute;
-	top: 24px;
-	left: 24px;
-	z-index: 10;
+	background: var(--wdsColorGray0);
 }
 
 .BlueprintsNavigationStack_container {
@@ -190,10 +175,9 @@ onUnmounted(() => {
 	z-index: 1;
 	pointer-events: none;
 	user-select: none;
-	background: var(--builderSubtleSeparatorColor);
 	padding: 8px;
-	border-radius: 8px;
-	border: 1px solid var(--builderSeparatorColor);
+	border-top: 1px solid var(--wdsColorGray0);
+	border-bottom: 1px solid var(--builderAreaSeparatorColor);
 	display: flex;
 	align-items: center;
 	gap: 4px;
