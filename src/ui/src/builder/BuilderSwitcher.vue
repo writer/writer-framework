@@ -114,17 +114,12 @@ function selectOption(optionId: BuilderManagerMode) {
 		) {
 			wf.setActivePageId(previousActivePage[optionId]);
 		} else {
-			if (optionId === "blueprints") {
-				const firstBp = wf.getFirstBlueprint();
-				if (firstBp) {
-					wf.setActivePageId(firstBp.id);
-				}
-			} else {
-				const firstPage = wf.getFirstPage();
-				if (firstPage) {
-					wf.setActivePageId(firstPage.id);
-				}
-			}
+			const container =
+				optionId === "blueprints"
+					? wf.getFirstBlueprint()
+					: wf.getFirstPage();
+
+			if (container) wf.setActivePageId(container.id);
 		}
 	}
 

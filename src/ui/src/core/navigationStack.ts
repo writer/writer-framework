@@ -30,7 +30,7 @@ export function createNavigationStack(
 			id,
 			uuid,
 			key: component?.content?.key ?? id,
-			type: component.type === "page" ? "page" : "blueprint",
+			type: component?.type === "page" ? "page" : "blueprint",
 		};
 	}
 
@@ -112,21 +112,11 @@ export function createNavigationStack(
 	}
 
 	function canGoBackInPageStack() {
-		return (
-			pageStack.value.findIndex(
-				(item) => item.uuid === currentPageStackItem.value.uuid,
-			) > 0
-		);
+		return !!getPreviousPageInPageStack();
 	}
 
 	function canGoForwardInPageStack() {
-		return (
-			pageStack.value.findIndex(
-				(item) => item.uuid === currentPageStackItem.value.uuid,
-			) +
-				1 <
-			pageStack.value.length
-		);
+		return !!getNextPageInPageStack();
 	}
 
 	function getPreviousPageInPageStack() {

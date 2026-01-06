@@ -50,6 +50,10 @@ import { useWriterTracking } from "@/composables/useWriterTracking";
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
+const { component, definition: def } = useComponentInformation(
+	wf,
+	wfbm.firstSelectedId,
+);
 
 const tracking = useWriterTracking(wf);
 
@@ -58,10 +62,6 @@ const displayedItem = computed(() => wf.getCurrentPageInPageStack());
 const selectedItemKey = computed(() => {
 	if (wfbm.selection.value.length > 1) return null;
 
-	const { component, definition: def } = useComponentInformation(
-		wf,
-		wfbm.firstSelectedId,
-	);
 	if (!component.value || component.value.type === "blueprints_blueprint") {
 		return null;
 	}
@@ -159,8 +159,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import "@/renderer/sharedStyles.css";
-
 .BlueprintsNavigationStack {
 	background: var(--wdsColorGray0);
 }
