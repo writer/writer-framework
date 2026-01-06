@@ -157,7 +157,9 @@ class LSPManager:
         Automatically restarts the server if it has stopped.
 
         Returns:
-            Dictionary with LSP configuration
+            Dictionary with LSP configuration.
+            Note: websocket_url is set to None - frontend should construct
+            the URL using the current host and the provided port.
         """
         # Auto-restart if server has stopped
         if not self.is_running():
@@ -166,8 +168,7 @@ class LSPManager:
 
         return {
             "enabled": self.is_running(),
-            "websocket_url": self.get_websocket_url(),
             "port": self.port,
-            "host": self.host,
+            "host": self.host,  # For reference, but frontend should use window.location.hostname
         }
 

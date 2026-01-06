@@ -18,13 +18,31 @@ const logger = useLogger();
 
 interface LSPConfig {
 	enabled: boolean;
-	websocket_url: string | null;
 	port: number | null;
 	host: string | null;
 }
 
 let languageClient: MonacoLanguageClient | null = null;
 let webSocket: WebSocket | null = null;
+
+/**
+ * Constructs the WebSocket URL for the LSP server.
+ * Uses the same pattern as the main WebSocket connection in core/index.ts.
+ *
+ * @param port - The port the LSP server is running on
+ * @returns WebSocket URL
+ */
+function constructWebSocketURL(port: number): string {
+	// Use relative URL construction like the main WebSocket
+	const url = new URL(window.location.href);
+	url.protocol = url.protocol.replace("https", "wss");
+	url.protocol = url.protocol.replace("http", "ws");
+	url.port = port.toString();
+	url.pathname = "/"; // LSP server is at the root
+	url.hash = ""; // Remove fragment identifier (WebSocket doesn't allow it)
+	url.search = ""; // Remove query string
+	return url.href;
+}
 
 /**
  * Fetches the LSP configuration from the backend API.
@@ -163,7 +181,7 @@ export async function initializeLSPClient(retryCount = 0): Promise<boolean> {
 	// Fetch LSP configuration
 	const config = await fetchLSPConfig();
 
-	if (!config || !config.enabled || !config.websocket_url) {
+	if (!config || !config.enabled || !config.port) {
 		if (retryCount < MAX_RETRIES) {
 			logger.log(
 				`LSP server not ready, retrying (${retryCount + 1}/${MAX_RETRIES})...`,
@@ -176,8 +194,11 @@ export async function initializeLSPClient(retryCount = 0): Promise<boolean> {
 
 	logger.log("Initializing Python LSP client...");
 
+	// Construct WebSocket URL using current host
+	const websocketUrl = constructWebSocketURL(config.port);
+
 	// Initialize WebSocket connection
-	webSocket = initWebSocketAndStartClient(config.websocket_url);
+	webSocket = initWebSocketAndStartClient(websocketUrl);
 
 	return webSocket !== null;
 }
