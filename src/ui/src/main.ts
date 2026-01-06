@@ -9,10 +9,13 @@ import { useLogger } from "./composables/useLogger.js";
 import { useWriterApi } from "./composables/useWriterApi.js";
 import { useCollaborationManager } from "./composables/useCollaborationManager.js";
 import { useNotesManager } from "./core/useNotesManager.js";
-import { CollaborationManager } from "./writerTypes.js";
+import type { CollaborationManager } from "./writerTypes.js";
 import { useSecretsManager } from "./core/useSecretsManager.js";
 import { RECONNECT_DELAY_MS, MAX_RETRIES } from "@/constants/retry";
 import { useConfigJs } from "./composables/useConfigJs.js";
+
+// Import this early to setup Monaco editor workers
+import "./builder/builderEditorWorker";
 
 const wf = generateCore();
 
@@ -29,11 +32,12 @@ async function load() {
 	await wf.init();
 
 	const mode = wf.mode.value;
-	const wfbm = mode == "edit" ? generateBuilderManager() : undefined;
+
+	const wfbm = mode === "edit" ? generateBuilderManager() : undefined;
 	const notesManager = useNotesManager(wf, wfbm);
-	const secretsManager = mode == "edit" ? useSecretsManager(wf) : undefined;
+	const secretsManager = mode === "edit" ? useSecretsManager(wf) : undefined;
 	const collaborationManager =
-		mode == "edit" ? useCollaborationManager(wf) : undefined;
+		mode === "edit" ? useCollaborationManager(wf) : undefined;
 
 	if (wfbm) {
 		wf.addMailSubscription("logEntry", wfbm.handleLogEntry);
@@ -62,6 +66,12 @@ async function load() {
 
 	app.mount("#app");
 
+	// Initialize LSP client in edit mode after DOM is ready
+	if (mode === "edit") {
+		const { setupLSP } = await import("./builder/lspSetup.js");
+		setupLSP();
+	}
+
 	const { loadConfigJs } = useConfigJs(wf);
 	loadConfigJs().catch(logger.error);
 
@@ -81,6 +91,25 @@ async function load() {
 			wf.setActivePageId(firstBp.id);
 		}
 	}
+	// Setup cleanup on browser unload (tab close, refresh, navigation away)
+	if (mode === "edit") {
+		// Import LSP client cleanup function early so it's available synchronously
+		let lspCleanup: (() => void) | null = null;
+		import("./builder/lspClient.js").then(({ stopLSPClient }) => {
+			lspCleanup = stopLSPClient;
+		});
+
+		window.addEventListener("beforeunload", () => {
+			logger.log("Browser unload detected, cleaning up resources...");
+			if (lspCleanup) {
+				lspCleanup();
+			}
+			if (collaborationManager) {
+				collaborationManager.updateOutgoingPing({ action: "leave" });
+				collaborationManager.sendCollaborationPing();
+			}
+		});
+	}
 }
 
 async function enableCollaboration(collaborationManager: CollaborationManager) {
@@ -92,10 +121,7 @@ async function enableCollaboration(collaborationManager: CollaborationManager) {
 	});
 	collaborationManager.sendCollaborationPing();
 	collaborationManager.groomSnapshot();
-	window.addEventListener("beforeunload", function () {
-		collaborationManager.updateOutgoingPing({ action: "leave" });
-		collaborationManager.sendCollaborationPing();
-	});
+	// Note: beforeunload cleanup is now handled in the main load() function
 }
 
 async function initialise() {

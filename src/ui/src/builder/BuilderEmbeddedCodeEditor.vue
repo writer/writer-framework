@@ -3,9 +3,11 @@
 		ref="rootEl"
 		class="BuilderEmbeddedCodeEditor"
 		:class="{
-			'BuilderEmbeddedCodeEditor--full': variant === 'full',
-			'BuilderEmbeddedCodeEditor--halfScreen': variant === 'half-screen',
-			'BuilderEmbeddedCodeEditor--singleLine': variant === 'single-line',
+			'BuilderEmbeddedCodeEditor--full': props.variant === 'full',
+			'BuilderEmbeddedCodeEditor--halfScreen':
+				props.variant === 'half-screen',
+			'BuilderEmbeddedCodeEditor--singleLine':
+				props.variant === 'single-line',
 		}"
 	>
 		<div ref="editorContainerEl" class="editorContainer"></div>
@@ -18,18 +20,19 @@ import "./builderEditorWorker";
 import {
 	onMounted,
 	onUnmounted,
-	PropType,
-	ref,
+	type PropType,
 	toRefs,
 	useTemplateRef,
 	watch,
 } from "vue";
+import { syncModelWithLSP } from "./lspModelSync";
 import { useMonacopilot } from "../composables/useMonacopilot";
 
 const rootEl = useTemplateRef("rootEl");
 const editorContainerEl = useTemplateRef("editorContainerEl");
 const resizeObserver = new ResizeObserver(updateDimensions);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
+let lspSyncDisposable: monaco.IDisposable | null = null;
 let monacopilotCleanup: (() => void) | null = null;
 
 type EditorVariant = "full" | "minimal" | "half-screen" | "single-line";
@@ -57,6 +60,7 @@ const VARIANTS_SETTINGS: Partial<
 		minimap: {
 			enabled: false,
 		},
+		tabCompletion: "on",
 	},
 	minimal: {
 		minimap: {
@@ -97,32 +101,74 @@ watch(disabled, (isNewDisabled) => {
 });
 
 watch(modelValue, (newCode) => {
-	if (editor.getValue() == newCode) return;
+	if (!editor || editor.getValue() === newCode) return;
 	editor.getModel().setValue(newCode);
 });
 
-watch(language, () => {
-	monaco.editor.setModelLanguage(editor.getModel(), language.value);
+watch(language, (newLang) => {
+	if (!editor) return;
+	const model = editor.getModel();
+	if (model.getLanguageId() === newLang) return;
+
+	// Dispose old LSP sync before changing language
+	if (lspSyncDisposable) {
+		lspSyncDisposable.dispose();
+		lspSyncDisposable = null;
+	}
+
+	// Change language
+	monaco.editor.setModelLanguage(model, newLang);
+
+	// Re-sync if new language is Python
+	if (newLang === "python") {
+		try {
+			lspSyncDisposable = syncModelWithLSP(model);
+		} catch (error) {
+			// eslint-disable-next-line no-console
+			console.error("Failed to re-sync model with LSP:", error);
+		}
+	}
 });
 
-onMounted(() => {
-	editor = monaco.editor.create(editorContainerEl.value, {
-		value: modelValue.value ?? "",
-		language: props.language,
+onMounted(async () => {
+	// Create model with proper URI for LSP
+	const modelUri = monaco.Uri.parse(`inmemory://model/${Date.now()}.py`);
+	const model = monaco.editor.createModel(
+		modelValue.value ?? "",
+		props.language || "python",
+		modelUri,
+	);
+
+	editor = monaco.editor.create(editorContainerEl.value as HTMLElement, {
+		model: model,
 		readOnly: props.disabled,
 		fixedOverflowWidgets: true,
+		quickSuggestions: {
+			other: true,
+			comments: true,
+			strings: true,
+		},
 		...VARIANTS_SETTINGS[props.variant],
 	});
-	editor.getModel().onDidChangeContent(() => {
+
+	model.onDidChangeContent(() => {
 		const newCode = editor.getValue();
 		emit("update:modelValue", newCode);
 	});
-	resizeObserver.observe(rootEl.value);
+
+	resizeObserver.observe(rootEl.value as Element);
+
+	// Manually sync model with LSP for Python language
+	// This is required because we're in a browser (no filesystem)
+	if (props.language === "python") {
+		lspSyncDisposable = syncModelWithLSP(model);
+	}
 
 	// Register AI-powered code completions
 	try {
 		monacopilotCleanup = useMonacopilot(monaco, editor, props.language);
 	} catch (error) {
+		// eslint-disable-next-line no-console
 		console.error("Failed to initialize monacopilot:", error);
 	}
 
@@ -130,12 +176,8 @@ onMounted(() => {
 	if (props.variant === "half-screen") {
 		editor.focus();
 		editor.setPosition({
-			lineNumber: editor.getModel().getLineCount(),
-			column: editor
-				.getModel()
-				.getLineLastNonWhitespaceColumn(
-					editor.getModel().getLineCount(),
-				),
+			lineNumber: model.getLineCount(),
+			column: model.getLineLastNonWhitespaceColumn(model.getLineCount()),
 		});
 	}
 });
@@ -145,11 +187,22 @@ function updateDimensions() {
 }
 
 onUnmounted(() => {
-	// Clean up monacopilot registration
+	// Clean up LSP sync
+	if (lspSyncDisposable) {
+		lspSyncDisposable.dispose();
+		lspSyncDisposable = null;
+	}
+
+	const model = editor?.getModel();
+	if (editor) {
+		editor.dispose();
+	}
+	if (model) {
+		model.dispose();
+	}
 	if (monacopilotCleanup) {
 		monacopilotCleanup();
 	}
-	editor.dispose();
 	resizeObserver.disconnect();
 });
 </script>
