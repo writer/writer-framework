@@ -12,6 +12,85 @@ import { useLogger } from "../composables/useLogger.js";
 const logger = useLogger();
 
 /**
+ * Common Python snippets to augment LSP completions.
+ * These provide useful code templates with tab stops.
+ */
+/* eslint-disable no-template-curly-in-string */
+const PYTHON_SNIPPETS: Record<
+	string,
+	{
+		label: string;
+		snippet: string;
+		detail: string;
+		documentation: string;
+	}
+> = {
+	class: {
+		label: "class",
+		snippet:
+			"class ${1:ClassName}:\n\tdef __init__(self, ${2:args}):\n\t\t${0:pass}",
+		detail: "Class definition",
+		documentation: "Create a new class with __init__ method",
+	},
+	def: {
+		label: "def",
+		snippet: "def ${1:function_name}(${2:args}):\n\t${0:pass}",
+		detail: "Function definition",
+		documentation: "Create a new function",
+	},
+	for: {
+		label: "for",
+		snippet: "for ${1:item} in ${2:iterable}:\n\t${0:pass}",
+		detail: "For loop",
+		documentation: "Iterate over an iterable",
+	},
+	while: {
+		label: "while",
+		snippet: "while ${1:condition}:\n\t${0:pass}",
+		detail: "While loop",
+		documentation: "Loop while condition is true",
+	},
+	if: {
+		label: "if",
+		snippet: "if ${1:condition}:\n\t${0:pass}",
+		detail: "If statement",
+		documentation: "Conditional statement",
+	},
+	elif: {
+		label: "elif",
+		snippet: "elif ${1:condition}:\n\t${0:pass}",
+		detail: "Elif statement",
+		documentation: "Else-if conditional",
+	},
+	else: {
+		label: "else",
+		snippet: "else:\n\t${0:pass}",
+		detail: "Else statement",
+		documentation: "Else clause",
+	},
+	try: {
+		label: "try",
+		snippet:
+			"try:\n\t${1:pass}\nexcept ${2:Exception} as ${3:e}:\n\t${0:pass}",
+		detail: "Try-except block",
+		documentation: "Exception handling",
+	},
+	with: {
+		label: "with",
+		snippet: "with ${1:expression} as ${2:variable}:\n\t${0:pass}",
+		detail: "With statement",
+		documentation: "Context manager",
+	},
+	main: {
+		label: "if __name__ == '__main__'",
+		snippet: 'if __name__ == "__main__":\n\t${0:pass}',
+		detail: "Main guard",
+		documentation: "Python main entry point",
+	},
+};
+/* eslint-enable no-template-curly-in-string */
+
+/**
  * Registers a manual completion provider that forwards requests to the LSP client.
  *
  * @param monacoInstance - The Monaco Editor API instance
@@ -51,30 +130,77 @@ export function registerLSPCompletionProvider(
 					? result
 					: (result as { items?: unknown[] })?.items || [];
 
-				const suggestions = items.map((item: unknown) => {
+				const lspSuggestions = items.map((item: unknown) => {
 					const completionItem = item as {
 						label: string;
 						kind?: number;
 						detail?: string;
 						documentation?: string;
 						insertText?: string;
+						insertTextFormat?: number; // 1 = PlainText, 2 = Snippet
 						sortText?: string;
 						filterText?: string;
+						textEdit?: {
+							newText: string;
+							range: unknown;
+						};
 					};
+
+					// Use textEdit.newText if available, otherwise insertText or label
+					const insertText =
+						completionItem.textEdit?.newText ||
+						completionItem.insertText ||
+						completionItem.label;
+
+					// Check if this is a snippet (insertTextFormat === 2)
+					const isSnippet = completionItem.insertTextFormat === 2;
+
+					const insertTextRule = isSnippet
+						? monacoInstance.languages.CompletionItemInsertTextRule
+								.InsertAsSnippet
+						: undefined;
+
 					return {
 						label: completionItem.label,
 						kind: convertCompletionItemKind(completionItem.kind),
 						detail: completionItem.detail,
 						documentation: completionItem.documentation,
-						insertText:
-							completionItem.insertText || completionItem.label,
+						insertText: insertText,
+						insertTextRules: insertTextRule,
 						range: undefined, // Let Monaco handle the range
 						sortText: completionItem.sortText,
 						filterText: completionItem.filterText,
 					};
 				});
 
-				return { suggestions };
+				// Add custom Python snippets
+				const snippetSuggestions = Object.values(PYTHON_SNIPPETS).map(
+					(snippet) => {
+						const kind =
+							monacoInstance.languages.CompletionItemKind.Snippet;
+						const insertTextRules =
+							monacoInstance.languages
+								.CompletionItemInsertTextRule.InsertAsSnippet;
+						return {
+							label: snippet.label,
+							kind: kind,
+							detail: snippet.detail,
+							documentation: snippet.documentation,
+							insertText: snippet.snippet,
+							insertTextRules: insertTextRules,
+							range: undefined,
+							sortText: `_${snippet.label}`, // Sort snippets near the top
+						};
+					},
+				);
+
+				// Combine LSP suggestions with custom snippets
+				const allSuggestions = [
+					...lspSuggestions,
+					...snippetSuggestions,
+				];
+
+				return { suggestions: allSuggestions };
 			} catch (error) {
 				logger.error("Failed to get LSP completions:", error);
 				return { suggestions: [] };
