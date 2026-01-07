@@ -219,6 +219,10 @@ const placeholder = computed(() => {
 
 function getRelevantToolsInCategory(categoryId: string) {
 	if (categoryId === "Shared Blueprints") {
+		// Only show shared blueprints in blueprints mode, not in interface mode
+		if (activeToolkit.value !== "blueprints") {
+			return [];
+		}
 		// Don't show shared blueprints when editing a shared blueprint (no nesting for now)
 		if (
 			!isSharedBlueprintsEnabled.value ||
