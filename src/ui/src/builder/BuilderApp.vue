@@ -23,6 +23,12 @@
 			>
 				<template #top>
 					<div class="builderMain">
+						<BlueprintsNavigationStack
+							v-show="
+								builderMode === 'ui' ||
+								builderMode === 'blueprints'
+							"
+						/>
 						<BuilderVault v-if="builderMode === 'vault'" />
 						<KeepAlive>
 							<BuilderJournal v-if="builderMode === 'journal'" />
@@ -169,6 +175,7 @@ import ShareResizeVertical from "@/components/shared/ShareResizeVertical.vue";
 import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
 import BuilderAppSocketTimeoutModal from "./BuilderAppSocketTimeoutModal.vue";
 import { useSocketTimeout } from "./useSocketTimeout";
+import BlueprintsNavigationStack from "@/components/blueprints/BlueprintsNavigationStack.vue";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 

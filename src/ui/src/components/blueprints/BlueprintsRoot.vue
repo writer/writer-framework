@@ -1,19 +1,5 @@
 <template>
 	<div class="BlueprintsRoot" data-writer-container>
-		<div
-			v-if="displayedBlueprintId || displayedBlueprintKey"
-			class="BlueprintsRoot_titleContainer"
-		>
-			<span class="BlueprintsRoot_title_prefix">Blueprint:</span>
-			<div>
-				{{
-					displayedBlueprintKey
-						? displayedBlueprintKey
-						: displayedBlueprintId
-				}}
-			</div>
-			<div v-if="selectedItemKey">> {{ selectedItemKey }}</div>
-		</div>
 		<template v-for="vnode in getChildrenVNodes()" :key="vnode.key">
 			<component
 				:is="vnode"
@@ -40,13 +26,10 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, onMounted } from "vue";
+import { computed, inject } from "vue";
 import injectionKeys from "@/injectionKeys";
-import { getSourceBlueprintName } from "@/builder/useComponentDescription";
-import { useComponentInformation } from "@/composables/useComponentInformation";
 
 const wf = inject(injectionKeys.core);
-const wfbm = inject(injectionKeys.builderManager);
 const getChildrenVNodes = inject(injectionKeys.getChildrenVNodes);
 
 const displayedBlueprintId = computed(() => {
@@ -63,23 +46,6 @@ const displayedBlueprintId = computed(() => {
 	if (pageComponents.length == 0) return null;
 
 	return pageComponents[0].id;
-});
-
-const displayedBlueprintKey = computed(() => {
-	const displayedBlueprint = wf.getComponentById(displayedBlueprintId.value);
-	return displayedBlueprint?.content?.key;
-});
-
-const selectedItemKey = computed(() => {
-	const { component, definition: def } = useComponentInformation(
-		wf,
-		wfbm.firstSelectedId,
-	);
-	if (!component.value || component.value.type === "blueprints_blueprint") {
-		return null;
-	}
-
-	return component.value?.content?.alias || def.value?.name || "Unknown";
 });
 </script>
 

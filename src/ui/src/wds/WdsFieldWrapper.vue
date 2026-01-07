@@ -111,9 +111,9 @@ function handleExpansion() {
 
 // Watch for external control of expansion
 watch(
-	() => props.shouldExpand,
+	() => props.shouldExpand && !isExpanded.value,
 	(newVal) => {
-		if (newVal && !isExpanded.value) {
+		if (newVal) {
 			handleExpansion();
 		}
 	},

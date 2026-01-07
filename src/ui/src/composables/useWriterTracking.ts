@@ -42,10 +42,11 @@ type WriterTrackingEventName =
 	| "blueprints_shared_added"
 	| "blueprints_shared_published"
 	| "blueprints_shared_installed"
-	| "dbl_click_for_code_editor_opened"
-	| "dbl_click_for_value_opened"
-	| "button_click_for_code_editor_opened"
-	| "dbl_click_for_blueprint_navigated";
+	| "blueprints_dbl_click_editor_opened"
+	| "blueprints_dbl_click_value_opened"
+	| "blueprints_button_click_editor_opened"
+	| "blueprints_dbl_click_blueprint_navigated"
+	| "blueprints_navigation_stack_clicked";
 
 type EventProperties = {
 	[key: string]: unknown;

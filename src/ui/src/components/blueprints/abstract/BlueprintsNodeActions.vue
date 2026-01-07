@@ -44,7 +44,7 @@ async function openEditorForComponent() {
 	wfbm.setSelection(componentId, undefined, "click");
 	await nextTick();
 	wfbm.expandedEditorForComponent.value = componentId;
-	tracking.track("button_click_for_code_editor_opened");
+	tracking.track("blueprints_button_click_editor_opened");
 }
 
 const settingsActions = useBuilderSettingsActions(

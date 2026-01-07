@@ -196,7 +196,7 @@ watch(component, (newComponent) => {
 	background: var(--builderBackgroundColor);
 	box-shadow: var(--wdsShadowLarge);
 	border-radius: 12px;
-	top: v-bind("ssbm.getMode() == `blueprints` ? `82px` : `20px`");
+	top: v-bind("ssbm.getMode() == `blueprints` ? `120px` : `54px`");
 }
 
 .BuilderSettings--collapsed {

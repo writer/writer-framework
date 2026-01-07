@@ -50,6 +50,7 @@ import {
 	isSourceFilesFile,
 	moveFileToSourceFiles,
 } from "./sourceFiles";
+import { createNavigationStack } from "./navigationStack";
 
 const KEEP_ALIVE_DELAY_MS = 60000;
 
@@ -96,7 +97,19 @@ export function generateCore() {
 
 	let pendingComponentUpdate = false;
 
+	// activePageId is used for visible page.
 	const activePageId = ref<Component["id"] | undefined>();
+
+	// Helper function to get component (will be defined later)
+	const getComponentById = (componentId: Component["id"]): Component => {
+		return components.value[componentId];
+	};
+
+	// Initialize navigation stack
+	const navigationStack = createNavigationStack(
+		activePageId,
+		getComponentById,
+	);
 
 	let observabilityMetricInstance: ReturnType<
 		typeof useObservabilityMetric
@@ -138,7 +151,7 @@ export function generateCore() {
 	async function init() {
 		await initSession();
 		sendKeepAliveMessage();
-		if (mode.value != "edit") return;
+		if (mode.value !== "edit") return;
 	}
 
 	/**
@@ -986,10 +999,6 @@ export function generateCore() {
 		});
 	}
 
-	function getComponentById(componentId: Component["id"]): Component {
-		return components.value[componentId];
-	}
-
 	function isChildOf(parentId: Component["id"], childId: Component["id"]) {
 		let child = components.value[childId];
 		do {
@@ -1065,14 +1074,15 @@ export function generateCore() {
 	function setActivePageFromKey(targetPageKey: string) {
 		const pages = getComponents("root");
 		const matches = pages.filter((pageComponent) => {
-			const pageKey = pageComponent.content["key"];
+			const pageKey = pageComponent.content.key;
 			return pageKey == targetPageKey;
 		});
-		if (matches.length == 0) return;
+		if (matches.length === 0) return;
 		setActivePageId(matches[0].id);
 	}
 
 	function setActivePageId(componentId: Component["id"]) {
+		navigationStack.navigateInPageStack(componentId, "forward");
 		activePageId.value = componentId;
 	}
 
@@ -1082,6 +1092,34 @@ export function generateCore() {
 
 	function getWebSocket() {
 		return webSocket;
+	}
+
+	function filterComponents(predicate: (component: Component) => boolean) {
+		return Object.values(components.value).filter(predicate);
+	}
+
+	function getFirstBlueprint() {
+		const filtered = filterComponents(
+			(c) =>
+				c.type === "blueprints_blueprint" &&
+				c.position === 0 &&
+				c.parentId === "blueprints_root",
+		);
+
+		if (filtered.length > 0) {
+			return filtered[0];
+		}
+		return null;
+	}
+	function getFirstPage() {
+		const filtered = filterComponents(
+			(c) =>
+				c.type === "page" && c.position === 0 && c.parentId === "root",
+		);
+		if (filtered.length > 0) {
+			return filtered[0];
+		}
+		return null;
 	}
 
 	const core = {
@@ -1133,6 +1171,9 @@ export function generateCore() {
 		writerAppId,
 		writerApiKey,
 		writerBaseUrl,
+		...navigationStack,
+		getFirstBlueprint,
+		getFirstPage,
 	};
 
 	return core;
