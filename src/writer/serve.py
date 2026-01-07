@@ -379,7 +379,6 @@ def get_asgi_app(
         """
         try:
             request_body = await request.json()
-            print("request_body", request_body)
             handler = get_completion_handler()
             result = await handler.get_completion(request_body)
             return JSONResponse(content=result)
