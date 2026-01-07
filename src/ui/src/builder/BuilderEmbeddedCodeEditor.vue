@@ -28,6 +28,7 @@ import {
 import { syncModelWithLSP } from "./lspModelSync";
 import { clearModelDiagnostics } from "./lspDiagnostics";
 import { useMonacopilot } from "../composables/useMonacopilot";
+import { useLogger } from "@/composables/useLogger";
 
 const rootEl = useTemplateRef("rootEl");
 const editorContainerEl = useTemplateRef("editorContainerEl");
@@ -50,6 +51,8 @@ const props = defineProps({
 
 const { modelValue, disabled, language } = toRefs(props);
 const emit = defineEmits(["update:modelValue"]);
+
+const logger = useLogger();
 
 const VARIANTS_SETTINGS: Partial<
 	Record<
@@ -125,8 +128,7 @@ watch(language, (newLang) => {
 		try {
 			lspSyncDisposable = syncModelWithLSP(model);
 		} catch (error) {
-			// eslint-disable-next-line no-console
-			console.error("Failed to re-sync model with LSP:", error);
+			logger.error("Failed to re-sync model with LSP:", error);
 		}
 	}
 });
@@ -168,8 +170,7 @@ onMounted(async () => {
 		try {
 			monacopilotCleanup = useMonacopilot(monaco, editor, props.language);
 		} catch (error) {
-			// eslint-disable-next-line no-console
-			console.error("Failed to initialize monacopilot:", error);
+			logger.error("Failed to initialize monacopilot:", error);
 		}
 	}
 
