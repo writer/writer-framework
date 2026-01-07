@@ -375,7 +375,7 @@ def get_asgi_app(
         
         Requires environment variables:
         - WRITER_COPILOT_ENABLED: Set to "true" to enable
-        - ANTHROPIC_API_KEY: API key for Claude
+        - WRITER_API_KEY: API key for Writer AI (Palmyra models)
         """
         try:
             request_body = await request.json()

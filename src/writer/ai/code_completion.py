@@ -23,7 +23,7 @@ class CodeCompletionHandler:
     
     def __init__(self):
         """Initialize the completion handler with Writer Palmyra."""
-        self.enabled = os.getenv("WRITER_COPILOT_ENABLED", "false").lower() == "true"
+        self.enabled = os.getenv("WRITER_COPILOT_ENABLED", "true").lower() == "true"
         self.client = None
         self.model = None
         

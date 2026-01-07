@@ -9,6 +9,21 @@ import type * as monaco from "monaco-editor";
 import { getLSPClient } from "./lspClient.js";
 import { useLogger } from "../composables/useLogger.js";
 
+type LSPCompletionItem = {
+	label: string;
+	kind?: number;
+	detail?: string;
+	documentation?: string;
+	insertText?: string;
+	insertTextFormat?: number; // 1 = PlainText, 2 = Snippet
+	sortText?: string;
+	filterText?: string;
+	textEdit?: {
+		newText: string;
+		range: unknown;
+	};
+};
+
 const logger = useLogger();
 
 /**
@@ -131,20 +146,7 @@ export function registerLSPCompletionProvider(
 					: (result as { items?: unknown[] })?.items || [];
 
 				const lspSuggestions = items.map((item: unknown) => {
-					const completionItem = item as {
-						label: string;
-						kind?: number;
-						detail?: string;
-						documentation?: string;
-						insertText?: string;
-						insertTextFormat?: number; // 1 = PlainText, 2 = Snippet
-						sortText?: string;
-						filterText?: string;
-						textEdit?: {
-							newText: string;
-							range: unknown;
-						};
-					};
+					const completionItem = item as LSPCompletionItem;
 
 					// Use textEdit.newText if available, otherwise insertText or label
 					const insertText =

@@ -140,17 +140,6 @@ class LSPManager:
             return False
         return True
 
-    def get_websocket_url(self) -> Optional[str]:
-        """
-        Get the WebSocket URL for the LSP server.
-
-        Returns:
-            WebSocket URL if server is running, None otherwise
-        """
-        if self.is_running() and self.port is not None:
-            return f"ws://{self.host}:{self.port}"
-        return None
-
     def get_config(self) -> dict:
         """
         Get the LSP server configuration for the frontend.
