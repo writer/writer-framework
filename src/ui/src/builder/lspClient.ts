@@ -24,6 +24,8 @@ interface LSPConfig {
 
 let languageClient: MonacoLanguageClient | null = null;
 let webSocket: WebSocket | null = null;
+let clientReadyPromise: Promise<void> | null = null;
+let clientReadyResolve: (() => void) | null = null;
 
 /**
  * Constructs the WebSocket URL for the LSP server.
@@ -71,11 +73,11 @@ async function fetchLSPConfig(): Promise<LSPConfig | null> {
  * @param writer - WebSocket message writer
  * @returns Configured MonacoLanguageClient
  */
-function createLanguageClient(
+const createLanguageClient = (
 	reader: WebSocketMessageReader,
 	writer: WebSocketMessageWriter,
-): MonacoLanguageClient {
-	const client = new MonacoLanguageClient({
+): MonacoLanguageClient =>
+	new MonacoLanguageClient({
 		name: "Python Language Client",
 		clientOptions: {
 			// Document selector for Python files
@@ -93,15 +95,10 @@ function createLanguageClient(
 			synchronize: {
 				fileEvents: [],
 			},
-			// Initialize options passed to the server
-			initializationOptions: {},
 		},
-		// Provide message transports directly (v10+ API)
+		// Provide message transports directly
 		messageTransports: { reader, writer },
 	});
-
-	return client;
-}
 
 /**
  * Initializes the WebSocket connection and starts the language client.
@@ -113,8 +110,20 @@ function initWebSocketAndStartClient(url: string): WebSocket | null {
 	try {
 		const ws = new WebSocket(url);
 
+		// Create a promise that resolves when the client is fully ready
+		clientReadyPromise = new Promise((resolve) => {
+			clientReadyResolve = resolve;
+		});
+
+		const resolveClientReady = () => {
+			if (clientReadyResolve) {
+				clientReadyResolve();
+				clientReadyResolve = null;
+			}
+		};
+
 		ws.onopen = () => {
-			logger.log("Python LSP client connected");
+			// Python LSP client connected
 
 			// Create message transports
 			const socket = toSocket(ws);
@@ -130,10 +139,47 @@ function initWebSocketAndStartClient(url: string): WebSocket | null {
 			client
 				.start()
 				.then(() => {
-					logger.log("Python LSP client ready");
+					// Python LSP client ready
+
+					// Send workspace configuration to enable diagnostics
+					// Only specify plugins we want to enable; others default to false
+					client
+						.sendNotification("workspace/didChangeConfiguration", {
+							settings: {
+								pylsp: {
+									plugins: {
+										// Syntax and logic checking
+										pycodestyle: {
+											enabled: true,
+											maxLineLength: 100,
+										},
+										pyflakes: { enabled: true },
+										// Import organization
+										isort: { enabled: true },
+										// Code intelligence
+										jedi: { enabled: true },
+									},
+								},
+							},
+						})
+						.then(() => {
+							// Sent workspace configuration to pylsp
+							// Resolve the ready promise after configuration is sent
+							resolveClientReady();
+						})
+						.catch((error) => {
+							logger.error(
+								"Failed to send workspace config:",
+								error,
+							);
+							// Still resolve even if config fails
+							resolveClientReady();
+						});
 				})
 				.catch((error) => {
 					logger.error("Failed to start LSP client:", error);
+					// Resolve promise even on error
+					resolveClientReady();
 				});
 
 			// Stop client when connection closes
@@ -152,6 +198,8 @@ function initWebSocketAndStartClient(url: string): WebSocket | null {
 				languageClient = null;
 			}
 			webSocket = null;
+			clientReadyPromise = null;
+			clientReadyResolve = null;
 		};
 
 		return ws;
@@ -200,7 +248,16 @@ export async function initializeLSPClient(retryCount = 0): Promise<boolean> {
 	// Initialize WebSocket connection
 	webSocket = initWebSocketAndStartClient(websocketUrl);
 
-	return webSocket !== null;
+	if (webSocket === null) {
+		return false;
+	}
+
+	// Wait for the client to be fully ready (including config sent)
+	if (clientReadyPromise) {
+		await clientReadyPromise;
+	}
+
+	return true;
 }
 
 /**
@@ -208,13 +265,10 @@ export async function initializeLSPClient(retryCount = 0): Promise<boolean> {
  *
  * @returns True if LSP client is running, false otherwise
  */
-export function isLSPClientActive(): boolean {
-	return (
-		languageClient !== null &&
-		webSocket !== null &&
-		webSocket.readyState === WebSocket.OPEN
-	);
-}
+export const isLSPClientActive = (): boolean =>
+	languageClient !== null &&
+	webSocket !== null &&
+	webSocket.readyState === WebSocket.OPEN;
 
 /**
  * Gets the active language client instance.
@@ -222,22 +276,16 @@ export function isLSPClientActive(): boolean {
  *
  * @returns The active MonacoLanguageClient or null
  */
-export function getLSPClient(): MonacoLanguageClient | null {
-	return languageClient;
-}
+export const getLSPClient = (): MonacoLanguageClient | null => languageClient;
 
 /**
  * Stops the LSP client and closes the WebSocket connection.
  * This should be called when the application is shutting down or switching modes.
  */
 export function stopLSPClient(): void {
-	if (languageClient) {
-		languageClient.stop();
-		languageClient = null;
-	}
+	languageClient?.stop();
+	languageClient = null;
 
-	if (webSocket) {
-		webSocket.close();
-		webSocket = null;
-	}
+	webSocket?.close();
+	webSocket = null;
 }

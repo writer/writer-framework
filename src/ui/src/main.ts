@@ -68,8 +68,17 @@ async function load() {
 
 	// Initialize LSP client in edit mode after DOM is ready
 	if (mode === "edit") {
-		const { setupLSP } = await import("./builder/lspSetup.js");
+		const { setupLSP, cleanupLSP } = await import("./builder/lspSetup.js");
 		setupLSP();
+
+		// Setup cleanup on browser unload (tab close, refresh, navigation away)
+		window.addEventListener("beforeunload", () => {
+			cleanupLSP();
+			if (collaborationManager) {
+				collaborationManager.updateOutgoingPing({ action: "leave" });
+				collaborationManager.sendCollaborationPing();
+			}
+		});
 	}
 
 	const { loadConfigJs } = useConfigJs(wf);
@@ -81,7 +90,6 @@ async function load() {
 	if (wf.isWriterCloudApp.value && secretsManager) {
 		secretsManager.load().catch(logger.error);
 	}
-
 	if (
 		wfbm?.activeRootId.value === "blueprints_root" &&
 		wf.activePageId.value === undefined
@@ -90,25 +98,6 @@ async function load() {
 		if (firstBp) {
 			wf.setActivePageId(firstBp.id);
 		}
-	}
-	// Setup cleanup on browser unload (tab close, refresh, navigation away)
-	if (mode === "edit") {
-		// Import LSP client cleanup function early so it's available synchronously
-		let lspCleanup: (() => void) | null = null;
-		import("./builder/lspClient.js").then(({ stopLSPClient }) => {
-			lspCleanup = stopLSPClient;
-		});
-
-		window.addEventListener("beforeunload", () => {
-			logger.log("Browser unload detected, cleaning up resources...");
-			if (lspCleanup) {
-				lspCleanup();
-			}
-			if (collaborationManager) {
-				collaborationManager.updateOutgoingPing({ action: "leave" });
-				collaborationManager.sendCollaborationPing();
-			}
-		});
 	}
 }
 

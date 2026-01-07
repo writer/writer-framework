@@ -5,13 +5,17 @@
  */
 
 import { initialize as initializeVSCodeServices } from "@codingame/monaco-vscode-api/services";
-import { initializeLSPClient } from "./lspClient.js";
+import { initializeLSPClient, stopLSPClient } from "./lspClient.js";
 import { registerLSPCompletionProvider } from "./lspCompletionProvider.js";
+import { setupLSPDiagnostics } from "./lspDiagnostics.js";
 import { useLogger } from "../composables/useLogger.js";
+import type * as monaco from "monaco-editor";
 
 const logger = useLogger();
 
 let vscodeServicesReady = false;
+let diagnosticsDisposable: monaco.IDisposable | null = null;
+let completionProviderDisposable: monaco.IDisposable | null = null;
 
 /**
  * Initialize VSCode services required for LSP.
@@ -44,7 +48,7 @@ async function initializeVSCodeServicesForLSP(): Promise<boolean> {
 		vscodeServicesReady = true;
 		return true;
 	} catch (error) {
-		logger.warn("VSCode services initialization failed:", error);
+		logger.error("Failed to initialize services for LSP:", error);
 		return false;
 	}
 }
@@ -66,20 +70,39 @@ export async function setupLSP(): Promise<boolean> {
 		// Step 2: Wait for DOM to be fully ready
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
-		// Step 3: Initialize LSP client
+		// Step 3: Initialize LSP client (now waits for full initialization)
 		const lspInitialized = await initializeLSPClient();
 		if (!lspInitialized) {
 			return false;
 		}
 
-		// Step 4: Register completion provider
+		// Step 4: Register completion provider and diagnostics
+		// Client is now fully ready, safe to set up listeners
 		const monaco = await import("monaco-editor");
-		registerLSPCompletionProvider(monaco);
+		completionProviderDisposable = registerLSPCompletionProvider(monaco);
+		diagnosticsDisposable = setupLSPDiagnostics(monaco);
 
-		logger.log("Python LSP client ready");
+		logger.log("Python LSP setup complete with diagnostics");
 		return true;
 	} catch (error) {
 		logger.error("Failed to setup LSP:", error);
 		return false;
 	}
+}
+
+/**
+ * Cleanup LSP resources.
+ */
+export function cleanupLSP() {
+	if (completionProviderDisposable) {
+		completionProviderDisposable.dispose();
+		completionProviderDisposable = null;
+	}
+
+	if (diagnosticsDisposable) {
+		diagnosticsDisposable.dispose();
+		diagnosticsDisposable = null;
+	}
+
+	stopLSPClient();
 }

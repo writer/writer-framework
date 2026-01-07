@@ -26,6 +26,7 @@ import {
 	watch,
 } from "vue";
 import { syncModelWithLSP } from "./lspModelSync";
+import { clearModelDiagnostics } from "./lspDiagnostics";
 import { useMonacopilot } from "../composables/useMonacopilot";
 
 const rootEl = useTemplateRef("rootEl");
@@ -136,7 +137,7 @@ onMounted(async () => {
 	const model = monaco.editor.createModel(
 		modelValue.value ?? "",
 		props.language || "python",
-		modelUri,
+		props.language === "python" ? modelUri : undefined,
 	);
 
 	editor = monaco.editor.create(editorContainerEl.value as HTMLElement, {
@@ -160,16 +161,16 @@ onMounted(async () => {
 
 	// Manually sync model with LSP for Python language
 	// This is required because we're in a browser (no filesystem)
-	if (props.language === "python") {
+	if (props.language === "python" && props.variant !== "single-line") {
 		lspSyncDisposable = syncModelWithLSP(model);
-	}
 
-	// Register AI-powered code completions
-	try {
-		monacopilotCleanup = useMonacopilot(monaco, editor, props.language);
-	} catch (error) {
-		// eslint-disable-next-line no-console
-		console.error("Failed to initialize monacopilot:", error);
+		// Register AI-powered code completions
+		try {
+			monacopilotCleanup = useMonacopilot(monaco, editor, props.language);
+		} catch (error) {
+			// eslint-disable-next-line no-console
+			console.error("Failed to initialize monacopilot:", error);
+		}
 	}
 
 	// when in modal, focus the editor and set the cursor to the last line
@@ -194,6 +195,12 @@ onUnmounted(() => {
 	}
 
 	const model = editor?.getModel();
+
+	// Clear diagnostics before disposing model
+	if (model && language.value === "python") {
+		clearModelDiagnostics(monaco, model);
+	}
+
 	if (editor) {
 		editor.dispose();
 	}
