@@ -28,11 +28,9 @@ async function initializeVSCodeServicesForLSP(): Promise<boolean> {
 
 	try {
 		// Import required service overrides for LSP support
+		// Note: We only import TextMate (syntax highlighting) and Languages (LSP) services
 		const getTextMateServiceOverride = (
 			await import("@codingame/monaco-vscode-textmate-service-override")
-		).default;
-		const getThemeServiceOverride = (
-			await import("@codingame/monaco-vscode-theme-service-override")
 		).default;
 		const getLanguagesServiceOverride = (
 			await import("@codingame/monaco-vscode-languages-service-override")
@@ -41,7 +39,6 @@ async function initializeVSCodeServicesForLSP(): Promise<boolean> {
 		// Initialize with minimal services
 		await initializeVSCodeServices({
 			...getTextMateServiceOverride(),
-			...getThemeServiceOverride(),
 			...getLanguagesServiceOverride(),
 		});
 

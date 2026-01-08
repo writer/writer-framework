@@ -13,6 +13,7 @@ import {
 import { CloseAction, ErrorAction } from "vscode-languageclient/browser.js";
 import { MonacoLanguageClient } from "monaco-languageclient";
 import { useLogger } from "../composables/useLogger.js";
+import { registerLSPClient } from "./lspClientRegistry.js";
 
 const logger = useLogger();
 
@@ -134,6 +135,7 @@ function initWebSocketAndStartClient(url: string): WebSocket | null {
 			const client = createLanguageClient(reader, writer);
 
 			languageClient = client;
+			registerLSPClient(client); // Register in the registry
 
 			// Start the client and wait for it to be ready
 			client
@@ -196,6 +198,7 @@ function initWebSocketAndStartClient(url: string): WebSocket | null {
 			if (languageClient) {
 				languageClient.stop();
 				languageClient = null;
+				registerLSPClient(null); // Unregister from the registry
 			}
 			webSocket = null;
 			clientReadyPromise = null;
@@ -285,6 +288,7 @@ export const getLSPClient = (): MonacoLanguageClient | null => languageClient;
 export function stopLSPClient(): void {
 	languageClient?.stop();
 	languageClient = null;
+	registerLSPClient(null); // Unregister from the registry
 
 	webSocket?.close();
 	webSocket = null;

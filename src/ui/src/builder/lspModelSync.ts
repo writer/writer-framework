@@ -12,7 +12,7 @@
 
 import type * as monaco from "monaco-editor";
 import { useLogger } from "../composables/useLogger.js";
-import { getLSPClient } from "./lspClient.js";
+import { getLSPClient } from "./lspClientRegistry.js";
 
 const logger = useLogger();
 

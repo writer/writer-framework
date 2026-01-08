@@ -14,9 +14,6 @@ import { useSecretsManager } from "./core/useSecretsManager.js";
 import { RECONNECT_DELAY_MS, MAX_RETRIES } from "@/constants/retry";
 import { useConfigJs } from "./composables/useConfigJs.js";
 
-// Import this early to setup Monaco editor workers
-import "./builder/builderEditorWorker";
-
 const wf = generateCore();
 
 // eslint-disable-next-line no-undef
@@ -66,19 +63,37 @@ async function load() {
 
 	app.mount("#app");
 
-	// Initialize LSP client in edit mode after DOM is ready
+	// Initialize Monaco editor workers and LSP client in edit mode
 	if (mode === "edit") {
-		const { setupLSP, cleanupLSP } = await import("./builder/lspSetup.js");
-		setupLSP();
+		// Setup Monaco editor workers first - MUST be synchronous to ensure
+		// MonacoEnvironment is set before any editor instances are created
+		try {
+			await import("./builder/builderEditorWorker.js");
+			logger.log("Monaco editor workers initialized");
+		} catch (error) {
+			logger.error("Failed to initialize Monaco workers:", error);
+		}
 
-		// Setup cleanup on browser unload (tab close, refresh, navigation away)
-		window.addEventListener("beforeunload", () => {
-			cleanupLSP();
-			if (collaborationManager) {
-				collaborationManager.updateOutgoingPing({ action: "leave" });
-				collaborationManager.sendCollaborationPing();
-			}
-		});
+		// Then initialize LSP
+		try {
+			const { setupLSP, cleanupLSP } = await import(
+				"./builder/lspSetup.js"
+			);
+			await setupLSP();
+
+			// Setup cleanup on browser unload (tab close, refresh, navigation away)
+			window.addEventListener("beforeunload", () => {
+				cleanupLSP();
+				if (collaborationManager) {
+					collaborationManager.updateOutgoingPing({
+						action: "leave",
+					});
+					collaborationManager.sendCollaborationPing();
+				}
+			});
+		} catch (error) {
+			logger.error("Failed to initialize LSP:", error);
+		}
 	}
 
 	const { loadConfigJs } = useConfigJs(wf);

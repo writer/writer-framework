@@ -9,38 +9,9 @@ if (!monaco.languages.getLanguages().some((lang) => lang.id === "python")) {
 	monaco.languages.register({ id: "python" });
 }
 
-// Worker loader type
-export type WorkerLoader = () => Worker;
-
-// Define worker loaders for different language services
-const workerLoaders: Partial<Record<string, WorkerLoader>> = {
-	TextEditorWorker: () =>
-		new Worker(
-			new URL(
-				"monaco-editor/esm/vs/editor/editor.worker.js",
-				import.meta.url,
-			),
-			{ type: "module" },
-		),
-	TextMateWorker: () =>
-		new Worker(
-			new URL(
-				"@codingame/monaco-vscode-textmate-service-override/worker",
-				import.meta.url,
-			),
-			{ type: "module" },
-		),
-};
-
 // MonacoEnvironment global configuration
 self.MonacoEnvironment = {
 	getWorker(_moduleId: string, label: string) {
-		// Check if we have a specific worker loader for this label
-		const workerFactory = workerLoaders[label];
-		if (workerFactory != null) {
-			return workerFactory();
-		}
-
 		// Fallback to built-in Monaco workers for standard languages
 		if (label === "json") {
 			return new jsonWorker();
