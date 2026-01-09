@@ -7,7 +7,7 @@
 import { initialize as initializeVSCodeServices } from "@codingame/monaco-vscode-api/services";
 import { initializeLSPClient, stopLSPClient } from "./lspClient.js";
 import { registerLSPCompletionProvider } from "./lspCompletionProvider.js";
-import { useLogger } from "../composables/useLogger.js";
+import { useLogger } from "../../composables/useLogger.js";
 import type * as monaco from "monaco-editor";
 
 const logger = useLogger();

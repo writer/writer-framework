@@ -25,8 +25,8 @@ import {
 	useTemplateRef,
 	watch,
 } from "vue";
-import { syncModelWithLSP } from "./lspModelSync";
-import { setModelDiagnostics, setupLSPDiagnostics } from "./lspDiagnostics";
+import { syncModelWithLSP } from "./lsp/lspModelSync";
+import { setModelDiagnostics, setupLSPDiagnostics } from "./lsp/lspDiagnostics";
 import { useMonacopilot } from "../composables/useMonacopilot";
 import { useLogger } from "@/composables/useLogger";
 import { useCodeEditorSettings } from "@/composables/useCodeEditorSettings";

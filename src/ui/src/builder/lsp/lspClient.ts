@@ -12,7 +12,7 @@ import {
 } from "vscode-ws-jsonrpc";
 import { CloseAction, ErrorAction } from "vscode-languageclient/browser.js";
 import { MonacoLanguageClient } from "monaco-languageclient";
-import { useLogger } from "../composables/useLogger.js";
+import { useLogger } from "../../composables/useLogger.js";
 import { registerLSPClient } from "./lspClientRegistry.js";
 
 const logger = useLogger();

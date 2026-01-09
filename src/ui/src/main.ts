@@ -77,7 +77,7 @@ async function load() {
 		// Then initialize LSP
 		try {
 			const { setupLSP, cleanupLSP } = await import(
-				"./builder/lspSetup.js"
+				"./builder/lsp/lspSetup.js"
 			);
 			await setupLSP();
 
