@@ -320,7 +320,8 @@ class WriterAIManager:
                 client = Writer(
                     api_key=instance.token,
                     default_headers=custom_headers,
-                    http_client=custom_httpx_client
+                    http_client=custom_httpx_client,
+                    max_retries=10,
                     )
                 _ai_client.set(client)
                 return client
