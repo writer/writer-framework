@@ -26,16 +26,20 @@ import {
 	watch,
 } from "vue";
 import { syncModelWithLSP } from "./lspModelSync";
-import { clearModelDiagnostics } from "./lspDiagnostics";
+import { setModelDiagnostics, setupLSPDiagnostics } from "./lspDiagnostics";
 import { useMonacopilot } from "../composables/useMonacopilot";
 import { useLogger } from "@/composables/useLogger";
+import { useCodeEditorSettings } from "@/composables/useCodeEditorSettings";
 
 const rootEl = useTemplateRef("rootEl");
 const editorContainerEl = useTemplateRef("editorContainerEl");
 const resizeObserver = new ResizeObserver(updateDimensions);
 let editor: monaco.editor.IStandaloneCodeEditor = null;
 let lspSyncDisposable: monaco.IDisposable | null = null;
+let diagnosticsDisposable: monaco.IDisposable | null = null;
 let monacopilotCleanup: (() => void) | null = null;
+
+const { diagnosticsEnabled, aiCompletionEnabled } = useCodeEditorSettings();
 
 type EditorVariant = "full" | "minimal" | "half-screen" | "single-line";
 
@@ -133,6 +137,56 @@ watch(language, (newLang) => {
 	}
 });
 
+watch(diagnosticsEnabled, (enabled) => {
+	if (
+		!editor ||
+		props.language !== "python" ||
+		props.variant === "single-line"
+	) {
+		return;
+	}
+
+	const model = editor.getModel();
+	if (model && language.value === "python") {
+		diagnosticsDisposable?.dispose();
+		if (enabled) {
+			diagnosticsDisposable = setupLSPDiagnostics(monaco);
+		}
+		model.setValue(model.getValue());
+	}
+});
+
+// Watch AI completion setting changes
+watch(aiCompletionEnabled, (enabled) => {
+	if (
+		!editor ||
+		props.language !== "python" ||
+		props.variant === "single-line"
+	)
+		return;
+
+	if (enabled) {
+		// Enable AI completion
+		if (!monacopilotCleanup) {
+			try {
+				monacopilotCleanup = useMonacopilot(
+					monaco,
+					editor,
+					props.language,
+				);
+			} catch (error) {
+				logger.error("Failed to enable AI completion:", error);
+			}
+		}
+	} else {
+		// Disable AI completion
+		if (monacopilotCleanup) {
+			monacopilotCleanup();
+			monacopilotCleanup = null;
+		}
+	}
+});
+
 onMounted(async () => {
 	// Create model with proper URI for LSP
 	const modelUri = monaco.Uri.parse(`inmemory://model/${Date.now()}.py`);
@@ -164,13 +218,28 @@ onMounted(async () => {
 	// Manually sync model with LSP for Python language
 	// This is required because we're in a browser (no filesystem)
 	if (props.language === "python" && props.variant !== "single-line") {
-		lspSyncDisposable = syncModelWithLSP(model);
-
-		// Register AI-powered code completions
 		try {
-			monacopilotCleanup = useMonacopilot(monaco, editor, props.language);
+			lspSyncDisposable = syncModelWithLSP(model);
 		} catch (error) {
-			logger.error("Failed to initialize monacopilot:", error);
+			logger.error("Failed to sync model with LSP:", error);
+		}
+
+		// Register AI-powered code completions (if AI completion enabled)
+		if (aiCompletionEnabled.value) {
+			try {
+				monacopilotCleanup = useMonacopilot(
+					monaco,
+					editor,
+					props.language,
+				);
+			} catch (error) {
+				logger.error("Failed to initialize monacopilot:", error);
+			}
+		}
+
+		diagnosticsDisposable?.dispose();
+		if (diagnosticsEnabled.value) {
+			diagnosticsDisposable = setupLSPDiagnostics(monaco);
 		}
 	}
 
@@ -199,7 +268,7 @@ onUnmounted(() => {
 
 	// Clear diagnostics before disposing model
 	if (model && language.value === "python") {
-		clearModelDiagnostics(monaco, model);
+		setModelDiagnostics(monaco, model, []);
 	}
 
 	if (editor) {
@@ -210,6 +279,10 @@ onUnmounted(() => {
 	}
 	if (monacopilotCleanup) {
 		monacopilotCleanup();
+	}
+	if (diagnosticsDisposable) {
+		diagnosticsDisposable.dispose();
+		diagnosticsDisposable = null;
 	}
 	resizeObserver.disconnect();
 });

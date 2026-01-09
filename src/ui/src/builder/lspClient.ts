@@ -144,18 +144,21 @@ function initWebSocketAndStartClient(url: string): WebSocket | null {
 					// Python LSP client ready
 
 					// Send workspace configuration to enable diagnostics
-					// Only specify plugins we want to enable; others default to false
+					// Configure to use flake8 instead of pyflakes so we can use builtins config
 					client
 						.sendNotification("workspace/didChangeConfiguration", {
 							settings: {
 								pylsp: {
+									// Use flake8 as configuration source instead of default pycodestyle
+									configurationSources: ["flake8"],
 									plugins: {
-										// Syntax and logic checking
-										pycodestyle: {
-											enabled: true,
-											maxLineLength: 100,
-										},
-										pyflakes: { enabled: true },
+										// Disable default linters (pyflakes, pycodestyle, mccabe)
+										// to avoid duplicate messages from flake8
+										pyflakes: { enabled: false },
+										pycodestyle: { enabled: false },
+										mccabe: { enabled: false },
+										// Enable flake8 which will read setup.cfg
+										flake8: { enabled: true },
 										// Import organization
 										isort: { enabled: true },
 										// Code intelligence

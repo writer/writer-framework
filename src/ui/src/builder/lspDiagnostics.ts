@@ -5,6 +5,28 @@ import { useLogger } from "../composables/useLogger.js";
 const logger = useLogger();
 
 /**
+ * Writer framework globals that are available in code blocks and event handlers.
+ * These should not be flagged as undefined by the linter.
+ */
+const WRITER_FRAMEWORK_GLOBALS = new Set([
+	// Event handler globals
+	"state",
+	"payload",
+	"context",
+	"session",
+	"ui",
+	"blueprint_runner",
+	"vault",
+	// Code block globals
+	"set_output",
+	"result",
+	"results",
+	"logger",
+	// IfElse block globals
+	"set_outcome",
+]);
+
+/**
  * LSP Diagnostic Severity levels
  */
 enum DiagnosticSeverity {
@@ -27,6 +49,33 @@ type LSPDiagnostic = {
 		code?: string | number;
 	}>;
 };
+
+/**
+ * Checks if a diagnostic is a false positive for Writer framework globals.
+ * Returns true if this diagnostic should be filtered out.
+ */
+function isWriterFrameworkGlobalError(diagnostic: {
+	message: string;
+	code?: string | number;
+	source?: string;
+}): boolean {
+	// Check if it's an undefined name error (F821 from pyflakes or flake8)
+	if (diagnostic.source === "pyflakes" || diagnostic.source === "flake8") {
+		if (
+			diagnostic.code === "F821" ||
+			diagnostic.message.includes("undefined name")
+		) {
+			// Extract the variable name from the message
+			// Messages are like: "undefined name 'state'" or "F821 undefined name 'state'"
+			const match = diagnostic.message.match(/undefined name '([^']+)'/);
+			if (match?.[1]) {
+				const varName = match[1];
+				return WRITER_FRAMEWORK_GLOBALS.has(varName);
+			}
+		}
+	}
+	return false;
+}
 
 /**
  * Converts LSP diagnostic severity to Monaco marker severity.
@@ -78,8 +127,13 @@ export function setupLSPDiagnostics(
 				}
 
 				// Convert LSP diagnostics to Monaco markers
-				const markers: monaco.editor.IMarkerData[] =
-					params.diagnostics.map((diagnostic) => ({
+				const markers: monaco.editor.IMarkerData[] = params.diagnostics
+					// Filter out false positives for Writer framework globals
+					.filter(
+						(diagnostic) =>
+							!isWriterFrameworkGlobalError(diagnostic),
+					)
+					.map((diagnostic) => ({
 						severity: convertSeverity(
 							diagnostic.severity,
 							monacoInstance,
@@ -109,12 +163,14 @@ export function setupLSPDiagnostics(
 }
 
 /**
- * Clears all diagnostics for a specific model.
+ * Sets the diagnostics for a specific model.
  *
  * @param monacoInstance - The Monaco Editor API instance
- * @param model - The Monaco model to clear diagnostics for
+ * @param model - The Monaco model to set diagnostics for
+ * @param markers - The markers to set for the model
  */
-export const clearModelDiagnostics = (
+export const setModelDiagnostics = (
 	monacoInstance: typeof monaco,
 	model: monaco.editor.ITextModel,
-) => monacoInstance.editor.setModelMarkers(model, "pylsp", []);
+	markers: monaco.editor.IMarkerData[],
+) => monacoInstance.editor.setModelMarkers(model, "pylsp", markers);
