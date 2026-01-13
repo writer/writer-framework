@@ -4,6 +4,7 @@ import logging
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
+from writerai.types import QueryConfig
 
 
 class WriterAskGraphQuestion(WriterBlock):
@@ -53,6 +54,15 @@ class WriterAskGraphQuestion(WriterBlock):
                         "validator": {
                             "type": "boolean",
                         },
+                    },
+                    "graphCitations": {
+                        "name": "Add graph citations",
+                        "type": "Boolean",
+                        "desc": "Shows what specific graph sources were used to answer the question.",
+                        "default": "yes",
+                        "validator": {
+                            "type": "boolean",
+                        },
                     }
                 },
                 "outs": {
@@ -93,15 +103,21 @@ class WriterAskGraphQuestion(WriterBlock):
                     "A state element must be provided when using streaming.")
             subqueries = self._get_field(
                 "subqueries", default_field_value="yes") == "yes"
+            graph_citations = self._get_field(
+                "graphCitations", default_field_value="yes") == "yes"
 
             answer_so_far = ""
+
+            query_config = QueryConfig(graph_citations=graph_citations)
 
             response = client.graphs.question(
                 graph_ids=graph_ids,
                 question=question,
                 stream=use_streaming,
-                subqueries=subqueries
+                subqueries=subqueries,
+                query_config=query_config
             )
+
             if use_streaming:
                 for chunk in response:
                     try:

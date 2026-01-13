@@ -26,3 +26,4 @@ playground/
 .turbo
 styles.css
 .aider*
+**/.env
