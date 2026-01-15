@@ -135,4 +135,5 @@ class WriterAskGraphQuestion(WriterBlock):
 
         except BaseException as e:
             self.outcome = "error"
+            raise e
 
