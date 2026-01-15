@@ -4,7 +4,6 @@ import logging
 from writer.abstract import register_abstract_template
 from writer.blocks.base_block import WriterBlock
 from writer.ss_types import AbstractTemplate
-from writerai.types import QueryConfig
 
 
 class WriterAskGraphQuestion(WriterBlock):
@@ -56,7 +55,7 @@ class WriterAskGraphQuestion(WriterBlock):
                         },
                     },
                     "graphCitations": {
-                        "name": "Add graph citations",
+                        "name": "Add inline graph citations",
                         "type": "Boolean",
                         "desc": "Shows what specific graph sources were used to answer the question.",
                         "default": "yes",
@@ -108,14 +107,14 @@ class WriterAskGraphQuestion(WriterBlock):
 
             answer_so_far = ""
 
-            query_config = QueryConfig(graph_citations=graph_citations)
-
             response = client.graphs.question(
                 graph_ids=graph_ids,
                 question=question,
                 stream=use_streaming,
                 subqueries=subqueries,
-                query_config=query_config
+                query_config= {
+                    "inline_citations": graph_citations
+                }
             )
 
             if use_streaming:
@@ -136,4 +135,4 @@ class WriterAskGraphQuestion(WriterBlock):
 
         except BaseException as e:
             self.outcome = "error"
-            raise e
+
