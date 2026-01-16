@@ -70,8 +70,6 @@ Classify the text under “CONTENT” into one of the following categories:
 
 { json.dumps(categories) }
 
-Your output should be only the key and not contain anything else. For example: { " , ".join(list(categories.keys())) }.
-
 Additional context:
 
 { additional_context }
@@ -80,13 +78,23 @@ CONTENT:
 ------
 { text }
 """
-            
+
             response_format = {
                 "type": "json_schema",
                 "json_schema": {
+                    "name": "classification_result",
+                    "strict": True,
                     "schema": {
-                        "type": "string",
-                        "enum": list(categories.keys())
+                        "type": "object",
+                        "properties": {
+                            "category": {
+                                "type": "string",
+                                "description": "Assigned category",
+                                "enum": list(categories.keys()),
+                            }
+                        },
+                        "required": ["category"],
+                        "additionalProperties": False,
                     }
                 }
             }
@@ -104,7 +112,7 @@ CONTENT:
 
             try:
                 # Attempt to parse the raw content as JSON
-                category_result = json.loads(raw_content)
+                category_result = json.loads(raw_content)["category"]
             except json.JSONDecodeError:
                 self.outcome = "error"
                 raise RuntimeError(

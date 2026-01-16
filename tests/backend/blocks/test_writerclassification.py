@@ -6,7 +6,7 @@ from writer.blocks.writerclassification import WriterClassification
 
 
 def fake_conversation_complete(self, response_format, config):
-    return {"role": "assistant", "content": "\"dog\""}
+    return {"role": "assistant", "content": "{\"category\":\"dog\"}"}
 
 
 def test_classify(monkeypatch, session, runner, fake_client):
