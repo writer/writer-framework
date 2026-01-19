@@ -27,6 +27,7 @@ let languageClient: MonacoLanguageClient | null = null;
 let webSocket: WebSocket | null = null;
 let clientReadyPromise: Promise<void> | null = null;
 let clientReadyResolve: (() => void) | null = null;
+let isInitializing = false;
 
 /**
  * Constructs the WebSocket URL for the LSP server.
@@ -34,6 +35,11 @@ let clientReadyResolve: (() => void) | null = null;
  *
  * @param port - The port the LSP server is running on
  * @returns WebSocket URL
+ *
+ * Note: The host parameter from config is intentionally ignored. We always
+ * use the current window.location.hostname to ensure the WebSocket connects
+ * to the same host serving the web application, which is critical for
+ * browser security policies and CORS.
  */
 function constructWebSocketURL(port: number): string {
 	// Use relative URL construction like the main WebSocket
@@ -198,6 +204,13 @@ function initWebSocketAndStartClient(url: string): WebSocket | null {
 		};
 
 		ws.onclose = () => {
+			// Resolve clientReadyPromise if it was never resolved
+			// This prevents hanging when WebSocket fails to connect
+			if (clientReadyResolve) {
+				clientReadyResolve();
+				clientReadyResolve = null;
+			}
+
 			if (languageClient) {
 				languageClient.stop();
 				languageClient = null;
@@ -205,7 +218,6 @@ function initWebSocketAndStartClient(url: string): WebSocket | null {
 			}
 			webSocket = null;
 			clientReadyPromise = null;
-			clientReadyResolve = null;
 		};
 
 		return ws;
@@ -227,43 +239,67 @@ export async function initializeLSPClient(retryCount = 0): Promise<boolean> {
 	const MAX_RETRIES = 3;
 	const RETRY_DELAY = 1000; // 1 second
 
+	// Prevent concurrent initialization attempts
+	if (isInitializing) {
+		logger.log("LSP client initialization already in progress, waiting...");
+		// Wait for current initialization to complete
+		if (clientReadyPromise) {
+			await clientReadyPromise;
+		}
+		return languageClient !== null;
+	}
+
 	// Check if already initialized
 	if (languageClient !== null) {
 		return true;
 	}
 
-	// Fetch LSP configuration
-	const config = await fetchLSPConfig();
+	isInitializing = true;
 
-	if (!config || !config.enabled || !config.port) {
-		if (retryCount < MAX_RETRIES) {
-			logger.log(
-				`LSP server not ready, retrying (${retryCount + 1}/${MAX_RETRIES})...`,
-			);
-			await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-			return initializeLSPClient(retryCount + 1);
+	try {
+		// Fetch LSP configuration
+		const config = await fetchLSPConfig();
+
+		if (!config || !config.enabled || !config.port) {
+			if (retryCount < MAX_RETRIES) {
+				logger.log(
+					`LSP server not ready, retrying (${retryCount + 1}/${MAX_RETRIES})...`,
+				);
+				await new Promise((resolve) =>
+					setTimeout(resolve, RETRY_DELAY),
+				);
+				isInitializing = false;
+				return initializeLSPClient(retryCount + 1);
+			}
+			isInitializing = false;
+			return false;
 		}
+
+		logger.log("Initializing Python LSP client...");
+
+		// Construct WebSocket URL using current host
+		const websocketUrl = constructWebSocketURL(config.port);
+
+		// Initialize WebSocket connection
+		webSocket = initWebSocketAndStartClient(websocketUrl);
+
+		if (webSocket === null) {
+			isInitializing = false;
+			return false;
+		}
+
+		// Wait for the client to be fully ready (including config sent)
+		if (clientReadyPromise) {
+			await clientReadyPromise;
+		}
+
+		isInitializing = false;
+		return true;
+	} catch (error) {
+		isInitializing = false;
+		logger.error("Error during LSP client initialization:", error);
 		return false;
 	}
-
-	logger.log("Initializing Python LSP client...");
-
-	// Construct WebSocket URL using current host
-	const websocketUrl = constructWebSocketURL(config.port);
-
-	// Initialize WebSocket connection
-	webSocket = initWebSocketAndStartClient(websocketUrl);
-
-	if (webSocket === null) {
-		return false;
-	}
-
-	// Wait for the client to be fully ready (including config sent)
-	if (clientReadyPromise) {
-		await clientReadyPromise;
-	}
-
-	return true;
 }
 
 /**
@@ -289,6 +325,7 @@ export const getLSPClient = (): MonacoLanguageClient | null => languageClient;
  * This should be called when the application is shutting down or switching modes.
  */
 export function stopLSPClient(): void {
+	isInitializing = false;
 	languageClient?.stop();
 	languageClient = null;
 	registerLSPClient(null); // Unregister from the registry

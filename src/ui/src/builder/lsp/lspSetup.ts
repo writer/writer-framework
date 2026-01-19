@@ -71,12 +71,13 @@ export async function setupLSP(): Promise<boolean> {
 			return false;
 		}
 
-		// Step 4: Register completion provider and diagnostics
-		// Client is now fully ready, safe to set up listeners
+		// Step 4: Register completion provider
+		// Note: Diagnostics are automatically handled via LSP notifications
+		// when the client connects - no explicit setup needed here
 		const monaco = await import("monaco-editor");
 		completionProviderDisposable = registerLSPCompletionProvider(monaco);
 
-		logger.log("Python LSP setup complete with diagnostics");
+		logger.log("Python LSP setup complete");
 		return true;
 	} catch (error) {
 		logger.error("Failed to setup LSP:", error);

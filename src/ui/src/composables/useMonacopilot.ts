@@ -21,7 +21,7 @@ export function useMonacopilot(
 	try {
 		// Register the completion provider with monacopilot
 		const disposable = registerCompletion(monacoInstance, editor, {
-			language: "python",
+			language: language,
 			// API endpoint for code completions
 			endpoint: "/api/code-completion",
 			technologies: ["writer-agent-builder"],

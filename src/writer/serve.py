@@ -373,15 +373,51 @@ def get_asgi_app(
         """
         Handles AI-powered code completion requests from monacopilot.
         
+        Only available in edit mode for security reasons.
+        
         Requires environment variables:
         - WRITER_COPILOT_ENABLED: Set to "true" to enable
         - WRITER_API_KEY: API key for Writer AI (Palmyra models)
         """
+        # Check edit mode - only allow completions in edit mode
+        if serve_mode != "edit":
+            raise HTTPException(
+                status_code=403, 
+                detail="Code completion only available in edit mode"
+            )
+        
+        # Validate request size to prevent DoS
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                size = int(content_length)
+                if size > 50000:  # 50KB limit
+                    raise HTTPException(
+                        status_code=413, 
+                        detail="Request too large"
+                    )
+            except ValueError:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Invalid content-length header"
+                )
+        
         try:
             request_body = await request.json()
+            
+            # Validate request structure
+            if not isinstance(request_body, dict):
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Invalid request format"
+                )
+            
             handler = get_completion_handler()
             result = await handler.get_completion(request_body)
             return JSONResponse(content=result)
+        except HTTPException:
+            # Re-raise HTTP exceptions
+            raise
         except Exception as e:
             logging.error(f"Error in code completion endpoint: {e}")
             # Return empty completion on error

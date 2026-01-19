@@ -35,8 +35,11 @@ export function syncModelWithLSP(
 	const uri = model.uri.toString();
 	const languageId = model.getLanguageId();
 
+	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
 	// Wait a bit for the LSP client to be fully ready
-	setTimeout(() => {
+	timeoutId = setTimeout(() => {
+		timeoutId = null;
 		// Send textDocument/didOpen
 		lspClient
 			.sendNotification("textDocument/didOpen", {
@@ -74,6 +77,12 @@ export function syncModelWithLSP(
 	// Return disposable that sends textDocument/didClose and stops listening
 	return {
 		dispose: () => {
+			// Clear pending timeout to prevent didOpen after didClose
+			if (timeoutId !== null) {
+				clearTimeout(timeoutId);
+				timeoutId = null;
+			}
+			
 			changeDisposable.dispose();
 			lspClient
 				.sendNotification("textDocument/didClose", {

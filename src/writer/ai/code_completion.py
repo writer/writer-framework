@@ -45,8 +45,8 @@ class CodeCompletionHandler:
     def _init_writer(self, api_key: str):
         """Initialize Writer client."""
         try:
-            from writerai import Writer
-            self.client = Writer(api_key=api_key)
+            from writerai import AsyncWriter
+            self.client = AsyncWriter(api_key=api_key)
             self.model = os.getenv("WRITER_COPILOT_MODEL", "palmyra-x5")
             logger.info(f"Code completion handler initialized with Writer {self.model}")
         except ImportError:
@@ -103,7 +103,7 @@ class CodeCompletionHandler:
             )
             
             # Call Writer Chat API
-            response = self.client.chat.chat(
+            response = await self.client.chat.chat(
                 model=self.model,
                 messages=[
                     {
@@ -135,7 +135,7 @@ class CodeCompletionHandler:
         filename: str
     ) -> str:
         """
-        Build the prompt for Claude to generate code completion.
+        Build the prompt for Writer Palmyra to generate code completion.
         
         Args:
             language: Programming language
@@ -198,19 +198,17 @@ Completion:"""
         return completion
 
 
-# Global instance
-_completion_handler: Optional[CodeCompletionHandler] = None
+# Global instance - initialized at module load time for simplicity
+# This avoids the need for thread synchronization in FastAPI's multi-threaded environment
+_completion_handler: Optional[CodeCompletionHandler] = CodeCompletionHandler()
 
 
 def get_completion_handler() -> CodeCompletionHandler:
     """
-    Get or create the global completion handler instance.
+    Get the global completion handler instance.
     
     Returns:
         CodeCompletionHandler instance
     """
-    global _completion_handler
-    if _completion_handler is None:
-        _completion_handler = CodeCompletionHandler()
     return _completion_handler
 

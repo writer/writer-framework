@@ -36,6 +36,14 @@ class LSPManager:
 
         Raises:
             RuntimeError: If no available port is found
+        
+        Note:
+            This method has a time-of-check-to-time-of-use (TOCTOU) race condition:
+            another process could claim the port between when we check it's available
+            and when pylsp tries to bind to it. This is an acceptable limitation for
+            a development tool where such races are unlikely. The alternative of using
+            port 0 (letting the OS assign a port) would require parsing pylsp's output
+            to discover the assigned port, adding complexity for minimal benefit.
         """
         for port in range(start_port, end_port):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
