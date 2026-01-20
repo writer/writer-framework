@@ -2240,14 +2240,14 @@ files = [
 
 [[package]]
 name = "writer-sdk"
-version = "2.3.1"
+version = "2.3.2"
 description = "The official Python library for the writer API"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "writer_sdk-2.3.1-py3-none-any.whl", hash = "sha256:297cd37c82828327e18ba2c2ccf7b5cfd18715791b72bfd8f687a896336d1085"},
-    {file = "writer_sdk-2.3.1.tar.gz", hash = "sha256:4e36af957180119d6d32cf7eb3925e9b1dd3fb9576b84008b76f225fe16f550b"},
+    {file = "writer_sdk-2.3.2-py3-none-any.whl", hash = "sha256:954b28d84221583bdd151195a493a013b927791084ae43b48951e543ec6bdc64"},
+    {file = "writer_sdk-2.3.2.tar.gz", hash = "sha256:3a0c8ebecdc1cd90c3aeca99bc9594911218a70cf7bcb31815ae4a15c236ecd6"},
 ]
 
 [package.dependencies]
@@ -2262,10 +2262,25 @@ typing-extensions = ">=4.10,<5"
 [package.extras]
 aiohttp = ["aiohttp", "httpx-aiohttp (>=0.1.8)"]
 
+[[package]]
+name = "writerai"
+version = "4.0.1"
+description = "Meta-package referencing to writer-sdk"
+optional = false
+python-versions = "<4.0,>=3.8"
+groups = ["main"]
+files = [
+    {file = "writerai-4.0.1-py3-none-any.whl", hash = "sha256:d864ea44513ac52c19a0d0ab16f547658ce7e6e4a0a7628ba8534525604743f4"},
+    {file = "writerai-4.0.1.tar.gz", hash = "sha256:1b1c3135fd83e739f96b09f7c7c694f84db747e3041000ae25c9521e819c3404"},
+]
+
+[package.dependencies]
+writer-sdk = "*"
+
 [extras]
 redis = []
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9.2, <4.0"
-content-hash = "053af32476a69862c8ce697b461c56588f1df7245904c2497fb39561cdd04988"
+content-hash = "4dac2d1886758fa452e5eb3886cf2d108312ed9ebf12335552dd35318fdb74b8"
