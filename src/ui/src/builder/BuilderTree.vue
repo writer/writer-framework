@@ -7,8 +7,8 @@
 			:draggable="draggable"
 			:data-automation-key="dataAutomationKey"
 			:aria-expanded="!collapsed"
-			@mouseenter="isMainHovered = true"
-			@mouseleave="isMainHovered = false"
+			@mouseenter="handleMouseEnter"
+			@mouseleave="handleMouseLeave"
 			@click="$emit('select', $event)"
 			@keydown.enter="$emit('select', $event)"
 			@dragover="$emit('dragover', $event)"
@@ -38,6 +38,16 @@
 				data-writer-tooltip-strategy="overflow"
 				>{{ name }}</span
 			>
+			<WdsButton
+				v-if="showDeleteButton"
+				class="BuilderTree__main__deleteButton"
+				variant="neutral"
+				size="icon"
+				data-writer-tooltip="Delete"
+				@click.stop="$emit('delete')"
+			>
+				<WdsIcon name="trash" />
+			</WdsButton>
 			<slot name="nameRight" />
 			<div
 				v-if="dropdownOptions && isMainHovered"
@@ -100,6 +110,7 @@ const props = defineProps({
 		default: undefined,
 	},
 	disableCollapse: { type: Boolean, required: false },
+	showDeleteButton: { type: Boolean, required: false, default: false },
 });
 
 const emit = defineEmits({
@@ -110,6 +121,9 @@ const emit = defineEmits({
 	dragend: (ev: DragEvent) => !!ev,
 	drop: (ev: DragEvent) => !!ev,
 	dropdownSelect: (key: string) => typeof key === "string",
+	mouseenter: (ev: MouseEvent) => !!ev,
+	mouseleave: (ev: MouseEvent) => !!ev,
+	delete: () => true,
 });
 
 defineExpose({ expand, toggleCollapse });
@@ -134,6 +148,16 @@ function expand() {
 function toggleCollapse(newCollapse?: boolean) {
 	newCollapse ??= !collapsed.value;
 	if (newCollapse !== collapsed.value) collapsed.value = newCollapse;
+}
+
+function handleMouseEnter(ev: MouseEvent) {
+	isMainHovered.value = true;
+	emit("mouseenter", ev);
+}
+
+function handleMouseLeave(ev: MouseEvent) {
+	isMainHovered.value = false;
+	emit("mouseleave", ev);
 }
 </script>
 
@@ -189,6 +213,12 @@ function toggleCollapse(newCollapse?: boolean) {
 	margin-left: -4px;
 	width: 20px;
 	height: 20px;
+}
+
+.BuilderTree__main__deleteButton {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
 }
 
 .BuilderTree__children {

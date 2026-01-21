@@ -17,11 +17,15 @@
 		:disable-collapse="COMPONENT_TYPES_ROOT.has(component.type)"
 		:no-nested-space="COMPONENT_TYPES_ROOT.has(component.type)"
 		:collapsed="isOutsideActivePage"
+		:show-delete-button="shouldShowDeleteButton"
 		@select="select"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
 		@drop="handleDrop"
+		@mouseenter="handleHover(true)"
+		@mouseleave="handleHover(false)"
+		@delete="handleDelete"
 	>
 		<template #nameRight>
 			<span class="BuilderSidebarComponentTreeBranch__nameRight">
@@ -90,6 +94,7 @@ const props = defineProps({
 });
 
 const treeBranch = ref<ComponentPublicInstance<typeof BuilderTree>>();
+const isHovered = ref(false);
 
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
@@ -101,6 +106,8 @@ const {
 	moveComponent,
 	goToComponentParentPage,
 	isDraggingAllowed,
+	removeComponentSubtree,
+	isDeleteAllowed,
 } = useComponentActions(wf, wfbm, tracking);
 const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(wf);
@@ -199,6 +206,23 @@ function handleDrop(ev: DragEvent) {
 	}
 
 	removeInsertionCandidacy(ev);
+}
+
+function handleHover(hovered: boolean) {
+	isHovered.value = hovered;
+}
+
+const shouldShowDeleteButton = computed(() => {
+	return (
+		component.value?.type === "blueprints_blueprint" &&
+		isHovered.value &&
+		isDeleteAllowed(props.componentId)
+	);
+});
+
+function handleDelete() {
+	if (!isDeleteAllowed(props.componentId)) return;
+	removeComponentSubtree(props.componentId);
 }
 
 const isOutsideActivePage = computed(() => {
