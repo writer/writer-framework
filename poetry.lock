@@ -2240,14 +2240,14 @@ files = [
 
 [[package]]
 name = "writer-sdk"
-version = "2.3.1"
+version = "2.3.2"
 description = "The official Python library for the writer API"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "writer_sdk-2.3.1-py3-none-any.whl", hash = "sha256:297cd37c82828327e18ba2c2ccf7b5cfd18715791b72bfd8f687a896336d1085"},
-    {file = "writer_sdk-2.3.1.tar.gz", hash = "sha256:4e36af957180119d6d32cf7eb3925e9b1dd3fb9576b84008b76f225fe16f550b"},
+    {file = "writer_sdk-2.4.0rc1-py3-none-any.whl", hash = "sha256:7a45d9e63992e2d6f0d4e4a972212bf68566792bb06d5e055eac0933c2f58e2e"},
+    {file = "writer_sdk-2.4.0rc1.tar.gz", hash = "sha256:5735492ae8104eb9e377fac7f77853bac9331868e66cc0c5b68819c1eff02c3e"},
 ]
 
 [package.dependencies]
@@ -2260,7 +2260,7 @@ sniffio = "*"
 typing-extensions = ">=4.10,<5"
 
 [package.extras]
-aiohttp = ["aiohttp", "httpx-aiohttp (>=0.1.8)"]
+aiohttp = ["aiohttp", "httpx-aiohttp (>=0.1.9)"]
 
 [extras]
 redis = []
@@ -2268,4 +2268,4 @@ redis = []
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9.2, <4.0"
-content-hash = "053af32476a69862c8ce697b461c56588f1df7245904c2497fb39561cdd04988"
+content-hash = "95e1753c38ce7de81502db2f3c8ac012457780c28cf9521b8441096e3cd6d470"
