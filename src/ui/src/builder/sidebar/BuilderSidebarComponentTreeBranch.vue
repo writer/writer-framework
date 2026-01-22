@@ -30,8 +30,6 @@
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
 		@drop="handleDrop"
-		@mouseenter="handleHover(true)"
-		@mouseleave="handleHover(false)"
 		@delete="handleDelete"
 	>
 		<template #nameRight>
@@ -102,7 +100,6 @@ const props = defineProps({
 });
 
 const treeBranch = ref<ComponentPublicInstance<typeof BuilderTree>>();
-const isHovered = ref(false);
 
 const rightClickDropdownOptions: WdsDropdownMenuOption[] = [
 	{ label: "Delete", value: "delete", icon: "trash-2" },
@@ -217,10 +214,6 @@ function handleDrop(ev: DragEvent) {
 	}
 
 	removeInsertionCandidacy(ev);
-}
-
-function handleHover(hovered: boolean) {
-	isHovered.value = hovered;
 }
 
 function handleDelete() {
