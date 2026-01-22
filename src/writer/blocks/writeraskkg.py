@@ -53,6 +53,15 @@ class WriterAskGraphQuestion(WriterBlock):
                         "validator": {
                             "type": "boolean",
                         },
+                    },
+                    "graphCitations": {
+                        "name": "Add inline graph citations",
+                        "type": "Boolean",
+                        "desc": "Shows what specific graph sources were used to answer the question.",
+                        "default": "yes",
+                        "validator": {
+                            "type": "boolean",
+                        },
                     }
                 },
                 "outs": {
@@ -93,31 +102,54 @@ class WriterAskGraphQuestion(WriterBlock):
                     "A state element must be provided when using streaming.")
             subqueries = self._get_field(
                 "subqueries", default_field_value="yes") == "yes"
-
-            answer_so_far = ""
+            graph_citations = self._get_field(
+                "graphCitations", default_field_value="yes") == "yes"
 
             response = client.graphs.question(
                 graph_ids=graph_ids,
                 question=question,
                 stream=use_streaming,
-                subqueries=subqueries
+                subqueries=subqueries,
+                query_config= {
+                    "inline_citations": graph_citations
+                }
             )
+
+            answer_so_far = ""
+            result_dict = {}
+            citations_so_far = []
+
             if use_streaming:
                 for chunk in response:
                     try:
-                        delta = chunk.model_extra.get("answer", "")
-                        answer_so_far += delta
-                        self._set_state(state_element, answer_so_far)
+                        delta_answer = chunk.model_extra.get("answer", "")
+                        answer_so_far += delta_answer
+                        result_dict["answer"] = answer_so_far
+
+                        if graph_citations:
+                            delta_sources = chunk.model_extra.get("sources", "")
+                            citations_so_far.extend(delta_sources)
+                            result_dict["citations"] = citations_so_far
+                        
+                        self._set_state(state_element, result_dict)
+
                     except json.JSONDecodeError:
                         logging.error(
                             "Could not parse stream chunk from graph.question")
+
             else:
                 answer_so_far = response.answer
-                self._set_state(state_element, answer_so_far)
+                result_dict["answer"] = answer_so_far
 
+                if graph_citations:
+                    citations_so_far = response.sources or []
+                    result_dict["citations"] = citations_so_far
+
+            self._set_state(state_element, result_dict)
             self.result = answer_so_far
             self.outcome = "success"
 
         except BaseException as e:
             self.outcome = "error"
             raise e
+
