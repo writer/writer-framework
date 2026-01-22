@@ -2243,11 +2243,11 @@ name = "writer-sdk"
 version = "2.3.2"
 description = "The official Python library for the writer API"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "writer_sdk-2.4.0rc1-py3-none-any.whl", hash = "sha256:7a45d9e63992e2d6f0d4e4a972212bf68566792bb06d5e055eac0933c2f58e2e"},
-    {file = "writer_sdk-2.4.0rc1.tar.gz", hash = "sha256:5735492ae8104eb9e377fac7f77853bac9331868e66cc0c5b68819c1eff02c3e"},
+    {file = "writer_sdk-2.3.2-py3-none-any.whl", hash = "sha256:954b28d84221583bdd151195a493a013b927791084ae43b48951e543ec6bdc64"},
+    {file = "writer_sdk-2.3.2.tar.gz", hash = "sha256:3a0c8ebecdc1cd90c3aeca99bc9594911218a70cf7bcb31815ae4a15c236ecd6"},
 ]
 
 [package.dependencies]
@@ -2260,7 +2260,7 @@ sniffio = "*"
 typing-extensions = ">=4.10,<5"
 
 [package.extras]
-aiohttp = ["aiohttp", "httpx-aiohttp (>=0.1.9)"]
+aiohttp = ["aiohttp", "httpx-aiohttp (>=0.1.8)"]
 
 [extras]
 redis = []
