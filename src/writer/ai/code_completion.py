@@ -200,7 +200,7 @@ Completion:"""
 
 # Global instance - initialized at module load time for simplicity
 # This avoids the need for thread synchronization in FastAPI's multi-threaded environment
-_completion_handler: Optional[CodeCompletionHandler] = CodeCompletionHandler()
+_completion_handler: CodeCompletionHandler = CodeCompletionHandler()
 
 
 def get_completion_handler() -> CodeCompletionHandler:
