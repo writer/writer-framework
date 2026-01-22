@@ -2262,25 +2262,10 @@ typing-extensions = ">=4.10,<5"
 [package.extras]
 aiohttp = ["aiohttp", "httpx-aiohttp (>=0.1.8)"]
 
-[[package]]
-name = "writerai"
-version = "4.0.1"
-description = "Meta-package referencing to writer-sdk"
-optional = false
-python-versions = "<4.0,>=3.8"
-groups = ["main"]
-files = [
-    {file = "writerai-4.0.1-py3-none-any.whl", hash = "sha256:d864ea44513ac52c19a0d0ab16f547658ce7e6e4a0a7628ba8534525604743f4"},
-    {file = "writerai-4.0.1.tar.gz", hash = "sha256:1b1c3135fd83e739f96b09f7c7c694f84db747e3041000ae25c9521e819c3404"},
-]
-
-[package.dependencies]
-writer-sdk = "*"
-
 [extras]
 redis = []
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9.2, <4.0"
-content-hash = "4dac2d1886758fa452e5eb3886cf2d108312ed9ebf12335552dd35318fdb74b8"
+content-hash = "95e1753c38ce7de81502db2f3c8ac012457780c28cf9521b8441096e3cd6d470"
