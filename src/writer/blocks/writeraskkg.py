@@ -105,8 +105,6 @@ class WriterAskGraphQuestion(WriterBlock):
             graph_citations = self._get_field(
                 "graphCitations", default_field_value="yes") == "yes"
 
-            answer_so_far = ""
-
             response = client.graphs.question(
                 graph_ids=graph_ids,
                 question=question,
@@ -117,19 +115,37 @@ class WriterAskGraphQuestion(WriterBlock):
                 }
             )
 
+            answer_so_far = ""
+            result_dict = {}
+            citations_so_far = []
+
             if use_streaming:
                 for chunk in response:
                     try:
-                        delta = chunk.model_extra.get("answer", "")
-                        answer_so_far += delta
-                        self._set_state(state_element, answer_so_far)
+                        delta_answer = chunk.model_extra.get("answer", "")
+                        answer_so_far += delta_answer
+                        result_dict["answer"] = answer_so_far
+
+                        if graph_citations:
+                            delta_sources = chunk.model_extra.get("sources", "")
+                            citations_so_far.extend(delta_sources)
+                            result_dict["citations"] = citations_so_far
+                        
+                        self._set_state(state_element, result_dict)
+
                     except json.JSONDecodeError:
                         logging.error(
                             "Could not parse stream chunk from graph.question")
+
             else:
                 answer_so_far = response.answer
-                self._set_state(state_element, answer_so_far)
+                result_dict["answer"] = answer_so_far
 
+                if graph_citations:
+                    citations_so_far = response.sources or []
+                    result_dict["citations"] = citations_so_far
+
+            self._set_state(state_element, result_dict)
             self.result = answer_so_far
             self.outcome = "success"
 

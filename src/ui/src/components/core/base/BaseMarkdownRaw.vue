@@ -66,6 +66,7 @@ defineProps({
 	background-color: var(--separatorColor);
 	font-family: monospace;
 	padding: 8px;
+	overflow-x: auto;
 }
 
 .markdown:deep() code {

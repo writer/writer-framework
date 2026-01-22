@@ -25,7 +25,7 @@ from writerai import DefaultHttpxClient, Writer
 from writerai._exceptions import BadRequestError, WriterError
 from writerai._response import BinaryAPIResponse
 from writerai._streaming import Stream
-from writerai._types import Body, Headers, NotGiven, Query
+from writerai._types import Body, Headers, NotGiven, Omit, Query
 from writerai.resources import FilesResource, GraphsResource
 from writerai.types import (
     ApplicationListResponse,
@@ -95,40 +95,40 @@ class ChatOptions(APIOptions, total=False):
             Iterable[
                 Union[SDKGraphTool, SDKFunctionTool, SDKLlmTool, SDKWebSearchTool]
                 ],
-            NotGiven
+            Omit
         ]
-    response_format: Union[ResponseFormat, NotGiven]
-    logprobs: Union[bool, NotGiven]
-    max_tokens: Union[int, NotGiven]
-    n: Union[int, NotGiven]
-    stop: Union[List[str], str, NotGiven]
-    temperature: Union[float, NotGiven]
-    top_p: Union[float, NotGiven]
+    response_format: Union[ResponseFormat, Omit]
+    logprobs: Union[bool, Omit]
+    max_tokens: Union[int, Omit]
+    n: Union[int, Omit]
+    stop: Union[List[str], str, Omit]
+    temperature: Union[float, Omit]
+    top_p: Union[float, Omit]
 
 
 class CreateOptions(APIOptions, total=False):
     model: str
-    best_of: Union[int, NotGiven]
-    max_tokens: Union[int, NotGiven]
-    random_seed: Union[int, NotGiven]
-    stop: Union[List[str], str, NotGiven]
-    temperature: Union[float, NotGiven]
-    top_p: Union[float, NotGiven]
+    best_of: Union[int, Omit]
+    max_tokens: Union[int, Omit]
+    random_seed: Union[int, Omit]
+    stop: Union[List[str], str, Omit]
+    temperature: Union[float, Omit]
+    top_p: Union[float, Omit]
 
 
 class APIListOptions(APIOptions, total=False):
-    after: Union[str, NotGiven]
-    before: Union[str, NotGiven]
-    limit: Union[int, NotGiven]
-    order: Union[Literal["asc", "desc"], NotGiven]
+    after: Union[str, Omit]
+    before: Union[str, Omit]
+    limit: Union[int, Omit]
+    order: Union[Literal["asc", "desc"], Omit]
 
 
 class APIRetrieveJobsOptions(APIOptions, total=False):
-    limit: Union[int, NotGiven]
-    offset: Union[int, NotGiven]
+    limit: Union[int, Omit]
+    offset: Union[int, Omit]
     status: Union[
         Literal["completed", "failed", "in_progress"],
-        NotGiven
+        Omit
         ]
 
 
@@ -320,7 +320,8 @@ class WriterAIManager:
                 client = Writer(
                     api_key=instance.token,
                     default_headers=custom_headers,
-                    http_client=custom_httpx_client
+                    http_client=custom_httpx_client,
+                    max_retries=10,
                     )
                 _ai_client.set(client)
                 return client
@@ -478,8 +479,8 @@ class Graph(SDKWrapper):
         graphs = self._retrieve_graphs_accessor()
         response = graphs.update(
             self.id,
-            name=payload.get("name", NotGiven()),
-            description=payload.get("description", NotGiven()),
+            name=payload.get("name", Omit()),
+            description=payload.get("description", Omit()),
             **config
         )
         Graph.stale_ids.add(self.id)
@@ -743,7 +744,7 @@ def create_graph(
     graphs = Graph._retrieve_graphs_accessor()
     graph_object = graphs.create(
         name=name,
-        description=description or NotGiven(),
+        description=description or Omit(),
         **config
         )
     converted_object = cast(SDKGraph, graph_object)
@@ -800,13 +801,13 @@ def list_graphs(config: Optional[APIListOptions] = None) -> List[Graph]:
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
     Timeout for the request in seconds.
-    - `after` (Union[str, NotGiven]):
+    - `after` (Union[str, Omit]):
     Filter to retrieve items created after a specific cursor.
-    - `before` (Union[str, NotGiven]):
+    - `before` (Union[str, Omit]):
     Filter to retrieve items created before a specific cursor.
-    - `limit` (Union[int, NotGiven]):
+    - `limit` (Union[int, Omit]):
     The number of items to retrieve.
-    - `order` (Union[Literal["asc", "desc"], NotGiven]):
+    - `order` (Union[Literal["asc", "desc"], Omit]):
     The order in which to retrieve items.
     """
     config = config or {}
@@ -941,13 +942,13 @@ def list_files(config: Optional[APIListOptions] = None) -> List[File]:
     Additional body parameters for the request.
     - `timeout` (Union[float, httpx.Timeout, None, NotGiven]):
     Timeout for the request in seconds.
-    - `after` (Union[str, NotGiven]):
+    - `after` (Union[str, Omit]):
     Filter to retrieve items created after a specific cursor.
-    - `before` (Union[str, NotGiven]):
+    - `before` (Union[str, Omit]):
     Filter to retrieve items created before a specific cursor.
-    - `limit` (Union[int, NotGiven]):
+    - `limit` (Union[int, Omit]):
     The number of items to retrieve.
-    - `order` (Union[Literal["asc", "desc"], NotGiven]):
+    - `order` (Union[Literal["asc", "desc"], Omit]):
     The order in which to retrieve items.
     """
     config = config or {}
@@ -1126,23 +1127,23 @@ class Conversation:
     Configure how the model will call functions: `auto` will allow the model
     to automatically choose the best tool, `none` disables tool calling.
     You can also pass a specific previously defined function.
-    - `logprobs` (Union[bool, NotGiven]):
+    - `logprobs` (Union[bool, Omit]):
     Specifies whether to return log probabilities of the output tokens.
     - `tools` (Union[Iterable[Union[SDKGraphTool,
-    SDKFunctionTool, SDKLlmTool]], NotGiven]):
+    SDKFunctionTool, SDKLlmTool]], Omit]):
     Tools available for the model to use.
-    - `max_tokens` (Union[int, NotGiven]):
+    - `max_tokens` (Union[int, Omit]):
     Maximum number of tokens to generate.
-    - `n` (Union[int, NotGiven]):
+    - `n` (Union[int, Omit]):
     Number of completions to generate.
-    - `stop` (Union[List[str], str, NotGiven]):
+    - `stop` (Union[List[str], str, Omit]):
     Sequences where the API will stop generating tokens.
-    - `temperature` (Union[float, NotGiven]):
+    - `temperature` (Union[float, Omit]):
     Controls the randomness or creativity of the model's responses.
     A higher temperature results in more varied and less predictable text,
     while a lower temperature produces more deterministic
     and conservative outputs.
-    - `top_p` (Union[float, NotGiven]):
+    - `top_p` (Union[float, Omit]):
     Sets the threshold for "nucleus sampling," a technique to focus the model's
     token generation on the most likely subset of tokens. Only tokens with
     cumulative probability above this threshold are considered, controlling the
@@ -1909,25 +1910,25 @@ class Conversation:
             f"prepared messages – {prepared_messages}, " +
             f"request_data – {request_data}"
             )
-        tools = request_data.get('tools', NotGiven())
-        tool_choice: Union[ToolChoice, NotGiven]
-        if isinstance(tools, NotGiven):
-            tool_choice = NotGiven()
+        tools = request_data.get('tools', Omit())
+        tool_choice: Union[ToolChoice, Omit]
+        if isinstance(tools, Omit):
+            tool_choice = Omit()
         else:
             tool_choice = request_data.get('tool_choice', cast(ToolChoice, 'auto'))
         return client.chat.chat(
             messages=prepared_messages,
             model=request_model,
             stream=stream,
-            logprobs=request_data.get('logprobs', NotGiven()),
+            logprobs=request_data.get('logprobs', Omit()),
             tools=tools,
             tool_choice=tool_choice,
-            response_format=request_data.get('response_format', NotGiven()),
-            max_tokens=request_data.get('max_tokens', NotGiven()),
-            n=request_data.get('n', NotGiven()),
-            stop=request_data.get('stop', NotGiven()),
-            temperature=request_data.get('temperature', NotGiven()),
-            top_p=request_data.get('top_p', NotGiven()),
+            response_format=request_data.get('response_format', Omit()),
+            max_tokens=request_data.get('max_tokens', Omit()),
+            n=request_data.get('n', Omit()),
+            stop=request_data.get('stop', Omit()),
+            temperature=request_data.get('temperature', Omit()),
+            top_p=request_data.get('top_p', Omit()),
             extra_headers=request_data.get('extra_headers'),
             extra_query=request_data.get('extra_query'),
             extra_body=request_data.get('extra_body'),
@@ -2979,12 +2980,12 @@ def complete(
     response_data: Completion = client.completions.create(
         model=request_model,
         prompt=initial_text,
-        best_of=config.get("best_of", NotGiven()),
-        max_tokens=config.get("max_tokens", NotGiven()),
-        random_seed=config.get("random_seed", NotGiven()),
-        stop=config.get("stop", NotGiven()),
-        temperature=config.get("temperature", NotGiven()),
-        top_p=config.get("top_p", NotGiven()),
+        best_of=config.get("best_of", Omit()),
+        max_tokens=config.get("max_tokens", Omit()),
+        random_seed=config.get("random_seed", Omit()),
+        stop=config.get("stop", Omit()),
+        temperature=config.get("temperature", Omit()),
+        top_p=config.get("top_p", Omit()),
         extra_headers=config.get("extra_headers"),
         extra_body=config.get("extra_body"),
         extra_query=config.get("extra_query"),
@@ -3025,12 +3026,12 @@ def stream_complete(
         model=request_model,
         prompt=initial_text,
         stream=True,
-        best_of=config.get("best_of", NotGiven()),
-        max_tokens=config.get("max_tokens", NotGiven()),
-        random_seed=config.get("random_seed", NotGiven()),
-        stop=config.get("stop", NotGiven()),
-        temperature=config.get("temperature", NotGiven()),
-        top_p=config.get("top_p", NotGiven()),
+        best_of=config.get("best_of", Omit()),
+        max_tokens=config.get("max_tokens", Omit()),
+        random_seed=config.get("random_seed", Omit()),
+        stop=config.get("stop", Omit()),
+        temperature=config.get("temperature", Omit()),
+        top_p=config.get("top_p", Omit()),
         extra_headers=config.get("extra_headers"),
         extra_body=config.get("extra_body"),
         extra_query=config.get("extra_query"),
