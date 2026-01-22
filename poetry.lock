@@ -2240,14 +2240,14 @@ files = [
 
 [[package]]
 name = "writer-sdk"
-version = "2.3.1"
+version = "2.3.2"
 description = "The official Python library for the writer API"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "writer_sdk-2.3.1-py3-none-any.whl", hash = "sha256:297cd37c82828327e18ba2c2ccf7b5cfd18715791b72bfd8f687a896336d1085"},
-    {file = "writer_sdk-2.3.1.tar.gz", hash = "sha256:4e36af957180119d6d32cf7eb3925e9b1dd3fb9576b84008b76f225fe16f550b"},
+    {file = "writer_sdk-2.3.2-py3-none-any.whl", hash = "sha256:954b28d84221583bdd151195a493a013b927791084ae43b48951e543ec6bdc64"},
+    {file = "writer_sdk-2.3.2.tar.gz", hash = "sha256:3a0c8ebecdc1cd90c3aeca99bc9594911218a70cf7bcb31815ae4a15c236ecd6"},
 ]
 
 [package.dependencies]
@@ -2268,4 +2268,4 @@ redis = []
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9.2, <4.0"
-content-hash = "053af32476a69862c8ce697b461c56588f1df7245904c2497fb39561cdd04988"
+content-hash = "95e1753c38ce7de81502db2f3c8ac012457780c28cf9521b8441096e3cd6d470"
