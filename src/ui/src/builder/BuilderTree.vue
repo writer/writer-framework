@@ -100,7 +100,6 @@ const props = defineProps({
 		default: undefined,
 	},
 	disableCollapse: { type: Boolean, required: false },
-	showDeleteButton: { type: Boolean, required: false, default: false },
 });
 
 const emit = defineEmits({
@@ -203,12 +202,6 @@ function handleMouseLeave(ev: MouseEvent) {
 	margin-left: -4px;
 	width: 20px;
 	height: 20px;
-}
-
-.BuilderTree__main__deleteButton {
-	width: 20px;
-	height: 20px;
-	flex-shrink: 0;
 }
 
 .BuilderTree__children {
