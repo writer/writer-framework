@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "writer"
-version = "1.26.0"
+version = "1.16.1"
 description = "An open-source, Python framework for building feature-rich apps that are fully integrated with the Writer platform."
 authors = ["Writer, Inc."]
 readme = "README.md"
@@ -55,7 +55,6 @@ writer-sdk = ">= 2.3.2, < 3"
 python-multipart = ">=0.0.7, < 1"
 orjson = "^3.11.0, <4"
 launchdarkly-server-sdk = "^9.12.0"
-writerai = "^4.0.1"
 
 [tool.poetry.group.build]
 optional = true
@@ -114,5 +113,4 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
-
 
