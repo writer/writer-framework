@@ -17,8 +17,15 @@
 		:disable-collapse="COMPONENT_TYPES_ROOT.has(component.type)"
 		:no-nested-space="COMPONENT_TYPES_ROOT.has(component.type)"
 		:collapsed="isOutsideActivePage"
-		:show-delete-button="shouldShowDeleteButton"
+		:right-click-options="rightClickDropdownOptions"
+		:dropdown-options="
+			component?.type === 'blueprints_blueprint' &&
+			isDeleteAllowed(props.componentId)
+				? rightClickDropdownOptions
+				: undefined
+		"
 		@select="select"
+		@dropdown-select="handleDropdownSelect"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
@@ -87,6 +94,7 @@ import {
 	COMPONENT_TYPES_TOP_LEVEL,
 } from "@/constants/component";
 import WdsIcon from "@/wds/WdsIcon.vue";
+import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -96,6 +104,9 @@ const props = defineProps({
 const treeBranch = ref<ComponentPublicInstance<typeof BuilderTree>>();
 const isHovered = ref(false);
 
+const rightClickDropdownOptions: WdsDropdownMenuOption[] = [
+	{ label: "Delete", value: "delete", icon: "trash-2" },
+];
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const selected = computed(() => wfbm.isComponentIdSelected(props.componentId));
@@ -112,7 +123,7 @@ const {
 const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(wf);
 const { isComponentVisible } = useEvaluator(wf);
-const emit = defineEmits(["expandBranch"]);
+const emit = defineEmits(["expandBranch", "delete"]);
 
 const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
 
@@ -212,17 +223,14 @@ function handleHover(hovered: boolean) {
 	isHovered.value = hovered;
 }
 
-const shouldShowDeleteButton = computed(() => {
-	return (
-		component.value?.type === "blueprints_blueprint" &&
-		isHovered.value &&
-		isDeleteAllowed(props.componentId)
-	);
-});
-
 function handleDelete() {
 	if (!isDeleteAllowed(props.componentId)) return;
 	removeComponentSubtree(props.componentId);
+	emit("delete", props.componentId);
+}
+
+function handleDropdownSelect() {
+	handleDelete();
 }
 
 const isOutsideActivePage = computed(() => {

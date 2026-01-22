@@ -38,16 +38,6 @@
 				data-writer-tooltip-strategy="overflow"
 				>{{ name }}</span
 			>
-			<WdsButton
-				v-if="showDeleteButton"
-				class="BuilderTree__main__deleteButton"
-				variant="neutral"
-				size="icon"
-				data-writer-tooltip="Delete"
-				@click.stop="$emit('delete')"
-			>
-				<WdsIcon name="trash" />
-			</WdsButton>
 			<slot name="nameRight" />
 			<div
 				v-if="dropdownOptions && isMainHovered"
