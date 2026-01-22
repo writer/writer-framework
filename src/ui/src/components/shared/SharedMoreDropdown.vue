@@ -106,6 +106,16 @@ watch(
 );
 
 function onSelect(value: string) {
+	// Don't close dropdown for switch interactions
+	// These option types should stay open for better UX
+	const option = props.options.find((opt) => opt.value === value);
+	if (option && option.type === "switch") {
+		// Keep dropdown open, just emit the event
+		emits("select", value);
+		return;
+	}
+
+	// For regular items, close the dropdown after selection
 	isOpen.value = false;
 	emits("select", value);
 }

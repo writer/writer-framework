@@ -31,13 +31,22 @@ import { computed, inject, ref, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import { useToasts } from "./useToast";
 import { useWriterTracking } from "@/composables/useWriterTracking";
+import { useCodeEditorSettings } from "@/composables/useCodeEditorSettings";
 import SharedMoreDropdown, {
 	Option,
 } from "@/components/shared/SharedMoreDropdown.vue";
 import WdsModal, { ModalAction } from "@/wds/WdsModal.vue";
 import WdsCheckbox from "@/wds/WdsCheckbox.vue";
 
+const { diagnosticsEnabled, aiCompletionEnabled } = useCodeEditorSettings();
+
 const options = computed<Option[]>(() => [
+	// Project Management Section
+	{
+		type: "header",
+		value: "project-management-header",
+		label: "General",
+	},
 	{ label: "Import agent .zip file", value: "import", icon: "upload" },
 	{ label: "Download agent .zip file", value: "export", icon: "download" },
 	{
@@ -46,6 +55,28 @@ const options = computed<Option[]>(() => [
 			: "Keep session awake",
 		value: "awake",
 		icon: "coffee",
+	},
+	// Divider
+	{ type: "divider", value: "divider-1" },
+	// Code Settings Section
+	{
+		type: "header",
+		value: "code-settings-header",
+		label: "Code Editor Settings",
+	},
+	{
+		type: "switch",
+		value: "diagnostics",
+		label: "Code Linting",
+		detail: "Show diagnostics in editor",
+		checked: diagnosticsEnabled.value,
+	},
+	{
+		type: "switch",
+		value: "ai-completion",
+		label: "AI Code Completion",
+		detail: "Enable AI-powered suggestions",
+		checked: aiCompletionEnabled.value,
 	},
 ]);
 
@@ -154,6 +185,13 @@ async function onSelect(key: string) {
 			break;
 		case "awake":
 			socketTimeout?.togglePreventTaskId("stayAwake");
+			break;
+		case "diagnostics":
+			diagnosticsEnabled.value = !diagnosticsEnabled.value;
+			break;
+		case "ai-completion":
+			aiCompletionEnabled.value = !aiCompletionEnabled.value;
+			break;
 	}
 }
 </script>

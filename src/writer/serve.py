@@ -42,7 +42,9 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from writer import VERSION, abstract
 from writer.ai import Graph
+from writer.ai.code_completion import get_completion_handler
 from writer.app_runner import AppRunner
+from writer.lsp_manager import LSPManager
 from writer.ss_types import (
     AppProcessServerResponse,
     AutogenRequestBody,
@@ -77,6 +79,7 @@ class WriterState(typing.Protocol):
     app_runner: AppRunner
     writer_app: bool
     is_server_static_mounted: bool
+    lsp_manager: Optional[LSPManager]
     meta: Union[Dict[str, Any], Callable[[], Dict[str, Any]]]  # meta tags for SEO
     opengraph_tags: Union[
         Dict[str, Any], Callable[[], Dict[str, Any]]
@@ -133,6 +136,12 @@ def get_asgi_app(
         app_runner.hook_to_running_event_loop()
         app_runner.load()
 
+        # Start LSP server in edit mode
+        if serve_mode == "edit" and hasattr(asgi_app.state, "lsp_manager"):
+            lsp_manager = asgi_app.state.lsp_manager
+            if lsp_manager is not None:
+                lsp_manager.start()
+
         if (
             on_load is not None
             and hasattr(asgi_app.state, "is_server_static_mounted")
@@ -152,6 +161,12 @@ def get_asgi_app(
             except asyncio.CancelledError:
                 pass
 
+        # Stop LSP server
+        if serve_mode == "edit" and hasattr(asgi_app.state, "lsp_manager"):
+            lsp_manager = asgi_app.state.lsp_manager
+            if lsp_manager is not None:
+                lsp_manager.stop()
+
         app_runner.shut_down()
         if on_shutdown is not None:
             on_shutdown()
@@ -163,6 +178,12 @@ def get_asgi_app(
     """
     app.state.writer_app = True
     app.state.app_runner = app_runner
+    
+    # Initialize LSP manager for edit mode
+    if serve_mode == "edit":
+        app.state.lsp_manager = LSPManager()
+    else:
+        app.state.lsp_manager = None
 
     def _get_extension_paths() -> List[str]:
         extensions_path = pathlib.Path(user_app_path) / "extensions"
@@ -207,6 +228,8 @@ def get_asgi_app(
     def _get_edit_starter_pack(payload: InitSessionResponsePayload):
         run_code: Optional[str] = app_runner.run_code
 
+        
+
         return InitResponseBodyEdit(
             mode="edit",
             sessionId=payload.sessionId,
@@ -243,6 +266,26 @@ def get_asgi_app(
                 )
         
         return {"status": "ok"}
+
+    @app.get("/api/lsp-config")
+    async def lsp_config():
+        """
+        Returns LSP server configuration for the frontend.
+        Only available in edit mode.
+        """
+        if serve_mode != "edit":
+            raise HTTPException(status_code=403, detail="LSP config only available in edit mode.")
+        
+        lsp_manager = app.state.lsp_manager
+        if lsp_manager is None:
+            return {
+                "enabled": False,
+                "websocket_url": None,
+                "port": None,
+                "host": None
+            }
+        
+        return lsp_manager.get_config()
 
     @app.get("/api/export")
     async def export_zip():
@@ -324,6 +367,61 @@ def get_asgi_app(
         await asyncio.gather(*(delete_key(key) for key in requestBody.keys))
 
         return None
+
+    @app.post("/api/code-completion")
+    async def code_completion(request: Request):
+        """
+        Handles AI-powered code completion requests from monacopilot.
+        
+        Only available in edit mode for security reasons.
+        
+        Requires environment variables:
+        - WRITER_COPILOT_ENABLED: Set to "true" to enable
+        - WRITER_API_KEY: API key for Writer AI (Palmyra models)
+        """
+        # Check edit mode - only allow completions in edit mode
+        if serve_mode != "edit":
+            raise HTTPException(
+                status_code=403, 
+                detail="Code completion only available in edit mode"
+            )
+        
+        # Validate request size to prevent DoS
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                size = int(content_length)
+                if size > 50000:  # 50KB limit
+                    raise HTTPException(
+                        status_code=413, 
+                        detail="Request too large"
+                    )
+            except ValueError:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Invalid content-length header"
+                )
+        
+        try:
+            request_body = await request.json()
+            
+            # Validate request structure
+            if not isinstance(request_body, dict):
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Invalid request format"
+                )
+            
+            handler = get_completion_handler()
+            result = await handler.get_completion(request_body)
+            return JSONResponse(content=result)
+        except HTTPException:
+            # Re-raise HTTP exceptions
+            raise
+        except Exception as e:
+            logging.error(f"Error in code completion endpoint: {e}")
+            # Return empty completion on error
+            return JSONResponse(content={"completion": ""})
 
     @app.post("/api/init")
     async def init(

@@ -58,42 +58,86 @@
 		<div v-else-if="hasNoResults" class="WdsDropdownMenu__no-results">
 			No results
 		</div>
-		<SharedLazyLoader
-			v-for="option in optionsFiltered"
-			v-else
-			:key="option.value"
-		>
-			<template #spinner>
-				<div class="WdsDropdownMenu__itemLazyLoader">
-					<WdsSkeletonLoader />
+		<template v-else>
+			<template v-for="option in optionsFiltered" :key="option.value">
+				<!-- Divider -->
+				<div
+					v-if="option.type === 'divider'"
+					class="WdsDropdownMenu__divider"
+				/>
+				<!-- Header -->
+				<div
+					v-else-if="option.type === 'header'"
+					class="WdsDropdownMenu__sectionHeader"
+				>
+					{{ option.label }}
 				</div>
+				<!-- Regular or Checkbox items -->
+				<SharedLazyLoader v-else>
+					<template #spinner>
+						<div class="WdsDropdownMenu__itemLazyLoader">
+							<WdsSkeletonLoader />
+						</div>
+					</template>
+					<template #content>
+						<!-- Switch type option -->
+						<button
+							v-if="option.type === 'switch'"
+							class="WdsDropdownMenu__switchItem"
+							:class="{
+								'WdsDropdownMenu__switchItem--disabled':
+									option.disabled,
+							}"
+							:data-automation-key="option.value"
+							:disabled="option.disabled"
+							@click.stop
+						>
+							<div class="WdsDropdownMenu__switchItem__content">
+								<div class="WdsDropdownMenu__switchItem__label">
+									{{ option.label }}
+								</div>
+								<div
+									v-if="option.detail"
+									class="WdsDropdownMenu__switchItem__detail"
+								>
+									{{ option.detail }}
+								</div>
+							</div>
+							<WdsSwitch
+								:model-value="option.checked ?? false"
+								:disabled="option.disabled"
+								@click.stop="onSelect(option.value)"
+							/>
+						</button>
+						<!-- Multi-selection checkbox -->
+						<WdsCheckbox
+							v-else-if="enableMultiSelection"
+							class="WdsDropdownMenu__checkbox"
+							:checked="isSelected(option.value)"
+							:label="option.label"
+							:detail="option.detail"
+							:data-automation-key="option.value"
+							:disabled="option.disabled"
+							:model-value="isSelected(option.value)"
+							@update:model-value="onSelect(option.value)"
+						/>
+						<!-- Regular menu item -->
+						<WdsDropdownMenuItem
+							v-else
+							:option="option"
+							:data-automation-key="option.value"
+							:selected="isSelected(option.value)"
+							@click.stop="onSelect(option.value)"
+						/>
+					</template>
+				</SharedLazyLoader>
 			</template>
-			<template #content>
-				<WdsCheckbox
-					v-if="enableMultiSelection"
-					class="WdsDropdownMenu__checkbox"
-					:checked="isSelected(option.value)"
-					:label="option.label"
-					:detail="option.detail"
-					:data-automation-key="option.value"
-					:disabled="option.disabled"
-					:model-value="isSelected(option.value)"
-					@update:model-value="onSelect(option.value)"
-				/>
-				<WdsDropdownMenuItem
-					v-else
-					:option="option"
-					:data-automation-key="option.value"
-					:selected="isSelected(option.value)"
-					@click.stop="onSelect(option.value)"
-				/>
-			</template>
-		</SharedLazyLoader>
+		</template>
 	</div>
 </template>
 
 <script lang="ts">
-export type WdsDropdownMenuOption = {
+export type WdsDropdownMenuOptionBase = {
 	value: string;
 	label: string;
 	detail?: string;
@@ -107,6 +151,32 @@ export type WdsDropdownMenuOption = {
 	disabled?: boolean;
 	variant?: "danger";
 };
+
+export type WdsDropdownMenuOptionRegular = WdsDropdownMenuOptionBase & {
+	type?: "regular";
+};
+
+export type WdsDropdownMenuOptionSwitch = WdsDropdownMenuOptionBase & {
+	type: "switch";
+	checked?: boolean;
+};
+
+export type WdsDropdownMenuOptionDivider = {
+	type: "divider";
+	value: string; // unique key for v-for
+};
+
+export type WdsDropdownMenuOptionHeader = {
+	type: "header";
+	value: string; // unique key for v-for
+	label: string;
+};
+
+export type WdsDropdownMenuOption =
+	| WdsDropdownMenuOptionRegular
+	| WdsDropdownMenuOptionSwitch
+	| WdsDropdownMenuOptionDivider
+	| WdsDropdownMenuOptionHeader;
 </script>
 
 <script setup lang="ts">
@@ -115,6 +185,7 @@ import { computed, PropType, ref, watch } from "vue";
 import WdsIcon from "./WdsIcon.vue";
 import WdsSkeletonLoader from "./WdsSkeletonLoader.vue";
 import WdsCheckbox from "./WdsCheckbox.vue";
+import WdsSwitch from "./WdsSwitch.vue";
 import WdsDropdownMenuItem from "./WdsDropdownMenuItem.vue";
 import SharedLazyLoader from "@/components/shared/SharedLazyLoader.vue";
 
@@ -156,11 +227,15 @@ const optionsFiltered = computed(() => {
 	if (!props.enableSearch) return props.options;
 
 	const query = searchTerm.value.toLowerCase();
-	return props.options.filter(
-		(option) =>
+	return props.options.filter((option) => {
+		if (option.type === "divider" || option.type === "header") {
+			return true;
+		}
+		return (
 			option.label.toLowerCase().includes(query) ||
-			option.detail?.toLowerCase().includes(query),
-	);
+			option.detail?.toLowerCase().includes(query)
+		);
+	});
 });
 
 const hasNoResults = computed(() => {
@@ -178,9 +253,13 @@ function isSelected(value: string) {
 		: props.selected === value;
 }
 
-const optionsValues = computed(
-	() => new Set(props.options.map((o: WdsDropdownMenuOption) => o.value)),
-);
+const optionsValues = computed(() => {
+	return new Set(
+		props.options
+			.filter((o) => o.type !== "divider" && o.type !== "header")
+			.map((o) => o.value),
+	);
+});
 
 function onSelect(value: string) {
 	if (!props.enableMultiSelection) return emits("select", value);
@@ -346,5 +425,63 @@ watch(searchTerm, () => emits("search", searchTerm.value));
 	text-align: center;
 	color: var(--wdsColorGray5, #6b7280);
 	font-size: 0.875rem;
+}
+
+.WdsDropdownMenu__divider {
+	border-top: 1px solid var(--wdsColorGray2);
+	margin: 8px 0;
+}
+
+.WdsDropdownMenu__sectionHeader {
+	text-transform: uppercase;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--wdsColorGray6);
+	padding: 12px 8px 8px 8px;
+	margin-top: 4px;
+}
+
+.WdsDropdownMenu__switchItem {
+	background-color: transparent;
+	border: none;
+	display: flex;
+	width: 100%;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	border-radius: 4px;
+	padding: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	min-height: 36px;
+}
+
+.WdsDropdownMenu__switchItem:hover:not(.WdsDropdownMenu__switchItem--disabled) {
+	background-color: var(--wdsColorGray1);
+}
+
+.WdsDropdownMenu__switchItem--disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.WdsDropdownMenu__switchItem__content {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	flex: 1;
+	text-align: left;
+}
+
+.WdsDropdownMenu__switchItem__label {
+	font-weight: 400;
+	font-size: 0.75rem;
+	color: var(--wdsColorGray6);
+}
+
+.WdsDropdownMenu__switchItem__detail {
+	font-size: 0.6875rem;
+	color: var(--wdsColorGray5);
 }
 </style>

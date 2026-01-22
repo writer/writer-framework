@@ -9,7 +9,7 @@ import { useLogger } from "./composables/useLogger.js";
 import { useWriterApi } from "./composables/useWriterApi.js";
 import { useCollaborationManager } from "./composables/useCollaborationManager.js";
 import { useNotesManager } from "./core/useNotesManager.js";
-import { CollaborationManager } from "./writerTypes.js";
+import type { CollaborationManager } from "./writerTypes.js";
 import { useSecretsManager } from "./core/useSecretsManager.js";
 import { RECONNECT_DELAY_MS, MAX_RETRIES } from "@/constants/retry";
 import { useConfigJs } from "./composables/useConfigJs.js";
@@ -29,11 +29,12 @@ async function load() {
 	await wf.init();
 
 	const mode = wf.mode.value;
-	const wfbm = mode == "edit" ? generateBuilderManager() : undefined;
+
+	const wfbm = mode === "edit" ? generateBuilderManager() : undefined;
 	const notesManager = useNotesManager(wf, wfbm);
-	const secretsManager = mode == "edit" ? useSecretsManager(wf) : undefined;
+	const secretsManager = mode === "edit" ? useSecretsManager(wf) : undefined;
 	const collaborationManager =
-		mode == "edit" ? useCollaborationManager(wf) : undefined;
+		mode === "edit" ? useCollaborationManager(wf) : undefined;
 
 	if (wfbm) {
 		wf.addMailSubscription("logEntry", wfbm.handleLogEntry);
@@ -62,6 +63,39 @@ async function load() {
 
 	app.mount("#app");
 
+	// Initialize Monaco editor workers and LSP client in edit mode
+	if (mode === "edit") {
+		// Setup Monaco editor workers first - MUST be synchronous to ensure
+		// MonacoEnvironment is set before any editor instances are created
+		try {
+			await import("./builder/builderEditorWorker.js");
+			logger.log("Monaco editor workers initialized");
+		} catch (error) {
+			logger.error("Failed to initialize Monaco workers:", error);
+		}
+
+		// Then initialize LSP
+		try {
+			const { setupLSP, cleanupLSP } = await import(
+				"./builder/lsp/lspSetup.js"
+			);
+			await setupLSP();
+
+			// Setup cleanup on browser unload (tab close, refresh, navigation away)
+			window.addEventListener("beforeunload", () => {
+				cleanupLSP();
+				if (collaborationManager) {
+					collaborationManager.updateOutgoingPing({
+						action: "leave",
+					});
+					collaborationManager.sendCollaborationPing();
+				}
+			});
+		} catch (error) {
+			logger.error("Failed to initialize LSP:", error);
+		}
+	}
+
 	const { loadConfigJs } = useConfigJs(wf);
 	loadConfigJs().catch(logger.error);
 
@@ -71,7 +105,6 @@ async function load() {
 	if (wf.isWriterCloudApp.value && secretsManager) {
 		secretsManager.load().catch(logger.error);
 	}
-
 	if (
 		wfbm?.activeRootId.value === "blueprints_root" &&
 		wf.activePageId.value === undefined
@@ -92,10 +125,7 @@ async function enableCollaboration(collaborationManager: CollaborationManager) {
 	});
 	collaborationManager.sendCollaborationPing();
 	collaborationManager.groomSnapshot();
-	window.addEventListener("beforeunload", function () {
-		collaborationManager.updateOutgoingPing({ action: "leave" });
-		collaborationManager.sendCollaborationPing();
-	});
+	// Note: beforeunload cleanup is now handled in the main load() function
 }
 
 async function initialise() {
