@@ -1,21 +1,15 @@
-import { ComponentPublicInstance, computed, Ref, ShallowRef } from "vue";
+import { ComponentPublicInstance, Ref, ShallowRef } from "vue";
 import { type internal } from "arquero";
 import { ARQUERO_INTERNAL_ID, UNNAMED_INDEX_COLUMN_PATTERN } from "./constants";
 import { useJobs } from "./useJobs";
-import { Core, InstancePath } from "@/writerTypes";
-import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
 
 /**
  * Encapsulates the logic to update an Arquero table and sync it with the backend
  */
 export function useDataFrameValueBroker(
-	wf: Core,
-	instancePath: InstancePath,
 	emitterEl: Ref<HTMLElement | ComponentPublicInstance>,
 	table: ShallowRef<internal.ColumnTable | null>,
 ) {
-	const componentId = instancePath.at(-1).componentId;
-	const component = computed(() => wf.getComponentById(componentId));
 
 	type Job =
 		| {
@@ -69,8 +63,6 @@ export function useDataFrameValueBroker(
 			[ARQUERO_INTERNAL_ID]: () => aq.op.row_number(),
 		});
 
-		if (!isEventUsed(eventType)) return;
-
 		return new Promise((res) => {
 			const event = new CustomEvent(eventType, {
 				detail: {
@@ -88,7 +80,6 @@ export function useDataFrameValueBroker(
 	async function handlerActionRow(action: string, rowIndex: number) {
 		const eventType = "wf-dataframe-action";
 		if (!table.value) throw Error("Table is not ready");
-		if (!isEventUsed(eventType)) return;
 
 		const rowIndexBackend = rowIndex - 1; // 0-based index (arquero is based on 1-based index)
 
@@ -137,8 +128,6 @@ export function useDataFrameValueBroker(
 
 		table.value = table.value.derive({ [columnName]: updater });
 
-		if (!isEventUsed(eventType)) return;
-
 		const record = cleanRecord(table.value.filter(recordFilter).object());
 
 		return new Promise((res) => {
@@ -151,18 +140,6 @@ export function useDataFrameValueBroker(
 
 			dispatchEvent(event);
 		});
-	}
-
-	function isEventUsed(eventType: string): boolean {
-		const isHandlerSet = component.value.handlers?.[eventType];
-		const isBindingSet = component.value.binding?.eventType == eventType;
-		const isBlueprintAttached = useComponentLinkedBlueprints(
-			wf,
-			componentId,
-			eventType,
-		).isLinked.value;
-
-		return Boolean(isHandlerSet || isBindingSet || isBlueprintAttached);
 	}
 
 	function dispatchEvent(event: CustomEvent) {
