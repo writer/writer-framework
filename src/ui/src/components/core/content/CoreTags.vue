@@ -35,7 +35,6 @@ import {
 	primaryTextColor,
 } from "@/renderer/sharedStyleFields";
 import { WdsColor } from "@/wds/tokens";
-import { useComponentLinkedBlueprints } from "@/composables/useComponentBlueprints";
 
 const clickHandlerStub = `
 def handle_tag_click(state, payload):
@@ -90,7 +89,7 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import { computed, inject, useTemplateRef } from "vue";
+import { inject, useTemplateRef } from "vue";
 import injectionKeys from "@/injectionKeys";
 import chroma from "chroma-js";
 
@@ -108,21 +107,7 @@ const COLOR_STEPS = [
 ];
 const rootEl = useTemplateRef("rootEl");
 const fields = inject(injectionKeys.evaluatedFields);
-const componentId = inject(injectionKeys.componentId);
-const wf = inject(injectionKeys.core);
 const isBeingEdited = inject(injectionKeys.isBeingEdited);
-
-const { isLinked: hasLinkedBlueprint } = useComponentLinkedBlueprints(
-	wf,
-	componentId,
-	"wf-tag-click",
-);
-
-const isClickable = computed(() => {
-	if (hasLinkedBlueprint.value) return true;
-	const component = wf.getComponentById(componentId);
-	return typeof component.handlers?.["wf-tag-click"] !== "undefined";
-});
 
 function generateColor(s: string | number) {
 	if (!fields.rotateHue.value) {
@@ -188,7 +173,7 @@ function handleTagClick(tagId: string | number) {
 	display: flex;
 	align-items: center;
 	gap: 4px;
-	cursor: v-bind("isClickable ? 'pointer' : 'auto'");
+	cursor: pointer;
 	overflow: hidden;
 }
 .CoreTags__tag span {
