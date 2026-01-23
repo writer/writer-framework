@@ -446,6 +446,13 @@ export function useComponentActions(
 		);
 	}
 
+	// NB-TODO: reevaluate logic
+	/**
+	 * Whether the blueprint can be run from the target component.
+	 */
+	function isRunAllowed(targetId: Component["id"]): boolean {
+		return !isRoot(targetId);
+	}
 	/**
 	 * Whether a component can be copied into the clipboard.
 	 */
@@ -1243,6 +1250,7 @@ export function useComponentActions(
 		getUndoRedoSnapshot,
 		setHandlerValue,
 		isAddAllowed,
+		isRunAllowed,
 		isCopyAllowed,
 		isCutAllowed,
 		isDeleteAllowed,

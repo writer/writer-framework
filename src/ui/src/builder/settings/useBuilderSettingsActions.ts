@@ -8,6 +8,7 @@ import { Option } from "@/components/shared/SharedMoreDropdown.vue";
 
 export enum BuilderSettingsDropdownActions {
 	Add = "add",
+	Run = "run",
 	MoveUp = "moveUp",
 	MoveDown = "moveDown",
 	Cut = "cut",
@@ -45,6 +46,7 @@ export function useBuilderSettingsActions(
 		pasteComponent,
 		copyComponent,
 		isAddAllowed,
+		isRunAllowed,
 		isCopyAllowed,
 		isCutAllowed,
 		isGoToParentAllowed,
@@ -77,6 +79,7 @@ export function useBuilderSettingsActions(
 			isAddEnabled: isAddAllowed(componentId.value),
 			componentTypeName: wf.getComponentDefinition(component.type)?.name,
 			toolkit: wf.getComponentDefinition(component.type)?.toolkit,
+			isRunEnabled: isRunAllowed(componentId.value),
 			isMoveUpEnabled,
 			isMoveDownEnabled,
 			isCopyEnabled: isCopyAllowed(componentId.value),
@@ -117,6 +120,12 @@ export function useBuilderSettingsActions(
 				label: "Add child",
 				icon: "plus",
 				disabled: !shortcutsInfo.value.isAddEnabled,
+			},
+			{
+				value: BuilderSettingsDropdownActions.Run,
+				label: "Run from here",
+				icon: "play",
+				disabled: !shortcutsInfo.value.isRunEnabled,
 			},
 			{
 				value: BuilderSettingsDropdownActions.MoveUp,
