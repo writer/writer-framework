@@ -25,7 +25,7 @@
 				: undefined
 		"
 		@select="select"
-		@dropdown-select="handleDropdownSelect($event, componentId)"
+		@dropdown-select="handleDropdownSelect($event)"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
@@ -214,8 +214,8 @@ function handleDrop(ev: DragEvent) {
 	removeInsertionCandidacy(ev);
 }
 
-function handleDropdownSelect(action: string, componentId: string) {
-	if (action === "delete") emits("delete", componentId);
+function handleDropdownSelect(action: string) {
+	if (action === "delete") emits("delete");
 }
 
 const isOutsideActivePage = computed(() => {
