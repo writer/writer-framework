@@ -25,12 +25,11 @@
 				: undefined
 		"
 		@select="select"
-		@dropdown-select="handleDropdownSelect"
+		@dropdown-select="handleDropdownSelect($event, key)"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
 		@drop="handleDrop"
-		@delete="handleDelete"
 	>
 		<template #nameRight>
 			<span class="BuilderSidebarComponentTreeBranch__nameRight">
@@ -114,13 +113,12 @@ const {
 	moveComponent,
 	goToComponentParentPage,
 	isDraggingAllowed,
-	removeComponentSubtree,
 	isDeleteAllowed,
 } = useComponentActions(wf, wfbm, tracking);
 const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(wf);
 const { isComponentVisible } = useEvaluator(wf);
-const emit = defineEmits(["expandBranch", "delete"]);
+const emits = defineEmits(["expandBranch", "delete"]);
 
 const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
 
@@ -216,14 +214,8 @@ function handleDrop(ev: DragEvent) {
 	removeInsertionCandidacy(ev);
 }
 
-function handleDelete() {
-	if (!isDeleteAllowed(props.componentId)) return;
-	removeComponentSubtree(props.componentId);
-	emit("delete", props.componentId);
-}
-
-function handleDropdownSelect() {
-	handleDelete();
+function handleDropdownSelect(action: string, key: string) {
+	if (action === "delete") emits("delete", key);
 }
 
 const isOutsideActivePage = computed(() => {
