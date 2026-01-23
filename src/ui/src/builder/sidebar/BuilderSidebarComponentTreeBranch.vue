@@ -25,7 +25,7 @@
 				: undefined
 		"
 		@select="select"
-		@dropdown-select="handleDropdownSelect($event, key)"
+		@dropdown-select="handleDropdownSelect($event, componentId)"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
@@ -158,7 +158,7 @@ async function select(ev: MouseEvent | KeyboardEvent) {
 function expand() {
 	if (!treeBranch.value) return;
 	treeBranch.value.expand();
-	emit("expandBranch");
+	emits("expandBranch");
 }
 
 function scrollToShow() {
@@ -214,8 +214,8 @@ function handleDrop(ev: DragEvent) {
 	removeInsertionCandidacy(ev);
 }
 
-function handleDropdownSelect(action: string, key: string) {
-	if (action === "delete") emits("delete", key);
+function handleDropdownSelect(action: string, componentId: string) {
+	if (action === "delete") emits("delete", componentId);
 }
 
 const isOutsideActivePage = computed(() => {
