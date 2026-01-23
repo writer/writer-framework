@@ -7,8 +7,8 @@
 			:draggable="draggable"
 			:data-automation-key="dataAutomationKey"
 			:aria-expanded="!collapsed"
-			@mouseenter="handleMouseEnter"
-			@mouseleave="handleMouseLeave"
+			@mouseenter="isMainHovered = true"
+			@mouseleave="isMainHovered = false"
 			@click="$emit('select', $event)"
 			@keydown.enter="$emit('select', $event)"
 			@dragover="$emit('dragover', $event)"
@@ -110,9 +110,6 @@ const emit = defineEmits({
 	dragend: (ev: DragEvent) => !!ev,
 	drop: (ev: DragEvent) => !!ev,
 	dropdownSelect: (key: string) => typeof key === "string",
-	mouseenter: (ev: MouseEvent) => !!ev,
-	mouseleave: (ev: MouseEvent) => !!ev,
-	delete: () => true,
 });
 
 defineExpose({ expand, toggleCollapse });
@@ -137,16 +134,6 @@ function expand() {
 function toggleCollapse(newCollapse?: boolean) {
 	newCollapse ??= !collapsed.value;
 	if (newCollapse !== collapsed.value) collapsed.value = newCollapse;
-}
-
-function handleMouseEnter(ev: MouseEvent) {
-	isMainHovered.value = true;
-	emit("mouseenter", ev);
-}
-
-function handleMouseLeave(ev: MouseEvent) {
-	isMainHovered.value = false;
-	emit("mouseleave", ev);
 }
 </script>
 
