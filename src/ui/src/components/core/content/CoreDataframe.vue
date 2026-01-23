@@ -346,15 +346,12 @@ const relativePosition = ref(0);
 const columnWidths = ref<number[]>([]);
 let columnBeingWidthAdjusted: number = null;
 
-const wf = inject(injectionKeys.core);
-const instancePath = inject(injectionKeys.instancePath);
-
 const {
 	handleUpdateCell,
 	handleAddRow,
 	handleActionRow,
 	isBusy: isUpdatingBusy,
-} = useDataFrameValueBroker(wf, instancePath, rootEl, table);
+} = useDataFrameValueBroker(rootEl, table);
 
 async function onAddRow() {
 	await handleAddRow();
