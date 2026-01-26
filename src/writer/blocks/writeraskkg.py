@@ -58,7 +58,7 @@ class WriterAskGraphQuestion(WriterBlock):
                         "name": "Add inline graph citations",
                         "type": "Boolean",
                         "desc": "Shows what specific graph sources were used to answer the question.",
-                        "default": "yes",
+                        "default": "no",
                         "validator": {
                             "type": "boolean",
                         },
@@ -103,7 +103,7 @@ class WriterAskGraphQuestion(WriterBlock):
             subqueries = self._get_field(
                 "subqueries", default_field_value="yes") == "yes"
             graph_citations = self._get_field(
-                "graphCitations", default_field_value="yes") == "yes"
+                "graphCitations", default_field_value="no") == "yes"
 
             response = client.graphs.question(
                 graph_ids=graph_ids,
@@ -124,30 +124,34 @@ class WriterAskGraphQuestion(WriterBlock):
                     try:
                         delta_answer = chunk.model_extra.get("answer", "")
                         answer_so_far += delta_answer
-                        result_dict["answer"] = answer_so_far
 
                         if graph_citations:
                             delta_sources = chunk.model_extra.get("sources", "")
                             citations_so_far.extend(delta_sources)
+                            result_dict["answer"] = answer_so_far
                             result_dict["citations"] = citations_so_far
                         
-                        self._set_state(state_element, result_dict)
-
                     except json.JSONDecodeError:
                         logging.error(
                             "Could not parse stream chunk from graph.question")
 
             else:
                 answer_so_far = response.answer
-                result_dict["answer"] = answer_so_far
-
+            
                 if graph_citations:
-                    citations_so_far = response.sources or []
-                    result_dict["citations"] = citations_so_far
+                    result_dict["answer"] = answer_so_far
+                    result_dict["citations"] = response.sources or []
 
-            self._set_state(state_element, result_dict)
-            self.result = answer_so_far
+            if graph_citations:
+                self._set_state(state_element, result_dict)
+                self.result = result_dict
+            else: 
+                self._set_state(state_element, answer_so_far)
+                self.result = answer_so_far
+    
             self.outcome = "success"
+            
+
 
         except BaseException as e:
             self.outcome = "error"
