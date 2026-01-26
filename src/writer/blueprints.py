@@ -321,6 +321,21 @@ class BlueprintRunner:
             execution_environment, self, title=title
         ).run()
 
+    ## NB-TODO: Implement this and run_node_batch
+    ## Get correct name for start_node_id
+    def run_node(
+        self, 
+        start_node_id: str,
+        execution_environment: Dict, 
+        title: str = "Node execution"):
+        builder = GraphBuilder(
+            components=[self.session.session_component_tree.get_component(node_id)],
+            tools=writer.blocks.base_block.block_map
+        )
+        return GraphRunner(
+            builder.build(), execution_environment, self, title=title
+        ).run()
+
     def run_branch_batch(
         self, base_component_id: str, base_outcome: str, execution_environments: List[Dict]
     ):
@@ -333,6 +348,9 @@ class BlueprintRunner:
             results.append(result)
 
         return results
+    
+    ## TODO: Add run_blueprint_from_node_id
+
 
     def run_blueprint(
         self, component_id: str, execution_environment: Dict, title="Blueprint execution"
