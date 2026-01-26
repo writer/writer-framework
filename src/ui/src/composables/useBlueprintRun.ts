@@ -94,6 +94,7 @@ function stopBlueprintRun(wf: Core, runId: string) {
 	});
 }
 
+// NB STEP 4 - Just call this function with your specific component id as blueprintComponentId
 export function useBlueprintRun(
 	wf: Core,
 	wfbm: BuilderManager,
