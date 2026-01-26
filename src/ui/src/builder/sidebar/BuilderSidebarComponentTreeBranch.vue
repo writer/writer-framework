@@ -17,7 +17,15 @@
 		:disable-collapse="COMPONENT_TYPES_ROOT.has(component.type)"
 		:no-nested-space="COMPONENT_TYPES_ROOT.has(component.type)"
 		:collapsed="isOutsideActivePage"
+		:right-click-options="rightClickDropdownOptions"
+		:dropdown-options="
+			component?.type === 'blueprints_blueprint' &&
+			isDeleteAllowed(props.componentId)
+				? rightClickDropdownOptions
+				: undefined
+		"
 		@select="select"
+		@dropdown-select="handleDropdownSelect($event)"
 		@dragover="handleDragOver"
 		@dragstart="handleDragStart"
 		@dragend="handleDragEnd"
@@ -53,6 +61,7 @@
 				:component-id="childComponent.id"
 				:query="query"
 				@expand-branch="expand"
+				@delete="$emit('delete', $event)"
 			/>
 		</template>
 	</BuilderTree>
@@ -83,6 +92,7 @@ import {
 	COMPONENT_TYPES_TOP_LEVEL,
 } from "@/constants/component";
 import WdsIcon from "@/wds/WdsIcon.vue";
+import type { WdsDropdownMenuOption } from "@/wds/WdsDropdownMenu.vue";
 
 const props = defineProps({
 	componentId: { type: String, required: true },
@@ -91,6 +101,9 @@ const props = defineProps({
 
 const treeBranch = ref<ComponentPublicInstance<typeof BuilderTree>>();
 
+const rightClickDropdownOptions: WdsDropdownMenuOption[] = [
+	{ label: "Delete", value: "delete", icon: "trash-2" },
+];
 const wf = inject(injectionKeys.core);
 const wfbm = inject(injectionKeys.builderManager);
 const selected = computed(() => wfbm.isComponentIdSelected(props.componentId));
@@ -101,11 +114,12 @@ const {
 	moveComponent,
 	goToComponentParentPage,
 	isDraggingAllowed,
+	isDeleteAllowed,
 } = useComponentActions(wf, wfbm, tracking);
 const { getComponentInfoFromDrag, removeInsertionCandidacy, isParentSuitable } =
 	useDragDropComponent(wf);
 const { isComponentVisible } = useEvaluator(wf);
-const emit = defineEmits(["expandBranch"]);
+const emits = defineEmits(["expandBranch", "delete"]);
 
 const q = computed(() => props.query?.toLocaleLowerCase() ?? "");
 
@@ -145,7 +159,7 @@ async function select(ev: MouseEvent | KeyboardEvent) {
 function expand() {
 	if (!treeBranch.value) return;
 	treeBranch.value.expand();
-	emit("expandBranch");
+	emits("expandBranch");
 }
 
 function scrollToShow() {
@@ -199,6 +213,12 @@ function handleDrop(ev: DragEvent) {
 	}
 
 	removeInsertionCandidacy(ev);
+}
+
+function handleDropdownSelect(action: string) {
+	if (action === "delete" && isDeleteAllowed(props.componentId)) {
+		emits("delete", props.componentId);
+	}
 }
 
 const isOutsideActivePage = computed(() => {

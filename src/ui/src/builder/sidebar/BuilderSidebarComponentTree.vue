@@ -10,6 +10,7 @@
 				class="rootBranch"
 				:component-id="rootComponentId"
 				:query="query"
+				@delete="handleComponentDelete"
 			/>
 		</div>
 
@@ -36,6 +37,7 @@
 						:key="blueprint.id"
 						:component-id="blueprint.id"
 						:query="query"
+						@delete="handleComponentDelete"
 					/>
 					<div
 						v-if="section.items.length === 0"
@@ -94,11 +96,8 @@ const wfbm = inject(injectionKeys.builderManager);
 const query = ref("");
 
 const tracking = useWriterTracking(wf);
-const { createAndInsertComponent, setContentValue } = useComponentActions(
-	wf,
-	wfbm,
-	tracking,
-);
+const { createAndInsertComponent, setContentValue, removeComponentSubtree } =
+	useComponentActions(wf, wfbm, tracking);
 
 const rootComponentId = wfbm.activeRootId;
 
@@ -200,6 +199,10 @@ async function addSharedBlueprint() {
 	await nextTick();
 	wfbm.setSelection(pageId);
 	tracking.track("blueprints_shared_added");
+}
+
+function handleComponentDelete(componentId: string) {
+	removeComponentSubtree(componentId);
 }
 </script>
 
