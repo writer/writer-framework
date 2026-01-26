@@ -115,45 +115,42 @@ class WriterAskGraphQuestion(WriterBlock):
                 }
             )
 
-            answer_so_far = ""
-            result_dict = {}
-            citations_so_far = []
-
-            if use_streaming:
-                for chunk in response:
-                    try:
-                        delta_answer = chunk.model_extra.get("answer", "")
-                        answer_so_far += delta_answer
-
-                        if graph_citations:
-                            delta_sources = chunk.model_extra.get("sources", "")
-                            citations_so_far.extend(delta_sources)
-                            result_dict["answer"] = answer_so_far
-                            result_dict["citations"] = citations_so_far
-                        
-                    except json.JSONDecodeError:
-                        logging.error(
-                            "Could not parse stream chunk from graph.question")
-
-            else:
-                answer_so_far = response.answer
-            
-                if graph_citations:
-                    result_dict["answer"] = answer_so_far
-                    result_dict["citations"] = response.sources or []
-
-            if graph_citations:
-                self._set_state(state_element, result_dict)
-                self.result = result_dict
-            else: 
-                self._set_state(state_element, answer_so_far)
-                self.result = answer_so_far
-    
+            self.result = self._parse_response(response, state_element, use_streaming, graph_citations)
+            if state_element:
+                self._set_state(state_element, self.result)
             self.outcome = "success"
-            
-
 
         except BaseException as e:
             self.outcome = "error"
             raise e
+            
 
+
+    def _parse_response(self, response, state_element, use_streaming: bool, graph_citations: bool):
+        if not use_streaming:
+            if graph_citations:
+                return {"answer": response.answer, "citations": response.sources or []}
+            return response.answer
+
+        answer = ""
+        citations = []
+
+        for chunk in response:
+            try:
+                delta_answer = chunk.model_extra.get("answer", "")
+                answer += delta_answer
+
+                if graph_citations:
+                    delta_sources = chunk.model_extra.get("sources", "")
+                    citations.extend(delta_sources)
+                    self._set_state(state_element, {"answer": answer, "citations": citations})
+                else:
+                    self._set_state(state_element, answer)
+
+            except json.JSONDecodeError:
+                logging.error("Could not parse stream chunk from graph.question")
+        
+        if graph_citations:
+            return {"answer": answer, "citations": citations}
+        return answer
+        
