@@ -30,7 +30,7 @@ describe("useBuilderSettingsActions", () => {
 			wfbm,
 		);
 
-		expect(dropdownOptions.value).toHaveLength(8);
+		expect(dropdownOptions.value).toHaveLength(9);
 
 		for (const option of dropdownOptions.value) {
 			expect(option.disabled).toBe(true);
@@ -52,7 +52,7 @@ describe("useBuilderSettingsActions", () => {
 			wfbm,
 		);
 
-		expect(dropdownOptions.value).toHaveLength(8);
+		expect(dropdownOptions.value).toHaveLength(9);
 
 		expect(
 			dropdownOptions.value.find(
@@ -89,7 +89,7 @@ describe("useBuilderSettingsActions", () => {
 			wfbm,
 		);
 
-		expect(dropdownOptions.value).toHaveLength(8);
+		expect(dropdownOptions.value).toHaveLength(9);
 
 		expect(
 			dropdownOptions.value.find(
