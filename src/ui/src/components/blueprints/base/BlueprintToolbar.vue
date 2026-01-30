@@ -19,7 +19,6 @@ const blueprintComponentId = inject(injectionKeys.componentId);
 
 const runBlueprintBtn = useTemplateRef("runBlueprintBtn");
 
-// NB STEP 3 - Get event handlers for blueprint run and stop
 const {
 	run: handleRun,
 	stop: handleStop,
@@ -67,7 +66,6 @@ function jumpToComponent(componentId: string) {
 	runBlueprintBtn.value?.toggleDropdown(false);
 }
 
-// NB STEP 2 - Function called when blueprint button is clicked
 async function runBlueprint(componentId?: string) {
 	runBlueprintBtn.value?.toggleDropdown(false);
 	await handleRun(componentId);
@@ -98,7 +96,6 @@ async function runBlueprint(componentId?: string) {
 			Publish blueprint
 		</WdsButton>
 
-		<!-- NB STEP 1 - Button that triggers the blueprint run from the toolbar -->
 		<WdsButtonSplit
 			v-if="triggerComponents.length && !isRunning"
 			ref="runBlueprintBtn"

@@ -476,7 +476,6 @@ export function useComponentActions(
 		);
 	}
 
-	// NB-TODO: reevaluate logic
 	/**
 	 * Whether the blueprint can be run from the target component.
 	 */
