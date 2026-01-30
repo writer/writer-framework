@@ -5,6 +5,7 @@ import { useComponentClipboard } from "./useComponentClipboard";
 import { COMPONENT_TYPES_ROOT } from "@/constants/component";
 import { getComponentPage } from "@/composables/useComponentPage";
 import { SHARED_BLUEPRINT_FLAG_VALUE } from "@/utils/sharedBlueprint";
+import { useBlueprintRun } from "@/composables/useBlueprintRun";
 
 export function useComponentActions(
 	wf: Core,
@@ -418,6 +419,35 @@ export function useComponentActions(
 	 */
 	function removeComponentSubtree(componentId: Component["id"]): void {
 		return removeComponentsSubtree(componentId);
+	}
+
+	/**
+	 * Runs a blueprint from a target component.
+	 */
+	async function runBlueprintFromComponent(
+		componentId: Component["id"],
+	): Promise<void> {
+		const { run } = useBlueprintRun(wf, ssbm, componentId);
+		await run(componentId);
+	}
+
+	/**
+	 * Stops a running blueprint.
+	 */
+	async function stopBlueprintFromComponent(
+		componentId: Component["id"],
+	): Promise<void> {
+		const { stop } = useBlueprintRun(wf, ssbm, componentId);
+		await stop();
+	}
+
+	/**
+	 * Checks if a blueprint is currently running.
+	 * Note: This checks if any blueprint is running, not specifically for the given component.
+	 */
+	function isBlueprintRunning(_componentId: Component["id"]): boolean {
+		const { isRunning } = useBlueprintRun(wf, ssbm, _componentId);
+		return isRunning.value !== null;
 	}
 
 	/**
@@ -1234,6 +1264,9 @@ export function useComponentActions(
 		copyComponent,
 		pasteComponent,
 		createAndInsertComponent,
+		runBlueprintFromComponent,
+		stopBlueprintFromComponent,
+		isBlueprintRunning,
 		createAndInsertComponentsTree,
 		removeComponentSubtree,
 		removeComponentsSubtree,

@@ -98,7 +98,7 @@ async function runBlueprint(componentId?: string) {
 			Publish blueprint
 		</WdsButton>
 
-		<!-- NB - STEP 1 - Button that triggers the blueprint run from the toolbar -->
+		<!-- NB STEP 1 - Button that triggers the blueprint run from the toolbar -->
 		<WdsButtonSplit
 			v-if="triggerComponents.length && !isRunning"
 			ref="runBlueprintBtn"

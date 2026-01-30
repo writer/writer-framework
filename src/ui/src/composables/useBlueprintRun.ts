@@ -94,31 +94,22 @@ function stopBlueprintRun(wf: Core, runId: string) {
 	});
 }
 
-// NB STEP 4 - Just call this function with your specific component id as blueprintComponentId
 export function useBlueprintRun(
 	wf: Core,
 	wfbm: BuilderManager,
 	blueprintComponentId: string | Ref<string>,
 ) {
-	const isRunning = ref(false);
-
 	async function run(branchId?: string) {
-		if (isRunning.value) return;
-		isRunning.value = true;
-		try {
-			await runBlueprint(wf, unref(blueprintComponentId), branchId);
-		} finally {
-			isRunning.value = false;
-		}
+		if (wfbm.activeBlueprintRunId.value) return;
+		await runBlueprint(wf, unref(blueprintComponentId), branchId);
 	}
-
 	async function stop() {
 		const activeRunId = wfbm.activeBlueprintRunId.value;
 		if (!activeRunId) return;
 		await stopBlueprintRun(wf, activeRunId);
 	}
 
-	return { isRunning: readonly(isRunning), run, stop };
+	return { isRunning: readonly(wfbm.activeBlueprintRunId), run, stop };
 }
 
 export type BlueprintsRunListItem = { blueprintId: string; branchId: string };

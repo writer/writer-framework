@@ -43,6 +43,9 @@ export function useBuilderSettingsActions(
 		moveComponentUp,
 		moveComponentDown,
 		cutComponent,
+		runBlueprintFromComponent,
+		stopBlueprintFromComponent,
+		isBlueprintRunning,
 		pasteComponent,
 		copyComponent,
 		isAddAllowed,
@@ -102,6 +105,22 @@ export function useBuilderSettingsActions(
 		}
 	}
 
+	async function handleRunBlueprint() {
+		try {
+			await runBlueprintFromComponent(componentId.value);
+		} catch (error) {
+			toasts.pushToast({ type: "error", message: String(error) });
+		}
+	}
+
+	async function handleStopBlueprint() {
+		try {
+			await stopBlueprintFromComponent(componentId.value);
+		} catch (error) {
+			toasts.pushToast({ type: "error", message: String(error) });
+		}
+	}
+
 	function deleteComponent() {
 		if (!shortcutsInfo.value.isDeleteEnabled) return;
 		if (targetComponent) {
@@ -123,9 +142,13 @@ export function useBuilderSettingsActions(
 			},
 			{
 				value: BuilderSettingsDropdownActions.Run,
-				label: "Run from here",
-				icon: "play",
-				disabled: !shortcutsInfo.value.isRunEnabled,
+				label: isBlueprintRunning(componentId.value)
+					? "Stop run"
+					: "Run from here",
+				icon: isBlueprintRunning(componentId.value) ? "square" : "play",
+				disabled: isBlueprintRunning(componentId.value)
+					? false
+					: !shortcutsInfo.value.isRunEnabled,
 			},
 			{
 				value: BuilderSettingsDropdownActions.MoveUp,
@@ -186,6 +209,13 @@ export function useBuilderSettingsActions(
 		switch (selected) {
 			case BuilderSettingsDropdownActions.Add:
 				// Handled by callback
+				break;
+			case BuilderSettingsDropdownActions.Run:
+				if (isBlueprintRunning(componentId.value)) {
+					handleStopBlueprint();
+				} else {
+					handleRunBlueprint();
+				}
 				break;
 			case BuilderSettingsDropdownActions.MoveUp:
 				moveComponentUp(componentId.value);
