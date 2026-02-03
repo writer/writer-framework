@@ -139,10 +139,18 @@ class AppProcessServerRequest(BaseModel):
     payload: Optional[Any] = None
 
 
+class AdditionalMail(BaseModel):
+    type: Literal["info", "error"]
+    title: str
+    message: str
+    code: Optional[str] = None
+
+
 class InitSessionRequestPayload(BaseModel):
     cookies: Optional[Dict[str, str]] = None
     headers: Optional[Dict[str, str]] = None
     proposedSessionId: Optional[str] = None
+    additionalMail: list[AdditionalMail] = []
 
 
 class InitSessionRequest(AppProcessServerRequest):

@@ -13,6 +13,7 @@ import socket
 import tempfile
 import textwrap
 import time
+import traceback
 import typing
 from contextlib import asynccontextmanager, suppress
 from importlib.machinery import ModuleSpec
@@ -121,6 +122,8 @@ def get_asgi_app(
     global app
     if serve_mode not in ["run", "edit"]:
         raise ValueError("""Invalid mode. Must be either "run" or "edit".""")
+    
+    custom_server_setup_mail: list[dict] = []
 
     _fix_mimetype()
     app_runner = AppRunner(user_app_path, serve_mode)
@@ -351,6 +354,7 @@ def get_asgi_app(
                 cookies=dict(request.cookies),
                 headers=dict(request.headers),
                 proposedSessionId=initBody.proposedSessionId,
+                additionalMail=custom_server_setup_mail,
             )
         )
 
@@ -960,7 +964,17 @@ def get_asgi_app(
 
     # Return
     if enable_server_setup is True:
-        _execute_server_setup_hook(user_app_path)
+        try:
+            _execute_server_setup_hook(user_app_path)
+        except Exception as e:
+            custom_server_setup_mail.append(
+                {
+                    "type": "error",
+                    "title": "Custom server setup error",
+                    "message": str(e),
+                    "code": traceback.format_exc()
+                }
+            )
 
     return app
 

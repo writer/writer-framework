@@ -171,6 +171,9 @@ class AppProcess(multiprocessing.Process):
         if session is None:
             raise MessageHandlingException("Session rejected.")
 
+        for mail in payload.additionalMail:
+            session.session_state.add_log_entry(**mail.model_dump())
+
         user_state = {}
         try:
             user_state = session.session_state.user_state.to_dict()
