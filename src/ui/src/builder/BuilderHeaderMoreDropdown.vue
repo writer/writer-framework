@@ -23,6 +23,28 @@
 			v-model="importConfirmCheckbox"
 			label="Yes, I want to replace the current agent with the imported file"
 		/>
+		<div
+			v-if="importErrorSummary"
+			class="BuilderHeaderMoreDropdown__importError"
+		>
+			<p class="BuilderHeaderMoreDropdown__importError__header">
+				Failed to import the agent
+			</p>
+
+			<p class="BuilderHeaderMoreDropdown__importError__summary">
+				{{ importErrorSummary }}
+			</p>
+
+			<details
+				v-if="importErrorDetails"
+				class="BuilderHeaderMoreDropdown__importError__details"
+			>
+				<summary>Show details</summary>
+				<pre class="BuilderHeaderMoreDropdown__importError__trace">{{
+					importErrorDetails
+				}}</pre>
+			</details>
+		</div>
 	</WdsModal>
 </template>
 
@@ -60,6 +82,8 @@ const toasts = useToasts();
 const importInProgress = ref(false);
 const importConfirmShown = ref(false);
 const importConfirmCheckbox = ref(false);
+const importErrorSummary = ref("");
+const importErrorDetails = ref("");
 
 const importModalActions = computed<ModalAction[]>(() => [
 	{
@@ -117,6 +141,9 @@ async function importModalConfirm() {
 			body: formData,
 		});
 		if (!response.ok) {
+			const parsed = await response.json();
+			importErrorSummary.value = parsed?.detail?.summary;
+			importErrorDetails.value = parsed?.detail?.details;
 			throw new Error("Failed to connect to import API");
 		}
 		importConfirmShown.value = false;
@@ -161,5 +188,51 @@ async function onSelect(key: string) {
 <style scoped>
 .BuilderHeaderMoreDropdown:deep(.SharedMoreDropdown__dropdown) {
 	min-width: 220px;
+}
+
+.BuilderHeaderMoreDropdown__importError {
+	margin-top: 16px;
+	padding: 12px 14px;
+	border-radius: 8px;
+	background: rgba(255, 149, 0, 0.08);
+	border: 1px solid rgba(255, 149, 0, 0.35);
+	grid-column: 2 / 4;
+}
+
+.BuilderHeaderMoreDropdown__importError__header {
+	font-weight: 600;
+	color: var(--wdsColorOrange4);
+	font-size: 14px;
+}
+
+.BuilderHeaderMoreDropdown__importError__summary {
+	margin-top: 6px;
+	font-size: 14px;
+}
+
+.BuilderHeaderMoreDropdown__importError__details {
+	margin-top: 10px;
+}
+
+.BuilderHeaderMoreDropdown__importError__details summary {
+	cursor: pointer;
+	font-size: 12px;
+	user-select: none;
+}
+
+.BuilderHeaderMoreDropdown__importError__details summary:hover {
+	text-decoration: underline;
+}
+
+.BuilderHeaderMoreDropdown__importError__trace {
+	margin-top: 8px;
+	max-height: 220px;
+	overflow: auto;
+	padding: 10px;
+	border-radius: 6px;
+	background: rgba(0, 0, 0, 0.05);
+	font-size: 12px;
+	line-height: 1.4;
+	white-space: pre;
 }
 </style>
