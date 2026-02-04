@@ -92,6 +92,8 @@ const importModalActions = computed<ModalAction[]>(() => [
 		fn: () => {
 			importConfirmCheckbox.value = false;
 			importConfirmShown.value = false;
+			importErrorSummary.value = "";
+			importErrorDetails.value = "";
 		},
 	},
 	{
@@ -129,6 +131,8 @@ async function importModalConfirm() {
 	if (!file) return;
 
 	importInProgress.value = true;
+	importErrorSummary.value = "";
+	importErrorDetails.value = "";
 
 	try {
 		// Prepare form data

@@ -283,8 +283,8 @@ def get_asgi_app(
                 tmp_path = tmp.name
             await app_runner.import_zip(tmp_path)
             os.remove(tmp_path)
-        except ValueError:
-            raise HTTPException(status_code=400, detail={"summary": "Invalid archive contents", "details": traceback.format_exc()})
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail={"summary": "Invalid archive contents", "details": traceback.format_exc()}) from e
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):
