@@ -263,9 +263,9 @@ def get_asgi_app(
     @app.post("/api/import")
     async def import_zip(file: UploadFile = File(...)):
         if serve_mode != "edit":
-            raise HTTPException(status_code=403, detail="Invalid mode.")
+            raise HTTPException(status_code=403, detail={"summary": "Invalid mode. Expected 'edit'"})
         if not file.filename or not file.filename.endswith(".zip"):
-            raise HTTPException(status_code=400, detail="Only .zip files are supported.")
+            raise HTTPException(status_code=400, detail={"summary": "Only .zip files are supported."})
 
         MAX_FILE_SIZE = 200 * 1024 * 1024
 
@@ -278,13 +278,13 @@ def get_asgi_app(
                     if size > MAX_FILE_SIZE:
                         tmp.close()
                         os.unlink(tmp.name)
-                        raise HTTPException(status_code=413, detail=f"File too large. Max file size: {MAX_FILE_SIZE}")
+                        raise HTTPException(status_code=413, detail={"summary": f"File too large. Max file size: {MAX_FILE_SIZE}"})
                     tmp.write(chunk)
                 tmp_path = tmp.name
             await app_runner.import_zip(tmp_path)
             os.remove(tmp_path)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid upload.")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail={"summary": "Invalid archive contents", "details": traceback.format_exc()}) from e
 
     @app.post("/api/autogen")
     async def autogen(requestBody: AutogenRequestBody, request: Request):

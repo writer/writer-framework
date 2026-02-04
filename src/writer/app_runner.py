@@ -1207,6 +1207,9 @@ class AppRunner:
                 if not os.path.isdir(wf_dir_path):
                     raise ValueError(".wf directory not found alongside main.py in the archive.")
 
+                # Parse files to ensure there are no errors
+                wf_project.read_files(main_py_dir)
+
                 # Passed all checks; replace current app contents
 
                 logging.info("Copying app at %s", main_py_dir)
