@@ -2,8 +2,7 @@
  * Composable for integrating monacopilot AI code completions
  * with Monaco Editor instances.
  */
-import * as monaco from "monaco-editor";
-import { registerCompletion } from "monacopilot";
+import type * as monaco from "monaco-editor";
 
 /**
  * Registers AI-powered code completion for a Monaco Editor instance.
@@ -13,12 +12,15 @@ import { registerCompletion } from "monacopilot";
  * @param language - The programming language (e.g., 'python', 'javascript', 'typescript')
  * @returns Cleanup function to unregister the completion provider
  */
-export function useMonacopilot(
+export async function useMonacopilot(
 	monacoInstance: typeof monaco,
 	editor: monaco.editor.IStandaloneCodeEditor,
 	language: string,
-): () => void {
+): Promise<() => void> {
 	try {
+		// Dynamically import monacopilot only when needed
+		const { registerCompletion } = await import("monacopilot");
+
 		// Register the completion provider with monacopilot
 		const disposable = registerCompletion(monacoInstance, editor, {
 			language: language,

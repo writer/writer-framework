@@ -176,6 +176,10 @@ import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWith
 import BuilderAppSocketTimeoutModal from "./BuilderAppSocketTimeoutModal.vue";
 import { useSocketTimeout } from "./useSocketTimeout";
 import BlueprintsNavigationStack from "@/components/blueprints/BlueprintsNavigationStack.vue";
+import { setupCodeEditorSettings } from "@/composables/useCodeEditorSettings";
+
+// Setup code editor settings once at the root level
+setupCodeEditorSettings();
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 

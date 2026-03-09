@@ -26,3 +26,5 @@ playground/
 .turbo
 styles.css
 .aider*
+app_templates/
+local/

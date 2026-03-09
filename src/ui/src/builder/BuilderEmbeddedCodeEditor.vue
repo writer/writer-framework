@@ -140,7 +140,7 @@ watch(language, (newLang) => {
 watch(diagnosticsEnabled, (enabled) => {
 	if (
 		!editor ||
-		props.language !== "python" ||
+		language.value !== "python" ||
 		props.variant === "single-line"
 	) {
 		return;
@@ -157,10 +157,10 @@ watch(diagnosticsEnabled, (enabled) => {
 });
 
 // Watch AI completion setting changes
-watch(aiCompletionEnabled, (enabled) => {
+watch(aiCompletionEnabled, async (enabled) => {
 	if (
 		!editor ||
-		props.language !== "python" ||
+		language.value !== "python" ||
 		props.variant === "single-line"
 	)
 		return;
@@ -169,10 +169,10 @@ watch(aiCompletionEnabled, (enabled) => {
 		// Enable AI completion
 		if (!monacopilotCleanup) {
 			try {
-				monacopilotCleanup = useMonacopilot(
+				monacopilotCleanup = await useMonacopilot(
 					monaco,
 					editor,
-					props.language,
+					language.value,
 				);
 			} catch (error) {
 				logger.error("Failed to enable AI completion:", error);
@@ -192,8 +192,8 @@ onMounted(async () => {
 	const modelUri = monaco.Uri.parse(`inmemory://model/${Date.now()}.py`);
 	const model = monaco.editor.createModel(
 		modelValue.value ?? "",
-		props.language || "python",
-		props.language === "python" ? modelUri : undefined,
+		language.value || "python",
+		language.value === "python" ? modelUri : undefined,
 	);
 
 	editor = monaco.editor.create(editorContainerEl.value as HTMLElement, {
@@ -217,7 +217,7 @@ onMounted(async () => {
 
 	// Manually sync model with LSP for Python language
 	// This is required because we're in a browser (no filesystem)
-	if (props.language === "python" && props.variant !== "single-line") {
+	if (language.value === "python" && props.variant !== "single-line") {
 		try {
 			lspSyncDisposable = syncModelWithLSP(model);
 		} catch (error) {
@@ -227,10 +227,10 @@ onMounted(async () => {
 		// Register AI-powered code completions (if AI completion enabled)
 		if (aiCompletionEnabled.value) {
 			try {
-				monacopilotCleanup = useMonacopilot(
+				monacopilotCleanup = await useMonacopilot(
 					monaco,
 					editor,
-					props.language,
+					language.value,
 				);
 			} catch (error) {
 				logger.error("Failed to initialize monacopilot:", error);

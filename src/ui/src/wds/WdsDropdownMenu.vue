@@ -81,16 +81,27 @@
 					</template>
 					<template #content>
 						<!-- Switch type option -->
-						<button
+						<div
 							v-if="option.type === 'switch'"
+							role="menuitemcheckbox"
+							:aria-checked="option.checked ?? false"
+							:aria-disabled="option.disabled"
 							class="WdsDropdownMenu__switchItem"
 							:class="{
 								'WdsDropdownMenu__switchItem--disabled':
 									option.disabled,
 							}"
 							:data-automation-key="option.value"
-							:disabled="option.disabled"
-							@click.stop
+							tabindex="0"
+							@click.stop="
+								!option.disabled && onSelect(option.value)
+							"
+							@keydown.enter.prevent="
+								!option.disabled && onSelect(option.value)
+							"
+							@keydown.space.prevent="
+								!option.disabled && onSelect(option.value)
+							"
 						>
 							<div class="WdsDropdownMenu__switchItem__content">
 								<div class="WdsDropdownMenu__switchItem__label">
@@ -106,9 +117,11 @@
 							<WdsSwitch
 								:model-value="option.checked ?? false"
 								:disabled="option.disabled"
-								@click.stop="onSelect(option.value)"
+								:aria-hidden="true"
+								tabindex="-1"
+								@click.stop.prevent
 							/>
-						</button>
+						</div>
 						<!-- Multi-selection checkbox -->
 						<WdsCheckbox
 							v-else-if="enableMultiSelection"

@@ -45,7 +45,7 @@ class LSPManager:
             port 0 (letting the OS assign a port) would require parsing pylsp's output
             to discover the assigned port, adding complexity for minimal benefit.
         """
-        for port in range(start_port, end_port):
+        for port in range(start_port, end_port + 1):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
                     s.bind((self.host, port))
@@ -88,11 +88,11 @@ class LSPManager:
 
             # Start pylsp with WebSocket support
             # Note: pylsp --ws may exit when client disconnects, this is expected behavior
+            # Redirect stdout/stderr to DEVNULL to prevent buffer filling and blocking
             self.process = subprocess.Popen(
                 ["pylsp", "--ws", "--port", str(self.port), "--host", self.host],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
             )
             logger.info(f"LSP server process started with PID {self.process.pid}")
 
@@ -102,8 +102,7 @@ class LSPManager:
             # Check if process started successfully
             if self.process.poll() is not None:
                 # Process terminated immediately
-                _, stderr = self.process.communicate()
-                logger.error(f"LSP server failed to start: {stderr}")
+                logger.error("LSP server failed to start (process terminated immediately)")
                 self.process = None
                 self.port = None
                 return False

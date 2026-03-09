@@ -74,6 +74,18 @@ async function load() {
 			logger.error("Failed to initialize Monaco workers:", error);
 		}
 
+		// Setup cleanup handlers that should run regardless of LSP initialization
+		// These are registered first to ensure they work even if LSP setup fails
+		window.addEventListener("beforeunload", () => {
+			// Send collaboration "leave" ping if collaboration is enabled
+			if (collaborationManager) {
+				collaborationManager.updateOutgoingPing({
+					action: "leave",
+				});
+				collaborationManager.sendCollaborationPing();
+			}
+		});
+
 		// Then initialize LSP
 		try {
 			const { setupLSP, cleanupLSP } = await import(
@@ -81,15 +93,9 @@ async function load() {
 			);
 			await setupLSP();
 
-			// Setup cleanup on browser unload (tab close, refresh, navigation away)
+			// Add LSP cleanup to beforeunload if LSP initialized successfully
 			window.addEventListener("beforeunload", () => {
 				cleanupLSP();
-				if (collaborationManager) {
-					collaborationManager.updateOutgoingPing({
-						action: "leave",
-					});
-					collaborationManager.sendCollaborationPing();
-				}
 			});
 		} catch (error) {
 			logger.error("Failed to initialize LSP:", error);

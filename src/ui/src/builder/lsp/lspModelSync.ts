@@ -21,6 +21,9 @@ const logger = useLogger();
  * Sends textDocument/didOpen when the model is created and
  * textDocument/didChange when the content changes.
  *
+ * Content change notifications are debounced (300ms) to avoid flooding
+ * the LSP server with notifications on every keystroke.
+ *
  * @param model - The Monaco editor model to synchronize
  * @returns Disposable to stop synchronization
  */
@@ -36,6 +39,7 @@ export function syncModelWithLSP(
 	const languageId = model.getLanguageId();
 
 	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+	let debounceTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 	// Wait a bit for the LSP client to be fully ready
 	timeoutId = setTimeout(() => {
@@ -55,23 +59,35 @@ export function syncModelWithLSP(
 			});
 	}, 100);
 
-	// Listen for content changes and send textDocument/didChange
+	// Listen for content changes and send textDocument/didChange (debounced)
 	const changeDisposable = model.onDidChangeContent(() => {
-		lspClient
-			.sendNotification("textDocument/didChange", {
-				textDocument: {
-					uri,
-					version: model.getVersionId(),
-				},
-				contentChanges: [
-					{
-						text: model.getValue(),
+		// Clear any pending debounced notification
+		if (debounceTimeoutId !== null) {
+			clearTimeout(debounceTimeoutId);
+		}
+
+		// Schedule a new notification after 300ms of inactivity
+		debounceTimeoutId = setTimeout(() => {
+			debounceTimeoutId = null;
+			lspClient
+				.sendNotification("textDocument/didChange", {
+					textDocument: {
+						uri,
+						version: model.getVersionId(),
 					},
-				],
-			})
-			.catch((error: unknown) => {
-				logger.error("Failed to send textDocument/didChange:", error);
-			});
+					contentChanges: [
+						{
+							text: model.getValue(),
+						},
+					],
+				})
+				.catch((error: unknown) => {
+					logger.error(
+						"Failed to send textDocument/didChange:",
+						error,
+					);
+				});
+		}, 300);
 	});
 
 	// Return disposable that sends textDocument/didClose and stops listening
@@ -82,7 +98,13 @@ export function syncModelWithLSP(
 				clearTimeout(timeoutId);
 				timeoutId = null;
 			}
-			
+
+			// Clear pending debounced change notification
+			if (debounceTimeoutId !== null) {
+				clearTimeout(debounceTimeoutId);
+				debounceTimeoutId = null;
+			}
+
 			changeDisposable.dispose();
 			lspClient
 				.sendNotification("textDocument/didClose", {
