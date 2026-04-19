@@ -122,13 +122,52 @@ onBeforeUnmount(() => {
 .main {
 	margin-top: 4px;
 }
+
+.pickerContainer {
+	display: flex;
+	gap: 8px;
+	flex-direction: column;
+}
+
 input[type="color"] {
 	width: 100%;
-	height: 34px;
+	height: 40px;
+	min-height: 40px;
 	border-radius: 8px;
 	border: 1px solid var(--separatorColor);
-
 	display: block;
-	height: 40px;
+	background-color: var(--wdsColorWhite);
+	color-scheme: light;
+	cursor: pointer;
+	padding: 2px;
+	transition:
+		border-color ease-in-out 0.2s,
+		box-shadow ease-in-out 0.2s;
+	outline: none;
+}
+
+input[type="color"]:hover {
+	border-color: var(--wdsColorBlue3);
+}
+
+input[type="color"]:focus {
+	border-color: var(--softenedAccentColor);
+	box-shadow: 0px 0px 0px 3px rgba(81, 31, 255, 0.05);
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+	padding: 0;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+input[type="color"]::-webkit-color-swatch {
+	border: none;
+	border-radius: 6px;
+}
+
+input[type="color"]::-moz-color-swatch {
+	border: none;
+	border-radius: 6px;
 }
 </style>

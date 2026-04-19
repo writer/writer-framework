@@ -20,7 +20,7 @@ export default defineConfig({
 			entry: ["./src/components/custom"],
 			formats: ["umd"],
 			name: "WriterCustomComponentTemplates",
-			fileName: (format, entryalias: string): string => {
+			fileName: (_format, _entryalias: string): string => {
 				/*
 				The umd file is generated with a cjs extension since transforming the package into a module
 				(issue #405).

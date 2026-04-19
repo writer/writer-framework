@@ -61,6 +61,7 @@ textarea {
 	font-size: 0.875rem;
 	outline: none;
 	color: var(--primaryTextColor);
+	background-color: var(--wdsColorWhite);
 }
 
 textarea:focus {

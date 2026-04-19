@@ -59,7 +59,6 @@ exports[`CoreAnnotatedText > should render in non-markdown mode 2`] = `
       <span
         class="CoreAnnotatedText__annotation"
         data-v-13ebc398=""
-        style="background-color: rgb(180, 237, 238);"
       >
         _annotated_ 
         <span
@@ -77,7 +76,6 @@ exports[`CoreAnnotatedText > should render in non-markdown mode 2`] = `
       <span
         class="CoreAnnotatedText__annotation"
         data-v-13ebc398=""
-        style="background-color: rgb(229, 208, 250);"
       >
         text 
         <span

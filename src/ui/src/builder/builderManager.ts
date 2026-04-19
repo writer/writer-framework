@@ -33,6 +33,8 @@ export type BlueprintExecutionLog = {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		executionEnvironment: Record<string, any>;
 	}[];
+	runId?: string;
+	exit?: boolean;
 };
 
 type ComponentMutationTransaction = {

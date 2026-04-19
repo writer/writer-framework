@@ -16,11 +16,10 @@ import { useConfigJs } from "./composables/useConfigJs.js";
 
 const wf = generateCore();
 
-// eslint-disable-next-line no-undef
 globalThis.vue = vue;
-// eslint-disable-next-line no-undef
+
 globalThis.injectionKeys = injectionKeys;
-// eslint-disable-next-line no-undef
+
 globalThis.core = wf;
 
 const logger = useLogger();
@@ -41,7 +40,6 @@ async function load() {
 			collaborationManager.handleIncomingCollaborationUpdate,
 		);
 
-		// eslint-disable-next-line no-undef
 		globalThis.wfbm = wfbm;
 	}
 

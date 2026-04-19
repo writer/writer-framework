@@ -251,7 +251,7 @@ export function useComponentActions(
 		const components = componentsTreeData.reduce<Component[]>(
 			(acc, { type, position, initProperties }, index) => {
 				const currentParentId =
-					index === 0 ? parentId : acc.at(-1).id ?? parentId;
+					index === 0 ? parentId : (acc.at(-1).id ?? parentId);
 
 				const component = createComponent(
 					type,
@@ -1139,7 +1139,9 @@ export function useComponentActions(
 	 * Extracts components from a blueprint for publishing.
 	 * Excludes the blueprint container itself, notes, and internal components.
 	 */
-	function extractBlueprintComponents(blueprintId: Component["id"]): Component[] {
+	function extractBlueprintComponents(
+		blueprintId: Component["id"],
+	): Component[] {
 		const subtree = getFlatComponentSubtree(blueprintId);
 		return subtree
 			.slice(1) // exclude the blueprint container itself
@@ -1178,7 +1180,9 @@ export function useComponentActions(
 		blueprint.id = blueprintId;
 
 		// Regenerate IDs for child components
-		const childSubtree = getNewSubtreeWithRegeneratedIds(blueprintData.components);
+		const childSubtree = getNewSubtreeWithRegeneratedIds(
+			blueprintData.components,
+		);
 
 		// Update root children to point to new blueprint
 		// Components whose parentId doesn't exist in the subtree are root children
@@ -1191,7 +1195,9 @@ export function useComponentActions(
 
 		// Validate that the subtree can be ingested
 		if (!isSubtreeIngestable([blueprint, ...childSubtree])) {
-			throw Error("Cannot install blueprint: components are not compatible");
+			throw Error(
+				"Cannot install blueprint: components are not compatible",
+			);
 		}
 
 		// Add all components in a transaction

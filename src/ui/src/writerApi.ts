@@ -463,7 +463,12 @@ export class WriterApi {
 		Array<
 			Pick<
 				WriterApiSharedBlueprint,
-				"id" | "title" | "description" | "category" | "createdBy" | "isReadonly"
+				| "id"
+				| "title"
+				| "description"
+				| "category"
+				| "createdBy"
+				| "isReadonly"
 			>
 		>
 	> {
@@ -554,10 +559,7 @@ export class WriterApi {
 		};
 	}): Promise<{ pr_url: string; branch_name: string; blueprint_id: string }> {
 		const baseUrl = this.#getAgentStorageBaseUrl();
-		const url = new URL(
-			`/api/agent-storage/v1/shared-blueprints`,
-			baseUrl,
-		);
+		const url = new URL(`/api/agent-storage/v1/shared-blueprints`, baseUrl);
 
 		const res = await fetch(url, {
 			...this.#requestInitBase,
