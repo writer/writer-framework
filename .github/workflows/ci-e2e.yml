@@ -1,45 +1,461 @@
 name: ci-e2e
 on:
   push:
-    branches: [ dev, master]
-  pull_request: 
-    branches: [ dev, master]
-
+    branches: [dev, master]
+  pull_request:
+    branches: [dev, master]
 jobs:
   tests:
     runs-on: ubuntu-latest-4-cores
     strategy:
       matrix:
-        browser: [ "chromium", "firefox", "webkit" ]
-    steps: 
-      - uses: actions/checkout@v4
+        browser: ["chromium", "firefox", "webkit"]
+    steps:
+      - name: "SecLift: prepare validation report dir"
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .seclift/validation
+          printf '%s\n' '{"schema_version":"seclift.validation_result.v1","phase":"init","status":"pending"}' > .seclift/validation/result.json
+          echo "::notice::SECLIFT_VALIDATION_MARKER_V1"
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) seclift_validation phase=init expected_github_keys=${SECLIFT_EXPECTED_GITHUB_KEY_COUNT:-0}" >> .seclift/validation/debug.log
+          printf '%s\n' "{\"schema_version\":\"seclift.validation_context.v1\",\"github_repository\":\"${GITHUB_REPOSITORY:-}\",\"expected_github_key_count\":${SECLIFT_EXPECTED_GITHUB_KEY_COUNT:-0},\"infisical_domain\":\"${INFISICAL_DOMAIN}\",\"env_slug\":\"${ENV_SLUG}\",\"secret_root\":\"${SECRET_ROOT}\"}" > .seclift/validation/context.json
+      - id: seclift_infisical_repo
+        name: "SecLift: fetch Infisical repo project (OIDC)"
+        continue-on-error: true
+        uses: Infisical/secrets-action@v1.0.9
+        with:
+          method: oidc
+          identity-id: ${{ secrets.INFISICAL_REPO_IDENTITY_UUID }}
+          domain: ${{ env.INFISICAL_DOMAIN }}
+          project-slug: ${{ secrets.INFISICAL_REPO_PROJECT_SLUG }}
+          env-slug: ${{ env.ENV_SLUG }}
+          secret-path: ${{ env.SECRET_ROOT }}
+          export-type: file
+          file-output-path: /seclift-infisical-repo.env
+          recursive: "true"
+      - id: seclift_infisical_org
+        name: "SecLift: fetch Infisical org project (OIDC)"
+        continue-on-error: true
+        uses: Infisical/secrets-action@v1.0.9
+        with:
+          method: oidc
+          identity-id: ${{ secrets.INFISICAL_ORG_IDENTITY_UUID }}
+          domain: ${{ env.INFISICAL_DOMAIN }}
+          project-slug: ${{ secrets.INFISICAL_ORG_PROJECT_SLUG }}
+          env-slug: ${{ env.ENV_SLUG }}
+          secret-path: ${{ env.SECRET_ROOT }}
+          export-type: file
+          file-output-path: /seclift-infisical-org.env
+          recursive: "true"
+      - id: seclift_validation_verify
+        name: 'SecLift: verify GitHub vs Infisical (API + union)'
+        shell: python
+        env:
+          SECLIFT_INFISICAL_ORG_OUTCOME: ${{ steps.seclift_infisical_org.outcome }}
+          SECLIFT_INFISICAL_REPO_OUTCOME: ${{ steps.seclift_infisical_repo.outcome }}
+        run: |
+          # SecLift injected GitHub Actions verification (Python 3).
+          # Loads GitHub-visible secret NAMES collected by the SecLift CLI,
+          # compares to Infisical repo-project + org-project exports (dotenv files).
+          # Writes .seclift/validation/result.json for diagnostics; never prints values.
 
+          from __future__ import annotations
+
+          import json
+          import os
+          import sys
+          import traceback
+          import urllib.error
+          import urllib.request
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+
+          def _workspace_root() -> Path:
+              return Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
+
+
+          def _append_debug(msg: str) -> None:
+              p = _workspace_root() / ".seclift" / "validation" / "debug.log"
+              p.parent.mkdir(parents=True, exist_ok=True)
+              ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+              with p.open("a", encoding="utf-8") as fh:
+                  fh.write("%s %s\n" % (ts, msg))
+
+
+          def _merge_context(**kwargs: object) -> None:
+              p = _workspace_root() / ".seclift" / "validation" / "context.json"
+              p.parent.mkdir(parents=True, exist_ok=True)
+              ctx: dict = {}
+              if p.is_file():
+                  try:
+                      ctx = json.loads(p.read_text(encoding="utf-8"))
+                      if not isinstance(ctx, dict):
+                          ctx = {}
+                  except Exception:  # noqa: BLE001
+                      ctx = {}
+              for k, v in kwargs.items():
+                  ctx[k] = v
+              p.write_text(json.dumps(ctx, indent=2, sort_keys=True), encoding="utf-8")
+
+
+          def _report_path() -> Path:
+              return _workspace_root() / ".seclift" / "validation" / "result.json"
+
+
+          def _write_report(data: dict) -> None:
+              p = _report_path()
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+
+
+          def _load_json_env(name: str, default):
+              raw = os.environ.get(name)
+              if raw is None or not str(raw).strip():
+                  return default
+              raw = raw.strip()
+              try:
+                  return json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  raise SystemExit("%s invalid JSON: %s" % (name, exc)) from exc
+
+
+          def excluded_names() -> set[str]:
+              arr = _load_json_env("SECRETLIFT_EXCLUDED_KEYS_JSON", [])
+              if not isinstance(arr, list):
+                  raise SystemExit("SECRETLIFT_EXCLUDED_KEYS_JSON must be a JSON array")
+              out = set()
+              for x in arr:
+                  if not isinstance(x, str) or not x.strip():
+                      continue
+                  out.add(x.strip().upper())
+              return out
+
+
+          def expected_github_secret_inventory() -> set[str]:
+              """Return sanitized GitHub-visible secret NAMES injected by the CLI."""
+              arr = _load_json_env("SECRETLIFT_EXPECTED_GITHUB_KEYS_JSON", [])
+              if not isinstance(arr, list):
+                  raise RuntimeError("SECRETLIFT_EXPECTED_GITHUB_KEYS_JSON must be a JSON array")
+
+              exclude = excluded_names()
+              folded: dict[str, str] = {}
+              for item in arr:
+                  if not isinstance(item, str) or not item.strip():
+                      continue
+                  name = item.strip()
+                  if name.upper() in exclude:
+                      continue
+                  folded[name.lower()] = name
+              return set(folded.values())
+
+
+          def keys_from_dotenv(path: Path) -> set[str]:
+              keys = set()
+              if not path.is_file():
+                  return keys
+              with path.open(encoding="utf-8") as fh:
+                  for raw in fh:
+                      line = raw.strip()
+                      if not line or line.startswith("#"):
+                          continue
+                      if "=" not in line:
+                          continue
+                      k, _ = line.split("=", 1)
+                      k = k.strip()
+                      if k:
+                          keys.add(k)
+              return keys
+
+
+          def assert_infisical_oidc_steps_succeeded() -> None:
+              outcomes = {
+                  "repo": os.environ.get("SECLIFT_INFISICAL_REPO_OUTCOME", "").strip().lower(),
+                  "org": os.environ.get("SECLIFT_INFISICAL_ORG_OUTCOME", "").strip().lower(),
+              }
+              failed = []
+              for scope, outcome in outcomes.items():
+                  if outcome and outcome != "success":
+                      failed.append("%s=%s" % (scope, outcome))
+              if failed:
+                  raise RuntimeError("Infisical OIDC fetch failed: " + ", ".join(failed))
+
+
+          def _http_json(url: str, token: str) -> tuple[int, dict | list | None, str]:
+              req = urllib.request.Request(
+                  url,
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                      "User-Agent": "seclift-validation",
+                      "Authorization": "Bearer " + token,
+                  },
+                  method="GET",
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=60) as resp:  # nosec bandit:B310 — controlled GH API URL
+                      body = resp.read().decode("utf-8", errors="replace")
+                      code = getattr(resp, "status", resp.getcode())
+                      try:
+                          return code, json.loads(body), body[:4000]
+                      except json.JSONDecodeError:
+                          return code, None, body[:4000]
+              except urllib.error.HTTPError as e:
+                  snippet = ""
+                  try:
+                      snippet = e.read().decode("utf-8", errors="replace")[:4000]
+                  except Exception:  # noqa: BLE001
+                      snippet = "<no body>"
+                  return int(e.code), None, snippet
+              except urllib.error.URLError as e:
+                  return -1, None, str(e)
+
+
+          def github_secret_inventory(owner: str, repo: str) -> tuple[set[str], dict]:
+              """Return sanitized GitHub-visible secret NAMES (repo ∪ org-visible to repo)."""
+              api = os.environ.get("GITHUB_API_URL", "https://api.github.com").rstrip("/")
+              tok = os.environ.get("GITHUB_TOKEN", "").strip()
+              meta = {
+                  "secrets_endpoint_errors": [],  # type: ignore[var-annotated]
+                  "org_secrets_endpoint_errors": [],
+                  "secrets_http_status_last": None,
+                  "org_secrets_http_status_last": None,
+              }
+
+              if not tok:
+                  raise RuntimeError("GITHUB_TOKEN missing")
+
+              def paginate(seg: str) -> tuple[list[str], list[tuple[int, str]]]:
+                  secrets: dict[str, str] = {}  # lower -> original casing
+                  errors: list[tuple[int, str]] = []
+                  page = 1
+                  while page < 500:
+                      url = "{api}/repos/{owner}/{repo}/actions/{seg}?per_page=100&page={page}".format(
+                          api=api, owner=owner, repo=repo, seg=seg, page=page
+                      )
+                      code, data, snippet = _http_json(url, tok)
+                      if seg == "secrets":
+                          meta["secrets_http_status_last"] = code
+                      else:
+                          meta["org_secrets_http_status_last"] = code
+                      if code != 200 or not isinstance(data, dict):
+                          errors.append((code, snippet[:800]))
+                          break
+                      arr = data.get("secrets") or []
+                      if not isinstance(arr, list):
+                          errors.append((code, "secrets field missing or not array; body=" + snippet))
+                          break
+                      if len(arr) == 0:
+                          break
+                      for item in arr:
+                          if isinstance(item, dict):
+                              nm = item.get("name")
+                              if isinstance(nm, str) and nm.strip():
+                                  k = nm.strip()
+                                  secrets[k.lower()] = k
+                      if len(arr) < 100:
+                          break
+                      page += 1
+                  ordered = sorted(secrets.values(), key=lambda x: x.lower())
+                  return ordered, errors
+
+              exclude = excluded_names()
+
+              repo_names_raw, errs1 = paginate("secrets")
+              meta["secrets_endpoint_errors"].extend(["%s: %s" % (code, snippet[:500]) for code, snippet in errs1])
+
+              org_names_raw, errs2 = paginate("organization-secrets")
+              meta["org_secrets_endpoint_errors"].extend(["%s: %s" % (code, snippet[:500]) for code, snippet in errs2])
+
+              def sanitize(names: list[str]) -> list[str]:
+                  out = []
+                  for n in names:
+                      if not isinstance(n, str) or not n.strip():
+                          continue
+                      ku = n.strip().upper()
+                      if ku in exclude:
+                          continue
+                      out.append(n.strip())
+                  return out
+
+              repo_s = sanitize(repo_names_raw)
+              org_s = sanitize(org_names_raw)
+
+              folded = {}
+              for n in repo_s + org_s:
+                  folded[n.lower()] = n
+              return set(folded.values()), meta
+
+
+          def compare_sets(github_vis: set[str], infisical_repo: set[str], infisical_org: set[str]) -> tuple[set[str], set[str]]:
+              have_union_raw = infisical_repo | infisical_org
+
+              folded_inf = {}
+              for k in have_union_raw:
+                  kk = str(k).strip()
+                  if kk:
+                      folded_inf[kk.lower()] = kk
+
+              folded_git = {}
+              for k in github_vis:
+                  kk = str(k).strip()
+                  if kk:
+                      folded_git[kk.lower()] = kk
+
+              have_inf = set(folded_inf.values())
+
+              gh = set(folded_git.values())
+
+              missing = gh - have_inf
+              surplus = have_inf - gh
+              return missing, surplus
+
+
+          def main() -> int:
+              ws = _workspace_root()
+              repo_dot = ws / "seclift-infisical-repo.env"
+              org_dot = ws / "seclift-infisical-org.env"
+
+              report: dict = {
+                  "schema_version": "seclift.validation_result.v1",
+                  "phase": "compare",
+                  "status": "error",
+                  "message": "",
+                  "github_repository": os.environ.get("GITHUB_REPOSITORY", ""),
+                  "infisical_repo_keys_count": 0,
+                  "infisical_org_keys_count": 0,
+                  "github_visible_secret_keys_count": 0,
+                  "missing_in_infisical": [],
+                  "surplus_in_infisical": [],
+                  "python_traceback": "",
+                  "github_api": {},
+                  "paths": {"repo_dotenv": str(repo_dot), "org_dotenv": str(org_dot)},
+              }
+
+              try:
+                  slug = os.environ.get("GITHUB_REPOSITORY", "")
+                  parts = slug.split("/", 1)
+                  if len(parts) != 2 or not parts[0].strip() or not parts[1].strip():
+                      raise RuntimeError("GITHUB_REPOSITORY invalid: %r" % (slug,))
+                  owner, repo = parts[0].strip(), parts[1].strip()
+
+                  _append_debug("verify_start repo=%s/%s" % (owner, repo))
+                  report["phase"] = "oidc_fetch"
+
+                  assert_infisical_oidc_steps_succeeded()
+                  _append_debug("oidc_fetch_ok")
+
+                  inf_repo = keys_from_dotenv(repo_dot)
+                  inf_org = keys_from_dotenv(org_dot)
+                  report["infisical_repo_keys_count"] = len(inf_repo)
+                  report["infisical_org_keys_count"] = len(inf_org)
+
+                  gh_vis = expected_github_secret_inventory()
+                  report["github_visible_secret_keys_count"] = len(gh_vis)
+                  report["github_api"] = {
+                      "source": "cli_injected_inventory",
+                      "secrets_endpoint_http_last": None,
+                      "org_secrets_endpoint_http_last": None,
+                      "secrets_errors": [],
+                      "org_errors": [],
+                  }
+
+                  _merge_context(
+                      github_run_id=os.environ.get("GITHUB_RUN_ID", ""),
+                      github_run_attempt=os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+                      github_event=os.environ.get("GITHUB_EVENT_NAME", ""),
+                      github_ref=os.environ.get("GITHUB_REF", ""),
+                      github_visible_secret_keys_count=len(gh_vis),
+                  )
+                  _append_debug("compare_inventory gh_visible=%d inf_repo=%d inf_org=%d" % (len(gh_vis), len(inf_repo), len(inf_org)))
+
+                  missing, surplus = compare_sets(gh_vis, inf_repo, inf_org)
+                  ms = sorted(missing, key=str.lower)
+                  ss = sorted(surplus, key=str.lower)
+                  report["missing_in_infisical"] = ms
+                  report["surplus_in_infisical"] = ss
+
+                  for s in ss:
+                      print("::warning::extra Infisical key not listed on GitHub: " + s)
+
+                  report["phase"] = "compare"
+                  if ms:
+                      report["status"] = "failure"
+                      report["message"] = "secrets present on GitHub but missing from Infisical union (%d)" % len(ms)
+                      print("##[error]%s: %s" % (report["message"], ",".join(ms[:40])))
+                      return 2
+
+                  report["status"] = "success"
+                  if len(gh_vis) == 0:
+                      report["message"] = (
+                          "ok: Infisical OIDC exports reachable; no GitHub application secrets to compare (%d exported keys)"
+                          % (len(inf_repo | inf_org))
+                      )
+                  else:
+                      report["message"] = (
+                          "ok: %d github-visible secrets all present in Infisical union (%d surplus warnings)"
+                          % (len(gh_vis), len(ss))
+                      )
+                  print(report["message"])
+                  _append_debug("compare_ok")
+                  return 0
+              except Exception as exc:  # noqa: BLE001
+                  report["status"] = "error"
+                  report["phase"] = "error"
+                  report["message"] = str(exc)
+                  report["python_traceback"] = traceback.format_exc()
+                  _append_debug("error %s" % (str(exc)[:500],))
+                  print("##[error]SecLift verify failed: " + report["message"])
+                  return 1
+              finally:
+                  _write_report(report)
+
+
+          if __name__ == "__main__":
+              sys.exit(main())
+      - name: "SecLift: upload validation report"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "seclift-validation-report"
+          path: .seclift/validation/
+          if-no-files-found: warn
+      - uses: actions/checkout@v4
       - name: Install poetry
         run: pipx install poetry
-
       - name: Set up Python 3.11.8
         uses: actions/setup-python@v5
         with:
           python-version: "3.11.8"
           cache: 'poetry'
-
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
           cache: npm
-
       - name: install python3 environment
         run: poetry install --with build
-
       - name: install ci dependencies and generate code
         run: poetry run alfred install.ci
-
       - name: Build UI
         run: npm run build
-
       - name: Install E2E browsers
         run: npm run e2e:setup ${{ matrix.browser }}
-
       - name: Run E2E tests
         run: poetry run alfred ci --e2e=${{ matrix.browser }}
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    env:
+      INFISICAL_DOMAIN: "https://app.infisical.com"
+      ENV_SLUG: "prod"
+      SECRET_ROOT: "/"
+      SECLIFT_EXPECTED_GITHUB_KEY_COUNT: 4
+      SECRETLIFT_EXCLUDED_KEYS_JSON: |
+        ["GITHUB_TOKEN","INFISICAL_EXTERNAL_ID","INFISICAL_MACHINE_IDENTITY_ID","INFISICAL_ORG_IDENTITY_UUID","INFISICAL_ORG_PROJECT_SLUG","INFISICAL_REPO_IDENTITY_UUID","INFISICAL_REPO_PROJECT_SLUG"]
+      SECRETLIFT_EXPECTED_GITHUB_KEYS_JSON: |
+        ["AGENT_MANAGER_PAT","DOCS_WORKFLOW_TOKEN","PYPI_TOKEN","SLACK_WEBHOOK_DOC"]
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    timeout-minutes: 15
