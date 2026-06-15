@@ -1,5 +1,13 @@
 <template>
 	<div class="BuilderApp" tabindex="-1" :style="WDS_CSS_PROPERTIES">
+		<BuilderDeprecationBanner
+			v-if="showDeprecationBanner"
+			class="deprecationBanner"
+			:is-organization-admin="isOrganizationAdmin"
+			:is-post-cutoff="isPostCutoff"
+			:show-dismiss="!isPostCutoff && !dismissed"
+			@dismiss="onDismissBanner"
+		/>
 		<div
 			class="mainGrid"
 			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
@@ -76,6 +84,12 @@
 					<BuilderPanelSwitcher class="panelSwitcher" />
 				</template>
 			</ShareResizeVertical>
+			<div
+				v-if="isDeprecationActive"
+				aria-hidden="true"
+				class="deprecationDimmer"
+				:class="{ 'deprecationDimmer--blocking': isPostCutoff }"
+			/>
 		</div>
 
 		<!-- INSTANCE TRACKERS -->
@@ -176,6 +190,9 @@ import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWith
 import BuilderAppSocketTimeoutModal from "./BuilderAppSocketTimeoutModal.vue";
 import { useSocketTimeout } from "./useSocketTimeout";
 import BlueprintsNavigationStack from "@/components/blueprints/BlueprintsNavigationStack.vue";
+import BuilderDeprecationBanner from "./BuilderDeprecationBanner.vue";
+
+const DEPRECATION_BANNER_DISMISSED_KEY = "customAgentDeprecationBannerDismissed";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 
@@ -203,6 +220,31 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const notesManager = inject(injectionKeys.notesManager);
 const collaborationManager = inject(injectionKeys.collaborationManager);
+
+// Deprecation banner
+const dismissed = ref(
+	localStorage.getItem(DEPRECATION_BANNER_DISMISSED_KEY) === "true",
+);
+const isPreCutoffFlagEnabled = computed(() =>
+	wf.featureFlags.value.includes("beforeDeprecationCutoffAbv2"),
+);
+const isPostCutoff = computed(() =>
+	wf.featureFlags.value.includes("afterDeprecationCutoffAbv2"),
+);
+const isDeprecationActive = computed(
+	() => isPreCutoffFlagEnabled.value || isPostCutoff.value,
+);
+const isOrganizationAdmin = computed(() => wf.isOrganizationAdmin.value);
+const showDeprecationBanner = computed(
+	() =>
+		wf.isWriterCloudApp.value &&
+		(isPostCutoff.value || (isPreCutoffFlagEnabled.value && !dismissed.value)),
+);
+
+function onDismissBanner() {
+	localStorage.setItem(DEPRECATION_BANNER_DISMISSED_KEY, "true");
+	dismissed.value = true;
+}
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
@@ -533,6 +575,8 @@ onUnmounted(() => {
 	position: relative;
 	overflow: hidden;
 	background: var(--builderBackgroundColor);
+	display: flex;
+	flex-direction: column;
 }
 
 .BuilderApp__noteTracker__note {
@@ -541,12 +585,33 @@ onUnmounted(() => {
 	pointer-events: auto;
 }
 
+.deprecationBanner {
+	flex-shrink: 0;
+	z-index: 10;
+}
+
 .mainGrid {
+	position: relative;
 	width: 100vw;
-	height: 100vh;
+	flex: 1;
+	min-height: 0;
 	grid-template-columns: auto 1fr;
 	grid-template-rows: var(--builderTopBarHeight) minmax(0, 1fr);
 	display: grid;
+}
+
+.deprecationDimmer {
+	pointer-events: none;
+	position: absolute;
+	inset: 0;
+	z-index: 6;
+	background-color: #e4e7ed;
+	opacity: 0.65;
+}
+
+.deprecationDimmer--blocking {
+	pointer-events: all;
+	cursor: not-allowed;
 }
 
 .builderHeader {

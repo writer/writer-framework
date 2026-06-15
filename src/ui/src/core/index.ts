@@ -70,6 +70,7 @@ export function generateCore() {
 				organizationId: string;
 				apiKey?: string;
 				baseUrl?: string;
+				isOrganizationAdmin?: boolean;
 		  }
 		| undefined
 	>();
@@ -139,6 +140,9 @@ export function generateCore() {
 	const writerApiKey = computed(() => writerApplication.value?.apiKey);
 	const writerBaseUrl = computed(
 		() => writerApplication.value?.baseUrl ?? "https://api.writer.com",
+	);
+	const isOrganizationAdmin = computed(
+		() => writerApplication.value?.isOrganizationAdmin ?? false,
 	);
 	const isWriterCloudApp = computed(() =>
 		Boolean(writerAppId.value || writerOrgId.value),
@@ -1171,6 +1175,7 @@ export function generateCore() {
 		writerAppId,
 		writerApiKey,
 		writerBaseUrl,
+		isOrganizationAdmin,
 		...navigationStack,
 		getFirstBlueprint,
 		getFirstPage,
