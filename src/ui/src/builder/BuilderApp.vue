@@ -88,7 +88,11 @@
 				v-if="showDeprecationBanner"
 				aria-hidden="true"
 				class="deprecationDimmer"
-				:class="{ 'deprecationDimmer--blocking': isPostCutoff }"
+			/>
+			<div
+				v-if="showDeprecationBanner"
+				aria-hidden="true"
+				class="deprecationBlocker"
 			/>
 		</div>
 
@@ -608,9 +612,16 @@ onUnmounted(() => {
 	opacity: 0.65;
 }
 
-.deprecationDimmer--blocking {
+.deprecationBlocker {
 	pointer-events: all;
 	cursor: not-allowed;
+	position: absolute;
+	top: var(--builderTopBarHeight);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 6;
+	background: transparent;
 }
 
 .builderHeader {
