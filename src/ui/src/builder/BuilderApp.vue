@@ -85,7 +85,7 @@
 				</template>
 			</ShareResizeVertical>
 			<div
-				v-if="isDeprecationActive"
+				v-if="showDeprecationBanner"
 				aria-hidden="true"
 				class="deprecationDimmer"
 				:class="{ 'deprecationDimmer--blocking': isPostCutoff }"
@@ -192,7 +192,8 @@ import { useSocketTimeout } from "./useSocketTimeout";
 import BlueprintsNavigationStack from "@/components/blueprints/BlueprintsNavigationStack.vue";
 import BuilderDeprecationBanner from "./BuilderDeprecationBanner.vue";
 
-const DEPRECATION_BANNER_DISMISSED_KEY = "customAgentDeprecationBannerDismissed";
+const DEPRECATION_BANNER_DISMISSED_KEY =
+	"customAgentDeprecationBannerDismissed";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 
@@ -231,14 +232,12 @@ const isPreCutoffFlagEnabled = computed(() =>
 const isPostCutoff = computed(() =>
 	wf.featureFlags.value.includes("afterDeprecationCutoffAbv2"),
 );
-const isDeprecationActive = computed(
-	() => isPreCutoffFlagEnabled.value || isPostCutoff.value,
-);
 const isOrganizationAdmin = computed(() => wf.isOrganizationAdmin.value);
 const showDeprecationBanner = computed(
 	() =>
 		wf.isWriterCloudApp.value &&
-		(isPostCutoff.value || (isPreCutoffFlagEnabled.value && !dismissed.value)),
+		(isPostCutoff.value ||
+			(isPreCutoffFlagEnabled.value && !dismissed.value)),
 );
 
 function onDismissBanner() {

@@ -9,10 +9,7 @@
 			aria-hidden="true"
 			class="BuilderDeprecationBanner__background"
 		/>
-		<div
-			aria-hidden="true"
-			class="BuilderDeprecationBanner__overlay"
-		/>
+		<div aria-hidden="true" class="BuilderDeprecationBanner__overlay" />
 		<div class="BuilderDeprecationBanner__content">
 			<div class="BuilderDeprecationBanner__copy">
 				<p class="BuilderDeprecationBanner__title">{{ title }}</p>
@@ -24,7 +21,8 @@
 						rel="noopener noreferrer"
 						class="BuilderDeprecationBanner__learnMore"
 						:aria-label="`Learn more (opens in new tab)`"
-					>Learn more</a>
+						>Learn more</a
+					>
 				</p>
 			</div>
 			<div class="BuilderDeprecationBanner__actions">
@@ -48,7 +46,9 @@
 						aria-hidden="true"
 						style="flex-shrink: 0"
 					>
-						<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+						<path
+							d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+						/>
 						<line x1="12" y1="11" x2="12" y2="17" />
 						<line x1="9" y1="14" x2="15" y2="14" />
 					</svg>
@@ -178,16 +178,14 @@ const showPlaybookButton = computed(() => !props.isOrganizationAdmin);
 const playbooksUrl = computed(() => {
 	if (!wf) return "#";
 	const orgId = wf.writerOrgId.value;
-	const appId = wf.writerAppId.value;
-	if (!orgId || !appId) return "#";
+	if (!orgId) return "#";
 	return `/organization/${orgId}/team/default/ai-studio/agent-flow`;
 });
 
 function onMigrateClick() {
 	if (!wf) return;
 	const orgId = wf.writerOrgId.value;
-	const appId = wf.writerAppId.value;
-	if (!orgId || !appId) return;
+	if (!orgId) return;
 	window.location.href = `/organization/${orgId}/team/default/ai-studio/agents`;
 }
 
