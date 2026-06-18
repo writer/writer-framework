@@ -73,6 +73,7 @@ class WriterApplicationInformation(BaseModel):
     organizationId: str
     baseUrl: Optional[str] = None
     apiKey: Optional[str] = None
+    isOrganizationAdmin: Optional[bool] = False
 
 
 class AutogenRequestBody(BaseModel):
