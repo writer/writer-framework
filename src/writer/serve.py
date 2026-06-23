@@ -41,6 +41,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
+import writer
 from writer import VERSION, abstract
 from writer.ai import Graph
 from writer.app_runner import AppRunner
@@ -135,6 +136,12 @@ def get_asgi_app(
 
         app_runner.hook_to_running_event_loop()
         app_runner.load()
+
+        # Register platform-level deprecation flags so the LaunchDarkly client
+        # evaluates them for every agent builder session. These are merged with
+        # any flags already set by the user application's main.py.
+        _PLATFORM_FLAGS = {"beforeDeprecationCutoffAbv2", "afterDeprecationCutoffAbv2"}
+        writer.Config.feature_flags = list(set(writer.Config.feature_flags) | _PLATFORM_FLAGS)
 
         if (
             on_load is not None
