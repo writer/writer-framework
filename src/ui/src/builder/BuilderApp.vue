@@ -84,16 +84,6 @@
 					<BuilderPanelSwitcher class="panelSwitcher" />
 				</template>
 			</ShareResizeVertical>
-			<div
-				v-if="showDeprecationBanner"
-				aria-hidden="true"
-				class="deprecationDimmer"
-			/>
-			<div
-				v-if="showDeprecationBanner"
-				aria-hidden="true"
-				class="deprecationBlocker"
-			/>
 		</div>
 
 		<!-- INSTANCE TRACKERS -->
@@ -601,27 +591,6 @@ onUnmounted(() => {
 	grid-template-columns: auto 1fr;
 	grid-template-rows: var(--builderTopBarHeight) minmax(0, 1fr);
 	display: grid;
-}
-
-.deprecationDimmer {
-	pointer-events: none;
-	position: absolute;
-	inset: 0;
-	z-index: 6;
-	background-color: #e4e7ed;
-	opacity: 0.65;
-}
-
-.deprecationBlocker {
-	pointer-events: all;
-	cursor: not-allowed;
-	position: absolute;
-	top: var(--builderTopBarHeight);
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 6;
-	background: transparent;
 }
 
 .builderHeader {
