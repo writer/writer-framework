@@ -237,7 +237,7 @@ function onPlaybookClick() {
 
 .BuilderDeprecationBanner__copy {
 	min-width: 0;
-	max-width: 720px;
+	max-width: calc(100% - 200px);
 	color: white;
 }
 
