@@ -236,7 +236,16 @@ class TestServe:
                 "Content-Type": "application/json"
             })
             feature_flags = res.json().get("featureFlags")
-            assert feature_flags == ["blueprints", "flag_one", "flag_two", "api_trigger", 'cron_trigger', 'journal']
+            assert set(feature_flags) == {
+                "blueprints",
+                "flag_one",
+                "flag_two",
+                "api_trigger",
+                "cron_trigger",
+                "journal",
+                "beforeDeprecationCutoffAbv2",
+                "afterDeprecationCutoffAbv2",
+            }
 
     def test_get_cron_triggers_api(self):
         """

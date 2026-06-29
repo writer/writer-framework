@@ -165,7 +165,7 @@ const body = computed(() => {
 	}
 	return props.isOrganizationAdmin
 		? "This legacy agent editor will no longer be available - migrate your agent to the new Agent Builder now."
-		: "This legacy agent editor will no longer be available - create a Playbook instead.";
+		: "This legacy agent editor will no longer be available - work with your Admin to migrate your agent to the new Agent Builder now.";
 });
 
 const migrateLabel = computed(() =>
@@ -237,7 +237,7 @@ function onPlaybookClick() {
 
 .BuilderDeprecationBanner__copy {
 	min-width: 0;
-	max-width: 720px;
+	max-width: calc(100% - 200px);
 	color: white;
 }
 
