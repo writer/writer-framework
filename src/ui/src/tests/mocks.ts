@@ -44,7 +44,13 @@ export function buildMockCore() {
 	const userFunctions = shallowRef<UserFunction[]>([]);
 	const featureFlags = shallowRef<string[]>([]);
 	const writerApplication = shallowRef<
-		{ id: string; organizationId: string } | undefined
+		| {
+				id: string;
+				organizationId: string;
+				isOrganizationAdmin?: boolean;
+				canEdit?: boolean;
+		  }
+		| undefined
 	>();
 
 	core.userFunctions = userFunctions;
@@ -67,6 +73,15 @@ export function buildMockCore() {
 		() => Number(writerApplication.value?.organizationId) || undefined,
 	);
 	core.writerAppId = computed(() => writerApplication.value?.id);
+	core.isOrganizationAdmin = computed(
+		() => writerApplication.value?.isOrganizationAdmin ?? false,
+	);
+	core.canEditAgent = computed(
+		() =>
+			!core.isWriterCloudApp.value ||
+			core.isOrganizationAdmin.value ||
+			Boolean(writerApplication.value?.canEdit),
+	);
 
 	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
 
