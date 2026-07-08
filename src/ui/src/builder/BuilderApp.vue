@@ -9,9 +9,11 @@
 			@dismiss="onDismissBanner"
 		/>
 		<div
-			v-if="canEditAgent"
 			class="mainGrid"
-			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
+			:class="{
+				openPanels: ssbm.openPanels.value.size > 0,
+				blocked: !canEditAgent,
+			}"
 		>
 			<BuilderHeader class="builderHeader" />
 			<BuilderSidebar
@@ -86,7 +88,7 @@
 				</template>
 			</ShareResizeVertical>
 		</div>
-		<BuilderEditBlockedState v-else />
+		<BuilderEditBlockedState v-if="!canEditAgent" />
 
 		<!-- INSTANCE TRACKERS -->
 
@@ -646,6 +648,12 @@ onUnmounted(() => {
 	grid-template-columns: auto 1fr;
 	grid-template-rows: var(--builderTopBarHeight) minmax(0, 1fr);
 	display: grid;
+}
+
+.mainGrid.blocked {
+	pointer-events: none;
+	filter: grayscale(1);
+	opacity: 0.52;
 }
 
 .builderHeader {

@@ -12,12 +12,15 @@
 
 <style scoped>
 .BuilderEditBlockedState {
-	flex: 1;
+	position: absolute;
+	inset: 0;
+	z-index: 20;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: 32px;
-	background: var(--builderBackgroundColor);
+	background: rgb(255 255 255 / 64%);
+	backdrop-filter: grayscale(1);
 }
 
 .BuilderEditBlockedState__card {
