@@ -10,7 +10,10 @@
 		/>
 		<div
 			class="mainGrid"
-			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
+			:class="{
+				openPanels: ssbm.openPanels.value.size > 0,
+				blocked: !canEditAgent,
+			}"
 		>
 			<BuilderHeader class="builderHeader" />
 			<BuilderSidebar
@@ -85,10 +88,11 @@
 				</template>
 			</ShareResizeVertical>
 		</div>
+		<BuilderEditBlockedState v-if="!canEditAgent" />
 
 		<!-- INSTANCE TRACKERS -->
 
-		<template v-if="builderMode !== 'preview'">
+		<template v-if="canEditAgent && builderMode !== 'preview'">
 			<BuilderCollaborationTracker
 				class="collaborationTracker"
 			></BuilderCollaborationTracker>
@@ -121,7 +125,7 @@
 
 		<!-- NOTES -->
 
-		<template v-if="builderMode === 'ui'">
+		<template v-if="canEditAgent && builderMode === 'ui'">
 			<BuilderInstanceTracker
 				v-for="note of notes"
 				:key="note.id"
@@ -145,6 +149,9 @@
 		<div id="drawer"></div>
 
 		<BuilderAppSocketTimeoutModal />
+		<BuilderRemigrationWarningDialog
+			v-model:is-open="showRemigrationWarningDialog"
+		/>
 		<!-- TOOLTIP -->
 
 		<BuilderTooltip id="tooltip" />
@@ -185,9 +192,12 @@ import BuilderAppSocketTimeoutModal from "./BuilderAppSocketTimeoutModal.vue";
 import { useSocketTimeout } from "./useSocketTimeout";
 import BlueprintsNavigationStack from "@/components/blueprints/BlueprintsNavigationStack.vue";
 import BuilderDeprecationBanner from "./BuilderDeprecationBanner.vue";
+import BuilderEditBlockedState from "./BuilderEditBlockedState.vue";
+import BuilderRemigrationWarningDialog from "./BuilderRemigrationWarningDialog.vue";
 
 const DEPRECATION_BANNER_DISMISSED_KEY =
 	"customAgentDeprecationBannerDismissed";
+const REMIGRATION_WARNING_QUERY_PARAM = "showRemigrationWarning";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 
@@ -227,17 +237,56 @@ const isPostCutoff = computed(() =>
 	wf.featureFlags.value.includes("afterDeprecationCutoffAbv2"),
 );
 const isOrganizationAdmin = computed(() => wf.isOrganizationAdmin.value);
+const canEditAgent = computed(() => wf.canEditAgent.value);
 const showDeprecationBanner = computed(
 	() =>
 		wf.isWriterCloudApp.value &&
 		(isPostCutoff.value ||
 			(isPreCutoffFlagEnabled.value && !dismissed.value)),
 );
+const showRemigrationWarningDialog = ref(false);
 
 function onDismissBanner() {
 	localStorage.setItem(DEPRECATION_BANNER_DISMISSED_KEY, "true");
 	dismissed.value = true;
 }
+
+function isPageRefresh() {
+	const navigation = performance.getEntriesByType("navigation")[0] as
+		| PerformanceNavigationTiming
+		| undefined;
+
+	return navigation?.type === "reload";
+}
+
+function consumeRemigrationWarningQueryParam() {
+	const url = new URL(window.location.href);
+	const shouldShowFromOpener =
+		url.searchParams.get(REMIGRATION_WARNING_QUERY_PARAM) === "true";
+
+	if (shouldShowFromOpener) {
+		url.searchParams.delete(REMIGRATION_WARNING_QUERY_PARAM);
+		window.history.replaceState(
+			window.history.state,
+			document.title,
+			url.toString(),
+		);
+	}
+
+	return shouldShowFromOpener;
+}
+
+onMounted(() => {
+	const shouldShowFromOpener = consumeRemigrationWarningQueryParam();
+
+	showRemigrationWarningDialog.value =
+		shouldShowFromOpener &&
+		!isPageRefresh() &&
+		canEditAgent.value &&
+		wf.isWriterCloudApp.value &&
+		isPreCutoffFlagEnabled.value &&
+		!isPostCutoff.value;
+});
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
@@ -310,6 +359,8 @@ const notes = computed(() =>
 );
 
 async function handleKeydown(ev: KeyboardEvent) {
+	if (!canEditAgent.value) return;
+
 	if (ev.key === "Escape") {
 		ssbm.setSelection(null);
 		ssbm.expandedEditorForComponent.value = null;
@@ -406,11 +457,13 @@ async function handleKeydown(ev: KeyboardEvent) {
 }
 
 function handleRendererDragover(ev: DragEvent) {
+	if (!canEditAgent.value) return;
 	if (builderMode.value === "preview") return;
 	assignInsertionCandidacy(ev);
 }
 
 function handleRendererDrop(ev: DragEvent) {
+	if (!canEditAgent.value) return;
 	if (builderMode.value === "preview") return;
 	ssbm.setSelection(null);
 	const dropInfo = dropComponent(ev);
@@ -425,6 +478,7 @@ function handleRendererDrop(ev: DragEvent) {
 }
 
 function handleRendererClick(ev: PointerEvent): void {
+	if (!canEditAgent.value) return;
 	if (builderMode.value === "preview") return;
 
 	const unselectableEl = (ev.target as HTMLElement).closest<HTMLElement>(
@@ -471,10 +525,12 @@ function handleRendererClick(ev: PointerEvent): void {
 	ssbm.handleSelectionFromEvent(ev, targetId, targetInstancePath, "click");
 }
 function handleRendererDblClick() {
+	if (!canEditAgent.value) return;
 	ssbm.isSettingsBarCollapsed.value = false;
 }
 
 const handleRendererDragStart = (ev: DragEvent) => {
+	if (!canEditAgent.value) return;
 	if (builderMode.value === "preview") return;
 
 	const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
@@ -499,6 +555,7 @@ const handleRendererDragStart = (ev: DragEvent) => {
 };
 
 function handleRendererDragEnd(ev: DragEvent) {
+	if (!canEditAgent.value) return;
 	ssbm.setSelection(null);
 	removeInsertionCandidacy(ev);
 }
@@ -591,6 +648,12 @@ onUnmounted(() => {
 	grid-template-columns: auto 1fr;
 	grid-template-rows: var(--builderTopBarHeight) minmax(0, 1fr);
 	display: grid;
+}
+
+.mainGrid.blocked {
+	pointer-events: none;
+	filter: grayscale(1);
+	opacity: 0.52;
 }
 
 .builderHeader {

@@ -71,6 +71,7 @@ export function generateCore() {
 				apiKey?: string;
 				baseUrl?: string;
 				isOrganizationAdmin?: boolean;
+				canEdit?: boolean;
 		  }
 		| undefined
 	>();
@@ -146,6 +147,12 @@ export function generateCore() {
 	);
 	const isWriterCloudApp = computed(() =>
 		Boolean(writerAppId.value || writerOrgId.value),
+	);
+	const canEditAgent = computed(
+		() =>
+			!isWriterCloudApp.value ||
+			isOrganizationAdmin.value ||
+			Boolean(writerApplication.value?.canEdit),
 	);
 
 	/**
@@ -1176,6 +1183,7 @@ export function generateCore() {
 		writerApiKey,
 		writerBaseUrl,
 		isOrganizationAdmin,
+		canEditAgent,
 		...navigationStack,
 		getFirstBlueprint,
 		getFirstPage,

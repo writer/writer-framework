@@ -74,6 +74,7 @@ class WriterApplicationInformation(BaseModel):
     baseUrl: Optional[str] = None
     apiKey: Optional[str] = None
     isOrganizationAdmin: Optional[bool] = False
+    canEdit: Optional[bool] = False
 
 
 class AutogenRequestBody(BaseModel):
