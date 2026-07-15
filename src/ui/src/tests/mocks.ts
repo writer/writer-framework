@@ -78,6 +78,10 @@ export function buildMockCore() {
 	);
 	core.canEditAgent = computed(
 		() =>
+			!(
+				featureFlags.value.includes("beforeDeprecationCutoffAbv2") ||
+				featureFlags.value.includes("afterDeprecationCutoffAbv2")
+			) ||
 			!core.isWriterCloudApp.value ||
 			core.isOrganizationAdmin.value ||
 			Boolean(writerApplication.value?.canEdit),

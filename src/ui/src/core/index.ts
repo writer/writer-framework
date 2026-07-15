@@ -148,8 +148,19 @@ export function generateCore() {
 	const isWriterCloudApp = computed(() =>
 		Boolean(writerAppId.value || writerOrgId.value),
 	);
+	// ABv1 edit gating is only enforced while an ABv2 deprecation flag is
+	// active. Without a deprecation flag (e.g. the producer that sends the
+	// permission headers hasn't shipped, or the org is not in the deprecation
+	// rollout), editing is always permitted so the block cannot engage
+	// unintentionally.
+	const isAbv1EditGatingEnabled = computed(
+		() =>
+			featureFlags.value.includes("beforeDeprecationCutoffAbv2") ||
+			featureFlags.value.includes("afterDeprecationCutoffAbv2"),
+	);
 	const canEditAgent = computed(
 		() =>
+			!isAbv1EditGatingEnabled.value ||
 			!isWriterCloudApp.value ||
 			isOrganizationAdmin.value ||
 			Boolean(writerApplication.value?.canEdit),
