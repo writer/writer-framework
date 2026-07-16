@@ -10,10 +10,7 @@
 		/>
 		<div
 			class="mainGrid"
-			:class="{
-				openPanels: ssbm.openPanels.value.size > 0,
-				blocked: !canEditAgent,
-			}"
+			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
 		>
 			<BuilderHeader class="builderHeader" />
 			<BuilderSidebar
@@ -88,11 +85,10 @@
 				</template>
 			</ShareResizeVertical>
 		</div>
-		<BuilderEditBlockedState v-if="!canEditAgent" />
 
 		<!-- INSTANCE TRACKERS -->
 
-		<template v-if="canEditAgent && builderMode !== 'preview'">
+		<template v-if="builderMode !== 'preview'">
 			<BuilderCollaborationTracker
 				class="collaborationTracker"
 			></BuilderCollaborationTracker>
@@ -125,7 +121,7 @@
 
 		<!-- NOTES -->
 
-		<template v-if="canEditAgent && builderMode === 'ui'">
+		<template v-if="builderMode === 'ui'">
 			<BuilderInstanceTracker
 				v-for="note of notes"
 				:key="note.id"
@@ -192,7 +188,6 @@ import BuilderAppSocketTimeoutModal from "./BuilderAppSocketTimeoutModal.vue";
 import { useSocketTimeout } from "./useSocketTimeout";
 import BlueprintsNavigationStack from "@/components/blueprints/BlueprintsNavigationStack.vue";
 import BuilderDeprecationBanner from "./BuilderDeprecationBanner.vue";
-import BuilderEditBlockedState from "./BuilderEditBlockedState.vue";
 import BuilderRemigrationWarningDialog from "./BuilderRemigrationWarningDialog.vue";
 
 const DEPRECATION_BANNER_DISMISSED_KEY =
@@ -237,7 +232,6 @@ const isPostCutoff = computed(() =>
 	wf.featureFlags.value.includes("afterDeprecationCutoffAbv2"),
 );
 const isOrganizationAdmin = computed(() => wf.isOrganizationAdmin.value);
-const canEditAgent = computed(() => wf.canEditAgent.value);
 const showDeprecationBanner = computed(
 	() =>
 		wf.isWriterCloudApp.value &&
@@ -282,7 +276,6 @@ onMounted(() => {
 	showRemigrationWarningDialog.value =
 		shouldShowFromOpener &&
 		!isPageRefresh() &&
-		canEditAgent.value &&
 		wf.isWriterCloudApp.value &&
 		isPreCutoffFlagEnabled.value &&
 		!isPostCutoff.value;
@@ -359,8 +352,6 @@ const notes = computed(() =>
 );
 
 async function handleKeydown(ev: KeyboardEvent) {
-	if (!canEditAgent.value) return;
-
 	if (ev.key === "Escape") {
 		ssbm.setSelection(null);
 		ssbm.expandedEditorForComponent.value = null;
@@ -457,13 +448,11 @@ async function handleKeydown(ev: KeyboardEvent) {
 }
 
 function handleRendererDragover(ev: DragEvent) {
-	if (!canEditAgent.value) return;
 	if (builderMode.value === "preview") return;
 	assignInsertionCandidacy(ev);
 }
 
 function handleRendererDrop(ev: DragEvent) {
-	if (!canEditAgent.value) return;
 	if (builderMode.value === "preview") return;
 	ssbm.setSelection(null);
 	const dropInfo = dropComponent(ev);
@@ -478,7 +467,6 @@ function handleRendererDrop(ev: DragEvent) {
 }
 
 function handleRendererClick(ev: PointerEvent): void {
-	if (!canEditAgent.value) return;
 	if (builderMode.value === "preview") return;
 
 	const unselectableEl = (ev.target as HTMLElement).closest<HTMLElement>(
@@ -525,12 +513,10 @@ function handleRendererClick(ev: PointerEvent): void {
 	ssbm.handleSelectionFromEvent(ev, targetId, targetInstancePath, "click");
 }
 function handleRendererDblClick() {
-	if (!canEditAgent.value) return;
 	ssbm.isSettingsBarCollapsed.value = false;
 }
 
 const handleRendererDragStart = (ev: DragEvent) => {
-	if (!canEditAgent.value) return;
 	if (builderMode.value === "preview") return;
 
 	const targetEl = (ev.target as HTMLElement).closest<HTMLElement>(
@@ -555,7 +541,6 @@ const handleRendererDragStart = (ev: DragEvent) => {
 };
 
 function handleRendererDragEnd(ev: DragEvent) {
-	if (!canEditAgent.value) return;
 	ssbm.setSelection(null);
 	removeInsertionCandidacy(ev);
 }
@@ -648,12 +633,6 @@ onUnmounted(() => {
 	grid-template-columns: auto 1fr;
 	grid-template-rows: var(--builderTopBarHeight) minmax(0, 1fr);
 	display: grid;
-}
-
-.mainGrid.blocked {
-	pointer-events: none;
-	filter: grayscale(1);
-	opacity: 0.52;
 }
 
 .builderHeader {

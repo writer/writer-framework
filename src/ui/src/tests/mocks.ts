@@ -48,7 +48,6 @@ export function buildMockCore() {
 				id: string;
 				organizationId: string;
 				isOrganizationAdmin?: boolean;
-				canEdit?: boolean;
 		  }
 		| undefined
 	>();
@@ -75,16 +74,6 @@ export function buildMockCore() {
 	core.writerAppId = computed(() => writerApplication.value?.id);
 	core.isOrganizationAdmin = computed(
 		() => writerApplication.value?.isOrganizationAdmin ?? false,
-	);
-	core.canEditAgent = computed(
-		() =>
-			!(
-				featureFlags.value.includes("beforeDeprecationCutoffAbv2") ||
-				featureFlags.value.includes("afterDeprecationCutoffAbv2")
-			) ||
-			!core.isWriterCloudApp.value ||
-			core.isOrganizationAdmin.value ||
-			Boolean(writerApplication.value?.canEdit),
 	);
 
 	vi.spyOn(core, "sendComponentUpdate").mockImplementation(async () => {});
