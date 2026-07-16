@@ -191,15 +191,12 @@ class AppProcess(multiprocessing.Process):
         writer_base_url = os.getenv("WRITER_BASE_URL", "https://api.writer.com")
         is_org_admin_header = headers.get("x-is-org-admin", "").lower()
         is_org_admin = is_org_admin_header == "true"
-        can_edit_header = headers.get("x-can-edit-agent", "").lower()
-        can_edit = is_org_admin or can_edit_header == "true"
         if writer_app_id is not None and writer_org_id is not None:
             writer_application = WriterApplicationInformation(
                 id=writer_app_id,
                 organizationId=writer_org_id,
                 baseUrl=writer_base_url,
                 isOrganizationAdmin=is_org_admin,
-                canEdit=can_edit,
             )
             if writer.Config.mode == "edit":
                 writer_application.apiKey = os.getenv("WRITER_API_KEY")
