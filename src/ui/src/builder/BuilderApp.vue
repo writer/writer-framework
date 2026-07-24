@@ -1,13 +1,5 @@
 <template>
 	<div class="BuilderApp" tabindex="-1" :style="WDS_CSS_PROPERTIES">
-		<BuilderDeprecationBanner
-			v-if="showDeprecationBanner"
-			class="deprecationBanner"
-			:is-organization-admin="isOrganizationAdmin"
-			:is-post-cutoff="isPostCutoff"
-			:show-dismiss="!isPostCutoff && !dismissed"
-			@dismiss="onDismissBanner"
-		/>
 		<div
 			class="mainGrid"
 			:class="{ openPanels: ssbm.openPanels.value.size > 0 }"
@@ -145,9 +137,6 @@
 		<div id="drawer"></div>
 
 		<BuilderAppSocketTimeoutModal />
-		<BuilderRemigrationWarningDialog
-			v-model:is-open="showRemigrationWarningDialog"
-		/>
 		<!-- TOOLTIP -->
 
 		<BuilderTooltip id="tooltip" />
@@ -187,12 +176,6 @@ import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWith
 import BuilderAppSocketTimeoutModal from "./BuilderAppSocketTimeoutModal.vue";
 import { useSocketTimeout } from "./useSocketTimeout";
 import BlueprintsNavigationStack from "@/components/blueprints/BlueprintsNavigationStack.vue";
-import BuilderDeprecationBanner from "./BuilderDeprecationBanner.vue";
-import BuilderRemigrationWarningDialog from "./BuilderRemigrationWarningDialog.vue";
-
-const DEPRECATION_BANNER_DISMISSED_KEY =
-	"customAgentDeprecationBannerDismissed";
-const REMIGRATION_WARNING_QUERY_PARAM = "showRemigrationWarning";
 
 provide(injectionKeys.isAutogenModalShown, ref(false));
 
@@ -220,66 +203,6 @@ const wf = inject(injectionKeys.core);
 const ssbm = inject(injectionKeys.builderManager);
 const notesManager = inject(injectionKeys.notesManager);
 const collaborationManager = inject(injectionKeys.collaborationManager);
-
-// Deprecation banner
-const dismissed = ref(
-	localStorage.getItem(DEPRECATION_BANNER_DISMISSED_KEY) === "true",
-);
-const isPreCutoffFlagEnabled = computed(() =>
-	wf.featureFlags.value.includes("beforeDeprecationCutoffAbv2"),
-);
-const isPostCutoff = computed(() =>
-	wf.featureFlags.value.includes("afterDeprecationCutoffAbv2"),
-);
-const isOrganizationAdmin = computed(() => wf.isOrganizationAdmin.value);
-const showDeprecationBanner = computed(
-	() =>
-		wf.isWriterCloudApp.value &&
-		(isPostCutoff.value ||
-			(isPreCutoffFlagEnabled.value && !dismissed.value)),
-);
-const showRemigrationWarningDialog = ref(false);
-
-function onDismissBanner() {
-	localStorage.setItem(DEPRECATION_BANNER_DISMISSED_KEY, "true");
-	dismissed.value = true;
-}
-
-function isPageRefresh() {
-	const navigation = performance.getEntriesByType("navigation")[0] as
-		| PerformanceNavigationTiming
-		| undefined;
-
-	return navigation?.type === "reload";
-}
-
-function consumeRemigrationWarningQueryParam() {
-	const url = new URL(window.location.href);
-	const shouldShowFromOpener =
-		url.searchParams.get(REMIGRATION_WARNING_QUERY_PARAM) === "true";
-
-	if (shouldShowFromOpener) {
-		url.searchParams.delete(REMIGRATION_WARNING_QUERY_PARAM);
-		window.history.replaceState(
-			window.history.state,
-			document.title,
-			url.toString(),
-		);
-	}
-
-	return shouldShowFromOpener;
-}
-
-onMounted(() => {
-	const shouldShowFromOpener = consumeRemigrationWarningQueryParam();
-
-	showRemigrationWarningDialog.value =
-		shouldShowFromOpener &&
-		!isPageRefresh() &&
-		wf.isWriterCloudApp.value &&
-		isPreCutoffFlagEnabled.value &&
-		!isPostCutoff.value;
-});
 
 const tracking = useWriterTracking(wf);
 const toasts = useToasts();
@@ -618,11 +541,6 @@ onUnmounted(() => {
 	margin-top: -30px;
 	padding: 0;
 	pointer-events: auto;
-}
-
-.deprecationBanner {
-	flex-shrink: 0;
-	z-index: 10;
 }
 
 .mainGrid {
