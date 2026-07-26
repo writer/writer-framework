@@ -15,7 +15,7 @@
     "e2e:grep": "playwright test --project=chromium --grep "
   },
   "dependencies": {
-    "express": "4.19.2",
+    "express": "4.22.0",
     "http-proxy": "1.18.1",
     "writer-ui": "*"
   },
