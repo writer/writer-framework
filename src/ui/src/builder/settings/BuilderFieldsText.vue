@@ -1,7 +1,16 @@
 <template>
 	<div class="BuilderFieldsText" :data-automation-key="props.fieldKey">
 		<template v-if="fieldControl == FieldControl.Text">
+			<WdsSelect
+				v-if="shouldUseDropdown"
+				v-model="selectValue"
+				class="content"
+				:options="selectOptions"
+				:placeholder="defaultValue"
+				default-icon=""
+			/>
 			<BuilderTemplateInput
+				v-else
 				class="content"
 				:component-id="componentId"
 				:input-id="inputId"
@@ -38,6 +47,12 @@ import { Component, FieldControl } from "@/writerTypes";
 import { useComponentFieldViewModel } from "../useComponentFieldViewModel";
 import injectionKeys from "@/injectionKeys";
 import BuilderTemplateInput from "./BuilderTemplateInput.vue";
+import { defineAsyncComponentWithLoader } from "@/utils/defineAsyncComponentWithLoader";
+import type { Option } from "@/wds/WdsSelect.vue";
+
+const WdsSelect = defineAsyncComponentWithLoader({
+	loader: () => import("@/wds/WdsSelect.vue"),
+});
 
 const wf = inject(injectionKeys.core);
 
@@ -78,6 +93,24 @@ const predefinedOptionFns = {
 		});
 		return options;
 	},
+	pageKeys: () => {
+		const pages = wf
+			.getComponents("root", { sortedByPosition: true })
+			.filter((component) => component.type === "page");
+		return pages.reduce((acc, page) => {
+			const key = page.content?.["key"];
+			if (!key) {
+				return acc;
+			}
+			const label =
+				page.content?.["title"] ??
+				page.content?.["name"] ??
+				key ??
+				page.id;
+			acc[key] = label;
+			return acc;
+		}, {});
+	},
 	uiComponentsWithEvents: () => {
 		return wf
 			.getComponents(undefined, { sortedByPosition: true })
@@ -101,7 +134,7 @@ const predefinedOptionFns = {
 	},
 };
 
-const options = computed(() => {
+const options = computed<Record<string, string>>(() => {
 	const component = wf.getComponentById(props.componentId);
 	const componentDefinition = wf.getComponentDefinition(component.type);
 	const field = componentDefinition.fields[props.fieldKey];
@@ -116,11 +149,34 @@ const options = computed(() => {
 	return field.options;
 });
 
+const selectOptions = computed<Option[]>(() =>
+	Object.entries(options.value ?? {}).map(([value, label]) => ({
+		value,
+		label,
+	})),
+);
+
+const shouldUseDropdown = computed(
+	() => props.type === "template" && selectOptions.value.length > 0,
+);
+
 const inputType = computed(() =>
 	["state", "state-template"].includes(props.type) ? "state" : "template",
 );
 
 const inputValue = computed(() => parseContentValue(fieldViewModel.value));
+
+const selectValue = computed<string | undefined>({
+	get: () => {
+		const value = inputValue.value;
+		return selectOptions.value.some((option) => option.value === value)
+			? value
+			: undefined;
+	},
+	set(value) {
+		fieldViewModel.value = transformToContentValue(value ?? "");
+	},
+});
 
 const handleInput = (ev: Event) => {
 	fieldViewModel.value = transformToContentValue(

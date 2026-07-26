@@ -98,6 +98,7 @@ export type WdsDropdownMenuOption = {
 	label: string;
 	detail?: string;
 	shortcut?: string;
+	isPlaceholder?: boolean;
 	/**
 	 * A font icon or an array of image URL
 	 */
