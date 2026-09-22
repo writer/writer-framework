@@ -1091,19 +1091,22 @@ def test_init_writer_ai_manager(emulate_app_process):
 
 
 # --------------------------------------------------------------------------
-# Attribution headers on the LLM client
+# Attribution headers and body meta on the LLM client
 #
 # When the framework is deployed on the Writer platform it makes LLM calls
 # on behalf of a specific deployed agent. Those calls need to carry
 # X-Agent-Id and X-Organization-Id headers so that downstream services can
-# attribute usage to the correct agent.
+# attribute usage to the correct agent. In addition, the agent ID must be
+# injected into the request body's "meta" field (as "templateId") so that
+# the LLM gateway can attribute usage events to the correct agent.
 #
 # Previously, acquire_client only forwarded X-Agent-Token and omitted the
 # agent and organization identifiers, making LLM usage invisible in
 # per-agent reporting. The tests below verify that the headers are
 # populated from the session and environment, that session values take
-# priority over env fallbacks, and that headers are omitted entirely
-# when no attribution context is available.
+# priority over env fallbacks, that headers are omitted entirely when no
+# attribution context is available, and that the body meta is correctly
+# injected and merged with any user-provided extra_body.
 # --------------------------------------------------------------------------
 
 
@@ -1221,6 +1224,86 @@ def test_acquire_client_omits_headers_when_unavailable(
     assert "X-Agent-Id" not in default_headers
     assert "X-Organization-Id" not in default_headers
     assert "X-Agent-Token" not in default_headers
+
+
+@pytest.mark.set_token("fake_token")
+def test_attribution_extra_body_injects_templateId(
+    emulate_app_process, monkeypatch
+):
+    """get_attribution_extra_body should return {"meta": {"templateId": ...}}
+    so the LLM gateway can attribute usage to the correct agent via the
+    request body.
+    """
+    monkeypatch.setenv("WRITER_APP_ID", "test-agent-id")
+    monkeypatch.setattr("writer.core.get_session", lambda: None)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    extra_body = WriterAIManager.get_attribution_extra_body(None)
+    assert extra_body == {"meta": {"templateId": "test-agent-id"}}
+
+
+@pytest.mark.set_token("fake_token")
+def test_attribution_extra_body_merges_with_user_extra_body(
+    emulate_app_process, monkeypatch
+):
+    """User-provided extra_body should be preserved, with the attribution
+    meta merged into its "meta" key.
+    """
+    monkeypatch.setenv("WRITER_APP_ID", "test-agent-id")
+    monkeypatch.setattr("writer.core.get_session", lambda: None)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    user_extra_body = {"some_key": "some_value", "meta": {"other_key": "other_val"}}
+    extra_body = WriterAIManager.get_attribution_extra_body(user_extra_body)
+    assert extra_body["some_key"] == "some_value"
+    assert extra_body["meta"]["other_key"] == "other_val"
+    assert extra_body["meta"]["templateId"] == "test-agent-id"
+
+
+@pytest.mark.set_token("fake_token")
+def test_attribution_extra_body_none_when_no_agent_id(
+    emulate_app_process, monkeypatch
+):
+    """When no agent ID is available, get_attribution_extra_body should
+    return the user-provided extra_body unchanged (or None).
+    """
+    monkeypatch.delenv("WRITER_APP_ID", raising=False)
+    monkeypatch.setattr("writer.core.get_session", lambda: None)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    assert WriterAIManager.get_attribution_extra_body(None) is None
+    user_body = {"key": "val"}
+    assert WriterAIManager.get_attribution_extra_body(user_body) is user_body
 
 
 def test_create_graph(mock_graphs_accessor):

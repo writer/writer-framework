@@ -227,6 +227,8 @@ class WriterAIManager:
     :ivar token: Authentication token for the Writer AI API.
     """
 
+    _agent_id: Optional[str] = None
+
     def __init__(self, token: Optional[str] = None):
         """
         Initializes a WriterAIManager instance.
@@ -330,6 +332,8 @@ class WriterAIManager:
         if organization_id:
             custom_headers["X-Organization-Id"] = organization_id
 
+        cls._agent_id = agent_id or None
+
         try:
             context_client = _ai_client.get(None)
             if force_new_client or not context_client:
@@ -350,6 +354,31 @@ class WriterAIManager:
                 " environment variable, or by initializing the" +
                 " AI module explicitly: writer.ai.init(\"my-writer-api-key\")"
                 ) from None
+
+    @classmethod
+    def get_attribution_extra_body(
+        cls,
+        user_extra_body: Optional[dict] = None
+    ) -> Optional[dict]:
+        """Merge agent-attribution meta into extra_body for SDK calls.
+
+        The LLM gateway reads ``templateId`` from the request body's
+        ``meta`` field (priority: templateId > template_id > agentId >
+        agent_id).  Injecting it via ``extra_body`` ensures LLM usage
+        is attributed to the correct deployed agent.
+        """
+        if not cls._agent_id:
+            return user_extra_body
+        attribution_meta = {"templateId": cls._agent_id}
+        if user_extra_body:
+            merged = {**user_extra_body}
+            existing_meta = merged.get("meta")
+            if isinstance(existing_meta, dict):
+                merged["meta"] = {**existing_meta, **attribution_meta}
+            else:
+                merged["meta"] = attribution_meta
+            return merged
+        return {"meta": attribution_meta}
 
 
 class SDKWrapper:
@@ -1947,7 +1976,9 @@ class Conversation:
             top_p=request_data.get('top_p', Omit()),
             extra_headers=request_data.get('extra_headers'),
             extra_query=request_data.get('extra_query'),
-            extra_body=request_data.get('extra_body'),
+            extra_body=WriterAIManager.get_attribution_extra_body(
+                request_data.get('extra_body')
+            ),
             timeout=request_data.get('timeout', NotGiven()),
         )
 
@@ -3003,7 +3034,9 @@ def complete(
         temperature=config.get("temperature", Omit()),
         top_p=config.get("top_p", Omit()),
         extra_headers=config.get("extra_headers"),
-        extra_body=config.get("extra_body"),
+        extra_body=WriterAIManager.get_attribution_extra_body(
+            config.get("extra_body")
+        ),
         extra_query=config.get("extra_query"),
         timeout=config.get("timeout")
         )
@@ -3049,7 +3082,9 @@ def stream_complete(
         temperature=config.get("temperature", Omit()),
         top_p=config.get("top_p", Omit()),
         extra_headers=config.get("extra_headers"),
-        extra_body=config.get("extra_body"),
+        extra_body=WriterAIManager.get_attribution_extra_body(
+            config.get("extra_body")
+        ),
         extra_query=config.get("extra_query"),
         timeout=config.get("timeout")
         )
@@ -3123,6 +3158,12 @@ def ask(
     client = WriterAIManager.acquire_client()
     graph_ids = _gather_graph_ids(graphs_or_graph_ids)
 
+    attribution_body = WriterAIManager.get_attribution_extra_body(
+        config.get("extra_body")
+    )
+    if attribution_body is not None:
+        config = {**config, "extra_body": attribution_body}
+
     response = cast(
         Question,
         client.graphs.question(
@@ -3184,6 +3225,12 @@ def stream_ask(
     config = config or {}
     client = WriterAIManager.acquire_client()
     graph_ids = _gather_graph_ids(graphs_or_graph_ids)
+
+    attribution_body = WriterAIManager.get_attribution_extra_body(
+        config.get("extra_body")
+    )
+    if attribution_body is not None:
+        config = {**config, "extra_body": attribution_body}
 
     response = cast(
         Stream[QuestionResponseChunk],
