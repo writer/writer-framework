@@ -1098,12 +1098,14 @@ def test_init_writer_ai_manager(emulate_app_process):
 # into the request body's "meta" field (as "templateId") so that the LLM
 # gateway can attribute usage events to the correct agent.
 #
-# Previously, acquire_client only forwarded X-Agent-Token and did not
-# inject any body meta, making LLM usage invisible in per-agent reporting.
+# The agent ID is resolved from the x-agent-id session header and stored
+# in a ContextVar so that concurrent requests (AppProcess uses a
+# ThreadPoolExecutor) cannot race and attribute one session's LLM usage
+# to another session's agent.
+#
 # The tests below verify that the body meta is correctly injected from
-# the session and environment, that session values take priority over env
-# fallbacks, and that no meta is injected when no attribution context is
-# available.
+# the session header, merged with user-provided extra_body, and omitted
+# when no attribution context is available.
 # --------------------------------------------------------------------------
 
 
@@ -1129,38 +1131,7 @@ def test_attribution_extra_body_injects_templateId(
     so the LLM gateway can attribute usage to the correct agent via the
     request body.
     """
-    monkeypatch.setenv("WRITER_APP_ID", "test-agent-id")
-    monkeypatch.setattr("writer.core.get_session", lambda: None)
-
-    captured = {}
-
-    def fake_writer_init(self, **kwargs):
-        captured["default_headers"] = kwargs.get("default_headers")
-        self.api_key = kwargs.get("api_key")
-
-    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
-    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
-
-    WriterAIManager.acquire_client(force_new_client=True)
-
-    extra_body = WriterAIManager.get_attribution_extra_body(None)
-    assert extra_body == {"meta": {"templateId": "test-agent-id"}}
-
-
-@pytest.mark.set_token("fake_token")
-def test_attribution_extra_body_session_takes_priority(
-    emulate_app_process, monkeypatch
-):
-    """The runtime receives a live x-agent-id on the session for every
-    request. That must take priority over the env var, because a single
-    deployed framework container can serve multiple agent invocations.
-    """
-    monkeypatch.setenv("WRITER_APP_ID", "env-fallback-agent-id")
-
-    session = _make_stub_session({
-        "x-agent-token": "session-token",
-        "x-agent-id": "session-agent-id",
-    })
+    session = _make_stub_session({"x-agent-id": "test-agent-id"})
     monkeypatch.setattr("writer.core.get_session", lambda: session)
 
     captured = {}
@@ -1171,11 +1142,12 @@ def test_attribution_extra_body_session_takes_priority(
 
     monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
     monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+    monkeypatch.setattr("writer.ai._ai_agent_id", ContextVar("ai_agent_id", default=None))
 
     WriterAIManager.acquire_client(force_new_client=True)
 
     extra_body = WriterAIManager.get_attribution_extra_body(None)
-    assert extra_body == {"meta": {"templateId": "session-agent-id"}}
+    assert extra_body == {"meta": {"templateId": "test-agent-id"}}
 
 
 @pytest.mark.set_token("fake_token")
@@ -1185,8 +1157,8 @@ def test_attribution_extra_body_merges_with_user_extra_body(
     """User-provided extra_body should be preserved, with the attribution
     meta merged into its "meta" key.
     """
-    monkeypatch.setenv("WRITER_APP_ID", "test-agent-id")
-    monkeypatch.setattr("writer.core.get_session", lambda: None)
+    session = _make_stub_session({"x-agent-id": "test-agent-id"})
+    monkeypatch.setattr("writer.core.get_session", lambda: session)
 
     captured = {}
 
@@ -1196,6 +1168,7 @@ def test_attribution_extra_body_merges_with_user_extra_body(
 
     monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
     monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+    monkeypatch.setattr("writer.ai._ai_agent_id", ContextVar("ai_agent_id", default=None))
 
     WriterAIManager.acquire_client(force_new_client=True)
 
@@ -1210,10 +1183,9 @@ def test_attribution_extra_body_merges_with_user_extra_body(
 def test_attribution_extra_body_none_when_no_agent_id(
     emulate_app_process, monkeypatch
 ):
-    """When no agent ID is available, get_attribution_extra_body should
-    return the user-provided extra_body unchanged (or None).
+    """When no agent ID is available (no session header), get_attribution_extra_body
+    should return the user-provided extra_body unchanged (or None).
     """
-    monkeypatch.delenv("WRITER_APP_ID", raising=False)
     monkeypatch.setattr("writer.core.get_session", lambda: None)
 
     captured = {}
@@ -1224,6 +1196,7 @@ def test_attribution_extra_body_none_when_no_agent_id(
 
     monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
     monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+    monkeypatch.setattr("writer.ai._ai_agent_id", ContextVar("ai_agent_id", default=None))
 
     WriterAIManager.acquire_client(force_new_client=True)
 

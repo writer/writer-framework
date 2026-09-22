@@ -75,6 +75,10 @@ _ai_client: ContextVar[Optional[Writer]] = ContextVar(
     "ai_client", default=None
 )
 
+_ai_agent_id: ContextVar[Optional[str]] = ContextVar(
+    "ai_agent_id", default=None
+)
+
 
 class ExtendedWebSearchTool(TypedDict, total=False):
     """Extended web search tool that includes all fields supported by the API"""
@@ -227,8 +231,6 @@ class WriterAIManager:
     :ivar token: Authentication token for the Writer AI API.
     """
 
-    _agent_id: Optional[str] = None
-
     def __init__(self, token: Optional[str] = None):
         """
         Initializes a WriterAIManager instance.
@@ -304,8 +306,11 @@ class WriterAIManager:
         instance = cls.acquire_instance()
 
         # Acquire header from session and set it to the client.
-        # Also resolve the agent ID for body-based attribution
-        # (see get_attribution_extra_body).
+        # Also resolve the agent ID from the session header for
+        # body-based attribution (see get_attribution_extra_body).
+        # We use a ContextVar because AppProcess dispatches requests
+        # concurrently via a ThreadPoolExecutor, so a class-level
+        # attribute would race between sessions.
 
         current_session = get_session()
         custom_headers: Dict[str, str] = {}
@@ -316,11 +321,11 @@ class WriterAIManager:
             if agent_token_header:
                 custom_headers["X-Agent-Token"] = agent_token_header
 
-        cls._agent_id = (
+        _ai_agent_id.set(
             (current_session.headers or {}).get("x-agent-id")
             if current_session
             else None
-        ) or os.getenv("WRITER_APP_ID")
+        )
 
         try:
             context_client = _ai_client.get(None)
@@ -346,8 +351,8 @@ class WriterAIManager:
     @classmethod
     def get_attribution_extra_body(
         cls,
-        user_extra_body: Optional[dict] = None
-    ) -> Optional[dict]:
+        user_extra_body: Optional[Any] = None
+    ) -> Optional[Any]:
         """Merge agent-attribution meta into extra_body for SDK calls.
 
         The LLM gateway reads ``templateId`` from the request body's
@@ -355,9 +360,9 @@ class WriterAIManager:
         agent_id).  Injecting it via ``extra_body`` ensures LLM usage
         is attributed to the correct deployed agent.
         """
-        if not cls._agent_id:
+        if not _ai_agent_id.get():
             return user_extra_body
-        attribution_meta = {"templateId": cls._agent_id}
+        attribution_meta = {"templateId": _ai_agent_id.get()}
         if user_extra_body:
             merged = {**user_extra_body}
             existing_meta = merged.get("meta")
