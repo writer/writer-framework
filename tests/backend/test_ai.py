@@ -46,6 +46,7 @@ pytest ./tests/backend/test_ai.py --full-run
 """
 
 import time
+from contextvars import ContextVar
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -1087,6 +1088,139 @@ def test_init_writer_ai_manager(emulate_app_process):
     manager = init("fake_token")
     assert isinstance(manager, WriterAIManager)
     assert manager.token == "fake_token"
+
+
+# --------------------------------------------------------------------------
+# Attribution headers on the LLM client
+#
+# When the framework is deployed on the Writer platform it makes LLM calls
+# on behalf of a specific deployed agent. Those calls need to carry
+# X-Agent-Id and X-Organization-Id headers so that downstream services can
+# attribute usage to the correct agent.
+#
+# Previously, acquire_client only forwarded X-Agent-Token and omitted the
+# agent and organization identifiers, making LLM usage invisible in
+# per-agent reporting. The tests below verify that the headers are
+# populated from the session and environment, that session values take
+# priority over env fallbacks, and that headers are omitted entirely
+# when no attribution context is available.
+# --------------------------------------------------------------------------
+
+
+def _make_stub_session(headers):
+    """A minimal stand-in for WriterSession that only exposes .headers.
+    WriterAIManager.acquire_client uses that attribute only, so this
+    avoids pulling in the full session lifecycle (component tree,
+    state, verifiers) that WriterSession.__init__ would build.
+    """
+    class _StubSession:
+        pass
+
+    stub = _StubSession()
+    stub.headers = headers
+    return stub
+
+
+@pytest.mark.set_token("fake_token")
+def test_acquire_client_forwards_agent_attribution_from_env(
+    emulate_app_process, monkeypatch
+):
+    """WRITER_APP_ID / WRITER_ORG_ID should reach the Writer SDK client
+    as X-Agent-Id / X-Organization-Id headers, so downstream services
+    (and the LLM gateway) can attribute the call to the deployed agent.
+    """
+    monkeypatch.setenv("WRITER_APP_ID", "test-agent-id")
+    monkeypatch.setenv("WRITER_ORG_ID", "test-org-id")
+    monkeypatch.setattr("writer.core.get_session", lambda: None)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    default_headers = captured["default_headers"]
+    assert default_headers is not None, (
+        "acquire_client must set default_headers on the Writer SDK client "
+        "so that attribution headers reach downstream services."
+    )
+    assert default_headers.get("X-Agent-Id") == "test-agent-id", (
+        "X-Agent-Id must be forwarded to the SDK client so that "
+        "downstream services can attribute LLM calls to the "
+        "correct deployed agent."
+    )
+    assert default_headers.get("X-Organization-Id") == "test-org-id"
+
+
+@pytest.mark.set_token("fake_token")
+def test_acquire_client_session_headers_beat_env(
+    emulate_app_process, monkeypatch
+):
+    """The runtime receives a live x-agent-id / x-organization-id on the
+    session for every request. Those must take priority over the env
+    vars that ship with the deployed container, because a single
+    deployed framework container can serve multiple agent invocations.
+    """
+    monkeypatch.setenv("WRITER_APP_ID", "env-fallback-app-id")
+    monkeypatch.setenv("WRITER_ORG_ID", "env-fallback-org-id")
+
+    session = _make_stub_session({
+        "x-agent-token": "session-token",
+        "x-agent-id": "session-agent-id",
+        "x-organization-id": "session-org-id",
+    })
+    monkeypatch.setattr("writer.core.get_session", lambda: session)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    default_headers = captured["default_headers"]
+    assert default_headers.get("X-Agent-Token") == "session-token"
+    assert default_headers.get("X-Agent-Id") == "session-agent-id"
+    assert default_headers.get("X-Organization-Id") == "session-org-id"
+
+
+@pytest.mark.set_token("fake_token")
+def test_acquire_client_omits_headers_when_unavailable(
+    emulate_app_process, monkeypatch
+):
+    """When no attribution context is available (no session and no env),
+    we must not send empty-string headers to the gateway: an empty
+    X-Agent-Id would still be a header and would break downstream
+    consumers that check `if header:` for presence.
+    """
+    monkeypatch.delenv("WRITER_APP_ID", raising=False)
+    monkeypatch.delenv("WRITER_ORG_ID", raising=False)
+    monkeypatch.setattr("writer.core.get_session", lambda: None)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    default_headers = captured["default_headers"] or {}
+    assert "X-Agent-Id" not in default_headers
+    assert "X-Organization-Id" not in default_headers
+    assert "X-Agent-Token" not in default_headers
 
 
 def test_create_graph(mock_graphs_accessor):

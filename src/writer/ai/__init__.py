@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from contextvars import ContextVar
 from datetime import datetime
 from functools import wraps
@@ -300,19 +301,34 @@ class WriterAIManager:
         from writer.core import get_session
         instance = cls.acquire_instance()
 
-        # Acquire header from session
-        # and set it to the client
+        # Forward attribution headers from the current session and
+        # environment so that downstream services can identify which
+        # deployed agent made each LLM call.
 
         current_session = get_session()
-        custom_headers = {}
-
+        session_headers: Dict[str, str] = {}
         if current_session:
-            headers = current_session.headers or {}
-            agent_token_header = headers.get("x-agent-token")
-            if agent_token_header:
-                custom_headers = {
-                        "X-Agent-Token": agent_token_header
-                    }
+            session_headers = current_session.headers or {}
+
+        custom_headers: Dict[str, str] = {}
+
+        agent_token_header = session_headers.get("x-agent-token")
+        if agent_token_header:
+            custom_headers["X-Agent-Token"] = agent_token_header
+
+        agent_id = (
+            session_headers.get("x-agent-id")
+            or os.getenv("WRITER_APP_ID")
+        )
+        if agent_id:
+            custom_headers["X-Agent-Id"] = agent_id
+
+        organization_id = (
+            session_headers.get("x-organization-id")
+            or os.getenv("WRITER_ORG_ID")
+        )
+        if organization_id:
+            custom_headers["X-Organization-Id"] = organization_id
 
         try:
             context_client = _ai_client.get(None)
