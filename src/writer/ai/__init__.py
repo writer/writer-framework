@@ -303,36 +303,24 @@ class WriterAIManager:
         from writer.core import get_session
         instance = cls.acquire_instance()
 
-        # Forward attribution headers from the current session and
-        # environment so that downstream services can identify which
-        # deployed agent made each LLM call.
+        # Acquire header from session and set it to the client.
+        # Also resolve the agent ID for body-based attribution
+        # (see get_attribution_extra_body).
 
         current_session = get_session()
-        session_headers: Dict[str, str] = {}
-        if current_session:
-            session_headers = current_session.headers or {}
-
         custom_headers: Dict[str, str] = {}
 
-        agent_token_header = session_headers.get("x-agent-token")
-        if agent_token_header:
-            custom_headers["X-Agent-Token"] = agent_token_header
+        if current_session:
+            session_headers = current_session.headers or {}
+            agent_token_header = session_headers.get("x-agent-token")
+            if agent_token_header:
+                custom_headers["X-Agent-Token"] = agent_token_header
 
-        agent_id = (
-            session_headers.get("x-agent-id")
-            or os.getenv("WRITER_APP_ID")
-        )
-        if agent_id:
-            custom_headers["X-Agent-Id"] = agent_id
-
-        organization_id = (
-            session_headers.get("x-organization-id")
-            or os.getenv("WRITER_ORG_ID")
-        )
-        if organization_id:
-            custom_headers["X-Organization-Id"] = organization_id
-
-        cls._agent_id = agent_id or None
+        cls._agent_id = (
+            (current_session.headers or {}).get("x-agent-id")
+            if current_session
+            else None
+        ) or os.getenv("WRITER_APP_ID")
 
         try:
             context_client = _ai_client.get(None)
