@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from contextvars import ContextVar
 from datetime import datetime
 from functools import wraps
@@ -72,6 +73,10 @@ DEFAULT_COMPLETION_MODEL = "palmyra-x5"
 
 _ai_client: ContextVar[Optional[Writer]] = ContextVar(
     "ai_client", default=None
+)
+
+_ai_agent_id: ContextVar[Optional[str]] = ContextVar(
+    "ai_agent_id", default=None
 )
 
 
@@ -300,19 +305,27 @@ class WriterAIManager:
         from writer.core import get_session
         instance = cls.acquire_instance()
 
-        # Acquire header from session
-        # and set it to the client
+        # Acquire header from session and set it to the client.
+        # Also resolve the agent ID from the session header for
+        # body-based attribution (see get_attribution_extra_body).
+        # We use a ContextVar because AppProcess dispatches requests
+        # concurrently via a ThreadPoolExecutor, so a class-level
+        # attribute would race between sessions.
 
         current_session = get_session()
-        custom_headers = {}
+        custom_headers: Dict[str, str] = {}
 
         if current_session:
-            headers = current_session.headers or {}
-            agent_token_header = headers.get("x-agent-token")
+            session_headers = current_session.headers or {}
+            agent_token_header = session_headers.get("x-agent-token")
             if agent_token_header:
-                custom_headers = {
-                        "X-Agent-Token": agent_token_header
-                    }
+                custom_headers["X-Agent-Token"] = agent_token_header
+
+        _ai_agent_id.set(
+            (current_session.headers or {}).get("x-agent-id")
+            if current_session
+            else None
+        )
 
         try:
             context_client = _ai_client.get(None)
@@ -334,6 +347,31 @@ class WriterAIManager:
                 " environment variable, or by initializing the" +
                 " AI module explicitly: writer.ai.init(\"my-writer-api-key\")"
                 ) from None
+
+    @classmethod
+    def get_attribution_extra_body(
+        cls,
+        user_extra_body: Optional[Any] = None
+    ) -> Optional[Any]:
+        """Merge agent-attribution meta into extra_body for SDK calls.
+
+        The LLM gateway reads ``templateId`` from the request body's
+        ``meta`` field (priority: templateId > template_id > agentId >
+        agent_id).  Injecting it via ``extra_body`` ensures LLM usage
+        is attributed to the correct deployed agent.
+        """
+        if not _ai_agent_id.get():
+            return user_extra_body
+        attribution_meta = {"templateId": _ai_agent_id.get()}
+        if user_extra_body:
+            merged = {**user_extra_body}
+            existing_meta = merged.get("meta")
+            if isinstance(existing_meta, dict):
+                merged["meta"] = {**existing_meta, **attribution_meta}
+            else:
+                merged["meta"] = attribution_meta
+            return merged
+        return {"meta": attribution_meta}
 
 
 class SDKWrapper:
@@ -1931,7 +1969,9 @@ class Conversation:
             top_p=request_data.get('top_p', Omit()),
             extra_headers=request_data.get('extra_headers'),
             extra_query=request_data.get('extra_query'),
-            extra_body=request_data.get('extra_body'),
+            extra_body=WriterAIManager.get_attribution_extra_body(
+                request_data.get('extra_body')
+            ),
             timeout=request_data.get('timeout', NotGiven()),
         )
 
@@ -2987,7 +3027,9 @@ def complete(
         temperature=config.get("temperature", Omit()),
         top_p=config.get("top_p", Omit()),
         extra_headers=config.get("extra_headers"),
-        extra_body=config.get("extra_body"),
+        extra_body=WriterAIManager.get_attribution_extra_body(
+            config.get("extra_body")
+        ),
         extra_query=config.get("extra_query"),
         timeout=config.get("timeout")
         )
@@ -3033,7 +3075,9 @@ def stream_complete(
         temperature=config.get("temperature", Omit()),
         top_p=config.get("top_p", Omit()),
         extra_headers=config.get("extra_headers"),
-        extra_body=config.get("extra_body"),
+        extra_body=WriterAIManager.get_attribution_extra_body(
+            config.get("extra_body")
+        ),
         extra_query=config.get("extra_query"),
         timeout=config.get("timeout")
         )
@@ -3107,6 +3151,12 @@ def ask(
     client = WriterAIManager.acquire_client()
     graph_ids = _gather_graph_ids(graphs_or_graph_ids)
 
+    attribution_body = WriterAIManager.get_attribution_extra_body(
+        config.get("extra_body")
+    )
+    if attribution_body is not None:
+        config = {**config, "extra_body": attribution_body}
+
     response = cast(
         Question,
         client.graphs.question(
@@ -3168,6 +3218,12 @@ def stream_ask(
     config = config or {}
     client = WriterAIManager.acquire_client()
     graph_ids = _gather_graph_ids(graphs_or_graph_ids)
+
+    attribution_body = WriterAIManager.get_attribution_extra_body(
+        config.get("extra_body")
+    )
+    if attribution_body is not None:
+        config = {**config, "extra_body": attribution_body}
 
     response = cast(
         Stream[QuestionResponseChunk],
