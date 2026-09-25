@@ -23,6 +23,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
+      id-token: write
     outputs:
       version: ${{ steps.set_version.outputs.version }}
 
@@ -31,7 +34,17 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ github.event.inputs.commit_sha || github.ref_name }}
+          ref: ${{ github.event.inputs['commit_sha'] || github.ref_name }}
+
+      - name: Fetch secrets from Infisical
+        uses: WriterInternal/devops-github-actions/infisical-secrets@cf0625c0cb6646c057b9bc81c49c8554b2313e27 # v2.3.0
+        with:
+          org-identity-id: ${{ secrets.INFISICAL_ORG_IDENTITY_UUID }}
+          org-project-slug: ${{ secrets.INFISICAL_ORG_PROJECT_SLUG }}
+          repo-identity-id: ${{ secrets.INFISICAL_REPO_IDENTITY_UUID }}
+          repo-project-slug: ${{ secrets.INFISICAL_REPO_PROJECT_SLUG }}
+          env-slug: prod
+          required-keys: LAUNCHDARKLY_ACCESS_TOKEN PYPI_TOKEN
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -81,10 +94,12 @@ jobs:
 
       - name: Determine final version
         id: set_version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs['version'] }}
         run: |
           # Determine version based on workflow inputs or tags
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
           elif [ "${GITHUB_REF_NAME}" = "dev" ]; then
             VERSION="${{ steps.bump_version.outputs.version }}"
           elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
@@ -116,7 +131,7 @@ jobs:
       - name: Upload sourcemaps to LaunchDarkly
         shell: bash
         env:
-          LAUNCHDARKLY_ACCESS_TOKEN: ${{ secrets.LAUNCHDARKLY_ACCESS_TOKEN }}
+          LAUNCHDARKLY_ACCESS_TOKEN: ${{ env.LAUNCHDARKLY_ACCESS_TOKEN }}
           RELEASE_VERSION: ${{ steps.set_version.outputs.version }}
           BASE_PATH: /static
           PROJECT: writer-framework
@@ -130,7 +145,7 @@ jobs:
           WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred install.ci
           WRITER_FRAMEWORK_VERSION=${{ steps.set_version.outputs.version }} poetry run alfred publish.pypi
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ env.PYPI_TOKEN }}
 
       - name: Create and push tag for RC (only dev)
         if: github.ref_name == 'dev'
@@ -148,9 +163,15 @@ jobs:
   trigger-agent-manager:
     needs: [build]
     if: github.ref_name == 'dev'
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/trigger-workflow.yml
     with:
       event_type: framework_updated
       extra_payload: '{"tag": "writer-framework-${{ needs.build.outputs.version }}", "version": "${{ needs.build.outputs.version }}"}'
     secrets:
-      AGENT_MANAGER_PAT: ${{ secrets.AGENT_MANAGER_PAT }}
+      INFISICAL_ORG_IDENTITY_UUID: ${{ secrets.INFISICAL_ORG_IDENTITY_UUID }}
+      INFISICAL_ORG_PROJECT_SLUG: ${{ secrets.INFISICAL_ORG_PROJECT_SLUG }}
+      INFISICAL_REPO_IDENTITY_UUID: ${{ secrets.INFISICAL_REPO_IDENTITY_UUID }}
+      INFISICAL_REPO_PROJECT_SLUG: ${{ secrets.INFISICAL_REPO_PROJECT_SLUG }}
