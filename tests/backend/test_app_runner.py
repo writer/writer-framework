@@ -1,8 +1,11 @@
 import asyncio
+import hashlib
 import threading
+from types import SimpleNamespace
 
 import pytest
-from writer.app_runner import AppRunner
+import watchdog.events
+from writer.app_runner import AppRunner, ProjectHashLogHandler
 from writer.ss_types import (
     EventRequest,
     InitSessionRequest,
@@ -345,3 +348,154 @@ class TestAppRunner:
 
             # Then
             assert res.payload.result["result"] is not None
+
+
+
+@pytest.fixture
+def wf_project_context():
+    return SimpleNamespace(file_hashes={})
+
+
+@pytest.fixture
+def sample_app(tmp_path):
+    """
+    Creates a directory structure:
+    app/
+      a.txt
+      sub/
+        b.txt
+    """
+    app = tmp_path / "app"
+    app.mkdir()
+
+    (app / "a.txt").write_text("hello")
+    sub = app / "sub"
+    sub.mkdir()
+    (sub / "b.txt").write_text("world")
+
+    return app
+
+
+class TestProjectHashLogHandler:
+    @staticmethod
+    def md5_of_bytes(data: bytes) -> str:
+        h = hashlib.md5()
+        h.update(data)
+        return h.hexdigest()
+
+    def test_initial_hashing(self, sample_app, wf_project_context):
+        handler = ProjectHashLogHandler(
+            app_path=str(sample_app),
+            wf_project_context=wf_project_context,
+            patterns=["*"],
+        )
+
+        expected = {
+            str((sample_app / "a.txt").absolute()): self.md5_of_bytes(b"hello"),
+            str((sample_app / "sub" / "b.txt").absolute()): self.md5_of_bytes(b"world"),
+        }
+
+        assert wf_project_context.file_hashes == expected
+        assert handler.project_hash == handler._calculate_project_hash()
+
+
+    def test_project_hash_is_order_independent(self, sample_app, wf_project_context):
+        handler = ProjectHashLogHandler(
+            app_path=str(sample_app),
+            wf_project_context=wf_project_context,
+            patterns=["*"],
+        )
+
+        original_hash = handler.project_hash
+
+        # Reinsert hashes in reverse order
+        items = list(wf_project_context.file_hashes.items())
+        wf_project_context.file_hashes.clear()
+        for k, v in reversed(items):
+            wf_project_context.file_hashes[k] = v
+
+        assert handler._calculate_project_hash() == original_hash
+
+
+    def test_on_modified_updates_file_hash(self, sample_app, wf_project_context):
+        handler = ProjectHashLogHandler(
+            app_path=str(sample_app),
+            wf_project_context=wf_project_context,
+            patterns=["*"],
+        )
+
+        file_path = sample_app / "a.txt"
+        file_path.write_text("changed")
+
+        event = watchdog.events.FileModifiedEvent(str(file_path))
+        handler.on_modified(event)
+
+        assert wf_project_context.file_hashes[str(file_path)] == self.md5_of_bytes(b"changed")
+
+
+    def test_on_created_adds_file(self, sample_app, wf_project_context):
+        handler = ProjectHashLogHandler(
+            app_path=str(sample_app),
+            wf_project_context=wf_project_context,
+            patterns=["*"],
+        )
+
+        new_file = sample_app / "new.txt"
+        new_file.write_text("new")
+
+        event = watchdog.events.FileCreatedEvent(str(new_file))
+        handler.on_created(event)
+
+        assert str(new_file) in wf_project_context.file_hashes
+        assert wf_project_context.file_hashes[str(new_file)] == self.md5_of_bytes(b"new")
+
+
+    def test_on_deleted_removes_file(self, sample_app, wf_project_context):
+        handler = ProjectHashLogHandler(
+            app_path=str(sample_app),
+            wf_project_context=wf_project_context,
+            patterns=["*"],
+        )
+
+        file_path = sample_app / "a.txt"
+        event = watchdog.events.FileDeletedEvent(str(file_path))
+
+        handler.on_deleted(event)
+
+        assert str(file_path) not in wf_project_context.file_hashes
+
+
+    def test_on_moved_updates_hashes(self, sample_app, wf_project_context):
+        handler = ProjectHashLogHandler(
+            app_path=str(sample_app),
+            wf_project_context=wf_project_context,
+            patterns=["*"],
+        )
+
+        src = sample_app / "a.txt"
+        dest = sample_app / "a_renamed.txt"
+        src.rename(dest)
+
+        event = watchdog.events.FileMovedEvent(
+            src_path=str(src),
+            dest_path=str(dest),
+        )
+
+        handler.on_moved(event)
+
+        assert str(src) not in wf_project_context.file_hashes
+        assert str(dest) in wf_project_context.file_hashes
+        assert wf_project_context.file_hashes[str(dest)] == self.md5_of_bytes(b"hello")
+
+
+    def test_process_file_missing_is_ignored(self, sample_app, wf_project_context):
+        handler = ProjectHashLogHandler(
+            app_path=str(sample_app),
+            wf_project_context=wf_project_context,
+            patterns=["*"],
+        )
+
+        missing_file = sample_app / "missing.txt"
+
+        handler._process_file(str(missing_file))
+        assert str(missing_file) not in wf_project_context.file_hashes
