@@ -49,6 +49,7 @@ const iconStyle = computed(() => {
 			'WdsDropdownMenuItem--selected': selected,
 			'WdsDropdownMenuItem--hideIcon': hideIcons,
 			'WdsDropdownMenuItem--danger': option.variant === 'danger',
+			'WdsDropdownMenuItem--placeholder': option.isPlaceholder,
 		}"
 		:style
 		:data-automation-key="option.value"
@@ -152,6 +153,12 @@ const iconStyle = computed(() => {
 }
 .WdsDropdownMenuItem--danger {
 	color: var(--wdsColorOrange5);
+}
+.WdsDropdownMenuItem--placeholder {
+	color: var(--wdsColorGray4);
+}
+.WdsDropdownMenuItem--placeholder .WdsDropdownMenuItem__detail {
+	color: var(--wdsColorGray3);
 }
 
 .WdsDropdownMenuItem__detail,

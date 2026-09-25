@@ -3,6 +3,9 @@
 		<!-- use a `<div>` instead of button because Firefox has an issue with draggable `<button>` https://bugzilla.mozilla.org/show_bug.cgi?id=568313 -->
 		<div
 			class="WdsSelect__trigger"
+			:class="{
+				'WdsSelect__trigger--placeholder': isPlaceholderSelected,
+			}"
 			role="button"
 			tabindex="0"
 			@click="isOpen = !isOpen"
@@ -34,10 +37,10 @@
 					@close="handleRemoveValue(option.value)"
 				/>
 				<p
-					v-if="selectedOptions.length === 0 && placeholder"
+					v-if="selectedOptions.length === 0"
 					class="WdsSelect__trigger__multiSelectLabel__placeholder"
 				>
-					{{ placeholder }}
+					{{ placeholderLabel }}
 				</p>
 			</div>
 			<div
@@ -46,7 +49,7 @@
 				data-writer-tooltip-strategy="overflow"
 				:data-writer-tooltip="currentLabel"
 			>
-				{{ currentLabel ?? placeholder }}
+				{{ currentLabel ?? placeholderLabel }}
 			</div>
 			<div class="WdsSelect__trigger__arrow">
 				<WdsIcon :name="isOpen ? 'chevron-up' : 'chevron-down'" />
@@ -60,7 +63,7 @@
 				:enable-multi-selection="enableMultiSelection"
 				:hide-icons="hideIcons"
 				:loading="loading"
-				:options="options"
+				:options="selectOptions"
 				:selected="currentValue"
 				:style="floatingStyles"
 				@select="onSelect"
@@ -102,6 +105,7 @@ const props = defineProps({
 	enableSearch: { type: Boolean, required: false },
 	enableMultiSelection: { type: Boolean, required: false },
 	loading: { type: Boolean, required: false },
+	required: { type: Boolean, required: false, default: false },
 });
 
 const currentValue = defineModel({
@@ -129,35 +133,84 @@ const { floatingStyles, update: updateFloatingStyle } = useFloating(
 	},
 );
 
-const currentValueArray = computed(() => {
-	if (!currentValue.value) return [];
-	const array = Array.isArray(currentValue.value)
-		? currentValue.value
-		: [currentValue.value];
-	return array.filter(Boolean);
+const PLACEHOLDER_VALUE = "";
+const placeholderLabel = computed(
+	() => props.placeholder ?? "Select an option...",
+);
+
+const shouldInjectPlaceholder = computed(
+	() => !props.required && !props.enableMultiSelection,
+);
+
+const selectOptions = computed<WdsDropdownMenuOption[]>(() => {
+	const normalized = (props.options ?? []).map((option) => ({
+		...option,
+		label:
+			option.label ??
+			(option.value !== undefined ? String(option.value) : ""),
+	}));
+
+	const hasEmptyValueOption = normalized.some(
+		(option) => option.value === PLACEHOLDER_VALUE,
+	);
+
+	const shouldAddPlaceholder =
+		shouldInjectPlaceholder.value && !hasEmptyValueOption;
+
+	if (!shouldAddPlaceholder) {
+		return normalized;
+	}
+
+	return [
+		{
+			value: PLACEHOLDER_VALUE,
+			label: placeholderLabel.value,
+			isPlaceholder: true,
+		},
+		...normalized.filter((option) => !option.isPlaceholder),
+	];
 });
+
+const currentValueArray = computed(() => {
+	const value = currentValue.value;
+	if (value === undefined || value === null) return [];
+	const array = Array.isArray(value) ? value : [value];
+	return array.filter((v) => v !== undefined && v !== null) as string[];
+});
+
+function findOption(value: string | undefined) {
+	if (value === undefined) return undefined;
+	return selectOptions.value.find((option) => option.value === value);
+}
 
 const selectedOptions = computed<WdsDropdownMenuOption[]>(() =>
 	currentValueArray.value.map(
-		(v) =>
-			props.options.find((o) => o.value === v) ?? { value: v, label: v },
+		(value) =>
+			findOption(value) ?? {
+				value,
+				label: String(value),
+			},
 	),
 );
 
-const hasUnknowOptionSelected = computed(() => {
-	return (
-		currentValue.value &&
-		!props.options.some((o) => o.value === currentValue.value)
-	);
-});
+const hasUnknowOptionSelected = computed(() =>
+	currentValueArray.value.some((value) => !findOption(value)),
+);
 
 const currentLabel = computed(() => {
-	if (hasUnknowOptionSelected.value) return String(currentValue.value);
+	if (hasUnknowOptionSelected.value) {
+		return Array.isArray(currentValue.value)
+			? currentValue.value.filter(Boolean).join(" / ")
+			: String(currentValue.value ?? "");
+	}
 
-	return selectedOptions.value
-		.map((o) => o.label)
-		.sort()
-		.join(" / ");
+	const labels = selectedOptions.value.map((o) => o.label).filter(Boolean);
+	if (!labels.length) return undefined;
+
+	const sortedLabels = [...labels].sort((a, b) => a.localeCompare(b));
+	return props.enableMultiSelection
+		? sortedLabels.join(" / ")
+		: sortedLabels[0];
 });
 
 const currentIcon = computed(() => {
@@ -169,6 +222,47 @@ const currentIcon = computed(() => {
 		"circle-question-mark"
 	);
 });
+
+const isPlaceholderSelected = computed(() => {
+	if (props.enableMultiSelection || props.required) return false;
+	return findOption(
+		typeof currentValue.value === "string" ? currentValue.value : undefined,
+	)?.isPlaceholder;
+});
+
+watch(
+	[
+		selectOptions,
+		() => props.required,
+		() => props.enableMultiSelection,
+		() => currentValue.value,
+	],
+	ensureValidSelection,
+	{ immediate: true },
+);
+
+function ensureValidSelection() {
+	if (props.enableMultiSelection) return;
+
+	const options = selectOptions.value;
+	if (!options.length) return;
+
+	const current = currentValue.value;
+	const asString = typeof current === "string" ? current : undefined;
+	const hasCurrentSelection =
+		asString !== undefined && Boolean(findOption(asString));
+
+	if (props.required) {
+		if (!hasCurrentSelection || asString === "") {
+			currentValue.value = options[0].value;
+		}
+		return;
+	}
+
+	if (!hasCurrentSelection) {
+		currentValue.value = PLACEHOLDER_VALUE;
+	}
+}
 
 // close the dropdown when clicking outside
 const hasFocus = useFocusWithin(trigger);
@@ -243,6 +337,9 @@ function handleRemoveValue(value: string) {
 	justify-content: space-between;
 	font-weight: 300;
 	cursor: pointer;
+}
+.WdsSelect__trigger--placeholder .WdsSelect__trigger__label {
+	color: var(--wdsColorGray4);
 }
 
 .WdsSelect__trigger__multiSelectLabel {

@@ -20,6 +20,7 @@ class ChangePage(BlueprintBlock):
                             "name": "Page key",
                             "type": "Text",
                             "desc": "The identifying key of the target page.",
+                            "options": "pageKeys",
                         },
                     },
                     "outs": {
