@@ -5,6 +5,7 @@
 			class="WdsModal colorTransformer"
 			:class="{
 				'WdsModal--overflow': allowOverflow,
+				'WdsModal--compact': size == 'compact',
 				'WdsModal--wide': size == 'wide',
 			}"
 			tabindex="-1"
@@ -78,7 +79,7 @@ export type ModalAction = {
 const props = defineProps({
 	title: { type: String, required: false, default: null },
 	size: {
-		type: String as PropType<"normal" | "wide">,
+		type: String as PropType<"compact" | "normal" | "wide">,
 		required: false,
 		default: "normal",
 	},
@@ -130,6 +131,13 @@ const { title, actions } = toRefs(props);
 
 .WdsModal--wide .WdsModal__main {
 	max-width: 240ch;
+}
+
+.WdsModal--compact .WdsModal__main {
+	width: min(560px, calc(100vw - 32px));
+	max-width: calc(100vw - 32px);
+	gap: 20px;
+	padding: 24px;
 }
 
 .WdsModal--overflow .WdsModal__main,

@@ -46,6 +46,7 @@ pytest ./tests/backend/test_ai.py --full-run
 """
 
 import time
+from contextvars import ContextVar
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -1087,6 +1088,121 @@ def test_init_writer_ai_manager(emulate_app_process):
     manager = init("fake_token")
     assert isinstance(manager, WriterAIManager)
     assert manager.token == "fake_token"
+
+
+# --------------------------------------------------------------------------
+# Attribution body meta on the LLM client
+#
+# When the framework is deployed on the Writer platform it makes LLM calls
+# on behalf of a specific deployed agent. The agent ID must be injected
+# into the request body's "meta" field (as "templateId") so that the LLM
+# gateway can attribute usage events to the correct agent.
+#
+# The agent ID is resolved from the x-agent-id session header and stored
+# in a ContextVar so that concurrent requests (AppProcess uses a
+# ThreadPoolExecutor) cannot race and attribute one session's LLM usage
+# to another session's agent.
+#
+# The tests below verify that the body meta is correctly injected from
+# the session header, merged with user-provided extra_body, and omitted
+# when no attribution context is available.
+# --------------------------------------------------------------------------
+
+
+def _make_stub_session(headers):
+    """A minimal stand-in for WriterSession that only exposes .headers.
+    WriterAIManager.acquire_client uses that attribute only, so this
+    avoids pulling in the full session lifecycle (component tree,
+    state, verifiers) that WriterSession.__init__ would build.
+    """
+    class _StubSession:
+        pass
+
+    stub = _StubSession()
+    stub.headers = headers
+    return stub
+
+
+@pytest.mark.set_token("fake_token")
+def test_attribution_extra_body_injects_templateId(
+    emulate_app_process, monkeypatch
+):
+    """get_attribution_extra_body should return {"meta": {"templateId": ...}}
+    so the LLM gateway can attribute usage to the correct agent via the
+    request body.
+    """
+    session = _make_stub_session({"x-agent-id": "test-agent-id"})
+    monkeypatch.setattr("writer.core.get_session", lambda: session)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+    monkeypatch.setattr("writer.ai._ai_agent_id", ContextVar("ai_agent_id", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    extra_body = WriterAIManager.get_attribution_extra_body(None)
+    assert extra_body == {"meta": {"templateId": "test-agent-id"}}
+
+
+@pytest.mark.set_token("fake_token")
+def test_attribution_extra_body_merges_with_user_extra_body(
+    emulate_app_process, monkeypatch
+):
+    """User-provided extra_body should be preserved, with the attribution
+    meta merged into its "meta" key.
+    """
+    session = _make_stub_session({"x-agent-id": "test-agent-id"})
+    monkeypatch.setattr("writer.core.get_session", lambda: session)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+    monkeypatch.setattr("writer.ai._ai_agent_id", ContextVar("ai_agent_id", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    user_extra_body = {"some_key": "some_value", "meta": {"other_key": "other_val"}}
+    extra_body = WriterAIManager.get_attribution_extra_body(user_extra_body)
+    assert extra_body["some_key"] == "some_value"
+    assert extra_body["meta"]["other_key"] == "other_val"
+    assert extra_body["meta"]["templateId"] == "test-agent-id"
+
+
+@pytest.mark.set_token("fake_token")
+def test_attribution_extra_body_none_when_no_agent_id(
+    emulate_app_process, monkeypatch
+):
+    """When no agent ID is available (no session header), get_attribution_extra_body
+    should return the user-provided extra_body unchanged (or None).
+    """
+    monkeypatch.setattr("writer.core.get_session", lambda: None)
+
+    captured = {}
+
+    def fake_writer_init(self, **kwargs):
+        captured["default_headers"] = kwargs.get("default_headers")
+        self.api_key = kwargs.get("api_key")
+
+    monkeypatch.setattr("writer.ai.Writer.__init__", fake_writer_init)
+    monkeypatch.setattr("writer.ai._ai_client", ContextVar("ai_client", default=None))
+    monkeypatch.setattr("writer.ai._ai_agent_id", ContextVar("ai_agent_id", default=None))
+
+    WriterAIManager.acquire_client(force_new_client=True)
+
+    assert WriterAIManager.get_attribution_extra_body(None) is None
+    user_body = {"key": "val"}
+    assert WriterAIManager.get_attribution_extra_body(user_body) is user_body
 
 
 def test_create_graph(mock_graphs_accessor):
