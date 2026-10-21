@@ -13,8 +13,13 @@ on:
         type: string
         default: "{}"
     secrets:
-      AGENT_MANAGER_PAT:
-        description: 'Personal Access Token for triggering agent manager repo'
+      INFISICAL_ORG_IDENTITY_UUID:
+        required: true
+      INFISICAL_ORG_PROJECT_SLUG:
+        required: true
+      INFISICAL_REPO_IDENTITY_UUID:
+        required: true
+      INFISICAL_REPO_PROJECT_SLUG:
         required: true
 
 permissions:
@@ -23,15 +28,31 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
+    - name: Fetch secrets from Infisical
+      uses: WriterInternal/devops-github-actions/infisical-secrets@cf0625c0cb6646c057b9bc81c49c8554b2313e27 # v2.3.0
+      with:
+        org-identity-id: ${{ secrets.INFISICAL_ORG_IDENTITY_UUID }}
+        org-project-slug: ${{ secrets.INFISICAL_ORG_PROJECT_SLUG }}
+        repo-identity-id: ${{ secrets.INFISICAL_REPO_IDENTITY_UUID }}
+        repo-project-slug: ${{ secrets.INFISICAL_REPO_PROJECT_SLUG }}
+        env-slug: prod
+        required-keys: AGENT_MANAGER_PAT
+
     - name: Trigger agent manager
+      env:
+        EVENT_TYPE: ${{ inputs.event_type }}
+        EXTRA_PAYLOAD: ${{ inputs.extra_payload }}
       run: |
         repo_owner="WriterInternal"
         repo_name="be.agent-manager"
-        event_type="${{ inputs.event_type }}"
+        event_type="$EVENT_TYPE"
         commit_sha="${{ github.sha }}"
-        extra_payload='${{ inputs.extra_payload }}'
+        extra_payload="$EXTRA_PAYLOAD"
 
         echo "Triggering agent manager with event_type=$event_type"
         echo "Extra payload (raw): $extra_payload"
@@ -48,7 +69,7 @@ jobs:
         curl -L \
           -X POST \
           -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.AGENT_MANAGER_PAT }}" \
+          -H "Authorization: Bearer $AGENT_MANAGER_PAT" \
           -H "X-GitHub-Api-Version: 2022-11-28" \
           https://api.github.com/repos/$repo_owner/$repo_name/dispatches \
           -d "{\"event_type\": \"$event_type\", \"client_payload\": $merged_payload}"
